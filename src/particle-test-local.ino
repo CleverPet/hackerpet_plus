@@ -8,6 +8,7 @@
 
 #include "Particle.h"
 #include "softap_http.h"
+#include "http-server-util.h"
 
 
 // enables simultaneous execution of application and system thread
@@ -21,6 +22,7 @@ SerialLogHandler logHandler(LOG_LEVEL_INFO, { // Logging level for all messages
 });
 
 
+// This is for hosting http during listen mode
 void myPages(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Writer* result, void* reserved)
 {
   if (!strcmp(url, "/helloworld")) 
@@ -59,6 +61,11 @@ STARTUP(softap_set_application_page_handler(myPages, nullptr));
 
 
 
+// ***************** http server stuff *****************
+bool system_ready = false;
+IPAddress broadcastAddress;
+// ***************** end http server stuff *****************
+
 
 long last_print = 0;
 
@@ -71,6 +78,24 @@ void setup() {
 // loop() runs over and over again, as quickly as it can execute.
 void loop() {
   // The core of your code will likely live here.
+
+    if (WiFi.ready() && system_ready == false)
+    {
+        broadcastAddress = mgschwan_getBroadcastAddress();
+        system_ready = true;
+        mgschwan_setupNetwork(); //Open TCP Port
+        Log.info("Wifi Ready");
+    }
+    else {
+        //Waiting for the Wifi to become ready        
+    }
+
+    if (system_ready) 
+    {
+        mgschwan_MDNS_loop();
+        mgschwan_serve_webinterface();
+    }
+
 
   if (millis() - last_print > 3000)
   {
