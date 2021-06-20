@@ -84,7 +84,7 @@ void loop() {
         broadcastAddress = mgschwan_getBroadcastAddress();
         system_ready = true;
         mgschwan_setupNetwork(); //Open TCP Port
-        Log.info("Wifi Ready");
+        Log.info("Wifi Ready. Ip Address %s",  WiFi.localIP());
     }
     else {
         //Waiting for the Wifi to become ready        
