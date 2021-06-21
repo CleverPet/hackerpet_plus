@@ -68,14 +68,20 @@ void mgschwan_setupNetwork()
 
 void mgschwan_serve_webinterface() {
     int c = 0, last_c = 0, last_last_c = 0;
+
     webclient = webserver.available();
     bool request_finished = false;
     if (webclient.connected()) {
+        String thing = "";
         while (webclient.available())
         {
             c = webclient.read();
             last_last_c = last_c;
             last_c = c;
+
+            thing += char(c);
+
+
             /* Request finished. We are assuming it is a GET request since 
              * we are only serving a single html file
              * The browser will probably try to access the favicon as well
@@ -89,14 +95,29 @@ void mgschwan_serve_webinterface() {
 
         if (request_finished)
         {
+
+            String content = "";
+            content += "\nhello he world 2xxxxxxx ";
+            content += "\nth:";
+            content += thing;
+            //content += "\nhello again!";
+
             webclient.println("HTTP/1.0 200 OK");
             webclient.println("Content-type: text/html");
             webclient.print("Content-length: ");
-            webclient.println(sizeof("\nhello hello world\n"));
+            webclient.println(content.length());
+            //webclient.println(sizeof(content));
+            //webclient.println(sizeof("\nhello hello world\n\nthing: " + thing));
             //webclient.println(sizeof(bin2c_index_html));
-            webclient.println("");
-            webclient.println("hello hello world");
-            webclient.println("");
+            
+            webclient.print(content);
+            webclient.println();
+            
+            //webclient.println("");
+            //webclient.println("hello hello world\n\n");
+            
+            //webclient.println("thing: " + thing);
+            //webclient.println("");
             //webclient.write(bin2c_index_html, sizeof(bin2c_index_html));
 
             webclient.println("</body>");
