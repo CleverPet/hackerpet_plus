@@ -95,29 +95,57 @@ void mgschwan_serve_webinterface() {
 
         if (request_finished)
         {
+            
+            // extract URL from thing
+            // everything after GET and before next space
 
+            String route = thing.substring(thing.indexOf("GET") + 5);
+            route = route.substring(0, route.indexOf(" "));
+            
             String content = "";
-            content += "\nhello he world 2xxxxxxx ";
-            content += "\nth:";
-            content += thing;
-            //content += "\nhello again!";
+            content += "\n\nhello! <br>";
+            content += "route: (";
+            content += route;
+            content += ") <br>";
+
+            if (route.equalsIgnoreCase("set-12345"))
+            {
+                content += "Setting Variable to 12345 <br>";
+
+                int addr = 10;
+                uint16_t value = 12345;
+                EEPROM.put(addr, value);
+      
+            }
+
+            else if (route.equalsIgnoreCase("set-11"))
+            {
+                content += "Setting Variable to 11 <br>";
+
+                int addr = 10;
+                uint16_t value = 11;
+                EEPROM.put(addr, value);
+            }
+
+            else if (route.equalsIgnoreCase("get"))
+            {
+                content += "Getting Variable <br>";
+                uint16_t objec;
+                int address = 10;
+                EEPROM.get(address, objec);
+                content += "value: ";
+                content += String(int(objec));
+                content += "<br>";
+            }
 
             webclient.println("HTTP/1.0 200 OK");
             webclient.println("Content-type: text/html");
             webclient.print("Content-length: ");
             webclient.println(content.length());
-            //webclient.println(sizeof(content));
-            //webclient.println(sizeof("\nhello hello world\n\nthing: " + thing));
-            //webclient.println(sizeof(bin2c_index_html));
-            
+
             webclient.print(content);
             webclient.println();
             
-            //webclient.println("");
-            //webclient.println("hello hello world\n\n");
-            
-            //webclient.println("thing: " + thing);
-            //webclient.println("");
             //webclient.write(bin2c_index_html, sizeof(bin2c_index_html));
 
             webclient.println("</body>");
