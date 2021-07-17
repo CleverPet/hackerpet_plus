@@ -10,16 +10,11 @@
 #include "softap_http.h"
 #include "http-server-util.h"
 
+// games
+#include "g_ExploringTheTouchpads.h"
 
 // enables simultaneous execution of application and system thread
 SYSTEM_THREAD(ENABLED);
-
-// Use primary serial over USB interface for logging output (9600)
-// Choose logging level here (ERROR, WARN, INFO)
-SerialLogHandler logHandler(LOG_LEVEL_INFO, { // Logging level for all messages
-    { "app.hackerpet", LOG_LEVEL_ERROR }, // Logging level for library messages
-    { "app", LOG_LEVEL_INFO } // Logging level for application messages
-});
 
 
 // This is for hosting http during listen mode
