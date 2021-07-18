@@ -11,7 +11,9 @@
 #include "http-server-util.h"
 
 // games
+#include "g_EatingTheFood.h"
 #include "g_ExploringTheTouchpads.h"
+#include "g_EngagingConsistently.h"
 
 // enables simultaneous execution of application and system thread
 SYSTEM_THREAD(ENABLED);

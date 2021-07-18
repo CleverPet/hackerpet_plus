@@ -38,114 +38,48 @@ BUT, LEAVING OUT setup() and loop() functions!
 */
 
 #include <hackerpet.h>
+#include "game_helper_functions.h"
 
-// Set this to the name of your player (dog, cat, etc.)
-const char playerName[] = "Pet, Clever";
+namespace ExploringTheTouchpads
+{
+  /**
+   * Challenge settings
+   * -------------
+   *
+   * These constants (capitalized SNAKE_CASE) and variables (camelCase) define the
+   * gameplay
+   */
+  const int ENOUGH_SUCCESSES = 3; // if num successes >= ENOUGH_SUCCESSES level-up
+  const int TOO_MANY_MISSES = 4;  // if num misses >= TOO_MANY_MISSES level-down
+  const int HISTORY_LENGTH = 6;  // Number of previous interactions to look at for
+                                // performance
+  int currentLevel = 1;          // starting level
+  const int MAX_LEVEL = 4;       // holds the highest possible level
+  const unsigned long TRAY_PRESENT_DURATION[MAX_LEVEL] = {12000, 10000, 8000,
+                                                          6000};
+  const unsigned long TIMEOUT_DURATIONS[MAX_LEVEL] = {60000, 180000, 600000,
+                                                      99999999};
+  const int YELLOW = 60;          // touchpad color
+  const int BLUE = 60;            // touchpad color
+  const int FLASHING = 0;             // touchpad 0: no FLASHING
+  const int FLASHING_DUTY_CYCLE = 99; // ignored since no FLASHING
 
-/**
- * Challenge settings
- * -------------
- *
- * These constants (capitalized SNAKE_CASE) and variables (camelCase) define the
- * gameplay
- */
-const int ENOUGH_SUCCESSES = 3; // if num successes >= ENOUGH_SUCCESSES level-up
-const int TOO_MANY_MISSES = 4;  // if num misses >= TOO_MANY_MISSES level-down
-const int HISTORY_LENGTH = 6;  // Number of previous interactions to look at for
-                               // performance
-int currentLevel = 1;          // starting level
-const int MAX_LEVEL = 4;       // holds the highest possible level
-const unsigned long TRAY_PRESENT_DURATION[MAX_LEVEL] = {12000, 10000, 8000,
-                                                        6000};
-const unsigned long TIMEOUT_DURATIONS[MAX_LEVEL] = {60000, 180000, 600000,
-                                                    99999999};
-const int YELLOW = 60;          // touchpad color
-const int BLUE = 60;            // touchpad color
-const int FLASHING = 0;             // touchpad 0: no FLASHING
-const int FLASHING_DUTY_CYCLE = 99; // ignored since no FLASHING
+  /**
+   * Global variables and constants
+   * ------------------------------
+   */
+  const unsigned long SOUND_FOODTREAT_DELAY = 1200; // (ms) delay for reward sound
+  const unsigned long SOUND_TOUCHPAD_DELAY = 300; // (ms) delay for touchpad sound
 
-/**
- * Global variables and constants
- * ------------------------------
- */
-const unsigned long SOUND_FOODTREAT_DELAY = 1200; // (ms) delay for reward sound
-const unsigned long SOUND_TOUCHPAD_DELAY = 300; // (ms) delay for touchpad sound
-
-bool performance[HISTORY_LENGTH] = {0}; // store the progress in this challenge
-unsigned char perfPos = 0;   // to keep our pos in the performance array
-unsigned char perfDepth = 0; // to keep the size of the number of perf numbers
-                              // to consider
-
-// Use primary serial over USB interface for logging output (9600)
-// Choose logging level here (ERROR, WARN, INFO)
-SerialLogHandler logHandler(LOG_LEVEL_INFO, { // Logging level for all messages
-    { "app.hackerpet", LOG_LEVEL_ERROR }, // Logging level for library messages
-    { "app", LOG_LEVEL_INFO } // Logging level for application messages
-});
-
-// access to hub functionality (lights, foodtreats, etc.)
-HubInterface hub;
-
-
-// enables simultaneous execution of application and system thread
-SYSTEM_THREAD(ENABLED);
-
-/**
- * Helper functions
- * ----------------
- */
-
-/// return the number of successful interactions in performance history for current level
-int countSuccesses() {
-  unsigned int total = 0;
-  for (unsigned char i = 0; i <= perfDepth - 1; i++)
-    if (performance[i] == 1)
-      total++;
-  return total;
-}
-
-/// return the number of misses in performance history for current level
-int countMisses() {
-  unsigned int total = 0;
-  for (unsigned char i = 0; i <= perfDepth - 1; i++)
-    if (performance[i] == 0)
-      total++;
-  return total;
-}
-
-/// reset performance history to 0
-void resetPerformanceHistory() {
-  for (unsigned char i = 0; i < HISTORY_LENGTH; i++)
-    performance[i] = 0;
-  perfPos = 0;
-  perfDepth = 0;
-}
-
-/// add a interaction result to the performance history
-void addResultToPerformanceHistory(bool entry) {
-  // Log.info("Adding %u", entry);
-  performance[perfPos] = entry;
-  perfPos++;
-  if (perfDepth < HISTORY_LENGTH)
-    perfDepth++;
-  if (perfPos > (HISTORY_LENGTH - 1)) { // make our performance array circular
-    perfPos = 0;
-  }
-  // Log.info("perfPos %u, perfDepth %u", perfPos, perfDepth);
-  Log.info("New successful interactions: %u, misses: %u", countSuccesses(),
-           countMisses());
-}
-
-/// print the performance history for debugging
-void printPerformanceArray() {
-  Serial.printf("performance: ");
-  for (unsigned char i = 0; i < HISTORY_LENGTH; i++)
-    Serial.printf("%u", performance[i]);
-  Serial.printf("\n");
+  bool performance[HISTORY_LENGTH] = {0}; // store the progress in this challenge
+  unsigned char perfPos = 0;   // to keep our pos in the performance array
+  unsigned char perfDepth = 0; // to keep the size of the number of perf numbers
+                                // to consider
 }
 
 //// The actual ExploringTheTouchpads function. This function needs to be called in a loop.
 bool playExploringTheTouchpads() {
+  using namespace ExploringTheTouchpads;
   yield_begin();
 
   static bool foodtreatWasEaten = false; // store if foodtreat was eaten in last interaction
@@ -172,7 +106,7 @@ bool playExploringTheTouchpads() {
   Log.info("-------------------------------------------");
   Log.info("Starting new \"Exploring The Touchpads\" challenge");
   Log.info("Current level: %u, successes: %u, num misses: %u", currentLevel,
-           countSuccesses(), countMisses());
+           countSuccesses(performance, perfDepth), countMisses(performance, perfDepth));
 
   gameStartTime = Time.now();
 
@@ -268,34 +202,34 @@ bool playExploringTheTouchpads() {
 
   // Check if we're ready for next challenge
   if (currentLevel == MAX_LEVEL) {
-    addResultToPerformanceHistory(foodtreatWasEaten);
-    if (countSuccesses() >= ENOUGH_SUCCESSES) {
+    addResultToPerformanceHistory(foodtreatWasEaten, performance, perfDepth, perfPos, HISTORY_LENGTH);
+    if (countSuccesses(performance, perfDepth) >= ENOUGH_SUCCESSES) {
       Log.info("At MAX level! %u", currentLevel);
       challengeComplete = true;
-      resetPerformanceHistory();
+      resetPerformanceHistory(performance, perfDepth, perfPos, HISTORY_LENGTH);
     }
   } else {
     // Increase level if foodtreat eaten and good performance in this level
-    addResultToPerformanceHistory(foodtreatWasEaten);
-    if (countSuccesses() >= ENOUGH_SUCCESSES) {
+    addResultToPerformanceHistory(foodtreatWasEaten, performance, perfDepth, perfPos, HISTORY_LENGTH);
+    if (countSuccesses(performance, perfDepth) >= ENOUGH_SUCCESSES) {
       if (currentLevel < MAX_LEVEL) {
         currentLevel++;
         Log.info("Leveling UP %u", currentLevel);
-        resetPerformanceHistory();
+        resetPerformanceHistory(performance, perfDepth, perfPos, HISTORY_LENGTH);
       }
     }
   }
 
   // Decrease level if bad performance in this level
-  if (countMisses() >= TOO_MANY_MISSES) {
+  if (countMisses(performance, perfDepth) >= TOO_MANY_MISSES) {
     if (currentLevel > 1) {
       currentLevel--;
       Log.info("Leveling DOWN %u", currentLevel);
-      resetPerformanceHistory();
+      resetPerformanceHistory(performance, perfDepth, perfPos, HISTORY_LENGTH);
     }
   }
 
-  // printPerformanceArray();
+  // printPerformanceArray(performance, HISTORY_LENGTH);
 
   hub.SetDIResetLock(false); // allow DI board to reset if needed between interactions
   yield_finish();
@@ -303,5 +237,52 @@ bool playExploringTheTouchpads() {
 }
 
 
+// new loop to call; same as original loop() below, but without hub.Run(20)
+void ExploringTheTouchpads_Loop()
+{
+  using namespace ExploringTheTouchpads;
+
+  bool gameIsComplete = false;
+
+  // Play 1 level of the ExploringTheTouchpads challenge
+  gameIsComplete = playExploringTheTouchpads(); // Will return true if level is done
+
+  if (gameIsComplete) {
+    return;
+  }
+}
+
+
+
+// original for reference:
+
+// /**
+//  * Setup function
+//  * --------------
+//  */
+// void setup() {
+//   // Initializes the hub and passes the current filename as ID for reporting
+//   hub.Initialize(__FILE__);
+//   Log.info("Starting new \"Exploring The Touchpads\" challenge");
+// }
+
+// /**
+//  * Main loop function
+//  * ------------------
+//  */
+// void loop() {
+//   bool gameIsComplete = false;
+
+//   // Advance the device layer state machine, but with 20 ms max time
+//   // spent per loop cycle.
+//   hub.Run(20);
+
+//   // Play 1 level of the ExploringTheTouchpads challenge
+//   gameIsComplete = playExploringTheTouchpads(); // Will return true if level is done
+
+//   if (gameIsComplete) {
+//     return;
+//   }
+// }
 
 #endif
