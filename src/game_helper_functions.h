@@ -15,7 +15,7 @@ SerialLogHandler logHandler(LOG_LEVEL_INFO, { // Logging level for all messages
 
 
 // access to hub functionality (lights, foodtreats, etc.)
-HubInterface hub;
+extern HubInterface hub;
 
 
 

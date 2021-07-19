@@ -30,6 +30,9 @@
 #include "game_helper_functions.h"
 
 
+HubInterface hub;
+
+
 namespace EatingTheFood
 {
 
