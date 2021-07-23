@@ -68,7 +68,10 @@ long last_print = 0;
 
 // setup() runs once, when the device is first turned on.
 void setup() {
+
   // Put initialization like pinMode and begin functions here.
+  
+  hub.Initialize("game_ID_here_TODO");
 
 }
 
@@ -101,5 +104,8 @@ void loop() {
       Log.info("running loop... %i", last_print);
 
   }
+
+  hub.Run(20);
+  EngagingConsistently_Loop();
 
 }
