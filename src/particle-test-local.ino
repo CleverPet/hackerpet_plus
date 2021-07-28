@@ -65,12 +65,17 @@ IPAddress broadcastAddress;
 
 
 long last_print = 0;
+int GAME_TO_PLAY;
 
 // setup() runs once, when the device is first turned on.
 void setup() {
 
   // Put initialization like pinMode and begin functions here.
-  
+
+  // TODO read GAME_TO_PLAY from eeprom!
+  // what if no GAME_TO_PLAY ever written to eeprom?  ??????????????????????????????????????
+  GAME_TO_PLAY = 0;
+
   hub.Initialize("game_ID_here_TODO");
 
 }
@@ -93,7 +98,16 @@ void loop() {
     if (system_ready) 
     {
         mgschwan_MDNS_loop();
-        mgschwan_serve_webinterface();
+        int new_game_selected = mgschwan_serve_webinterface();
+
+        if (new_game_selected >= 0 && new_game_selected != GAME_TO_PLAY)
+        {
+            // TODO
+            // write new game to eeprom
+            Log.info("New game selected %i", new_game_selected);
+            GAME_TO_PLAY = new_game_selected;
+        }
+
     }
 
 
@@ -106,6 +120,23 @@ void loop() {
   }
 
   hub.Run(20);
-  EngagingConsistently_Loop();
-
+ 
+  if (GAME_TO_PLAY == 0)
+  {
+      EatingTheFood_Loop();
+  }
+  else if (GAME_TO_PLAY == 1)
+  {
+      ExploringTheTouchpads_Loop();
+  }
+  else if (GAME_TO_PLAY == 2)
+  {
+      EngagingConsistently_Loop();
+  }
+  else
+  {
+      Log.error("Invalid game selected!");
+  }
+  
+  
 }

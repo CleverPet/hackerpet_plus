@@ -66,8 +66,9 @@ void mgschwan_setupNetwork()
 
 
 
-void mgschwan_serve_webinterface() {
+int mgschwan_serve_webinterface() {
     int c = 0, last_c = 0, last_last_c = 0;
+    int new_game_selected = -1;
 
     webclient = webserver.available();
     bool request_finished = false;
@@ -95,13 +96,63 @@ void mgschwan_serve_webinterface() {
 
         if (request_finished)
         {
+            // check URL for game to set, or none (keep playing current game)
+            String route = thing.substring(thing.indexOf("GET") + 5);
+            route = route.substring(0, route.indexOf(" "));
+
+            String content = "";
+            content += "<br>";
+
+            // return the id from this function at the end; or, return what? -1? to indicate no new choice?
+            if (route.equalsIgnoreCase("game-0"))
+            {
+                new_game_selected = 0;
+                content += "selected game 0!<br>";
+            }
+            else if (route.equalsIgnoreCase("game-1"))
+            {
+                new_game_selected = 1;
+                content += "selected game 1!<br>";                   
+            }
+            else if (route.equalsIgnoreCase("game-2"))
+            {
+                new_game_selected = 2;
+                content += "selected game 2!<br>";
+            }
+
+            // print list of games and URL to go to
+
+
+            //      <a href="https://www.w3schools.com">Visit W3Schools.com!</a>
+            content += "<br>";
+            content += "select game:<br>";
+            content += "<a href=\"http://cleverpet.local/game-0\">Eating the Food</a><br>";
+            content += "<a href=\"http://cleverpet.local/game-1\">Exploring the Touchpads</a><br>";
+            content += "<a href=\"http://cleverpet.local/game-2\">Engaging Consistently</a><br>";
+
+            webclient.println("HTTP/1.0 200 OK");
+            webclient.println("Content-type: text/html");
+            webclient.print("Content-length: ");
+            webclient.println(content.length());
+
+            webclient.print(content);
+            webclient.println();
+            
+            //webclient.write(bin2c_index_html, sizeof(bin2c_index_html));
+
+            webclient.println("</body>");
+
+        }
+
+        if (false)  // testing only!
+        {
             
             // extract URL from thing
             // everything after GET and before next space
 
             String route = thing.substring(thing.indexOf("GET") + 5);
             route = route.substring(0, route.indexOf(" "));
-            
+
             String content = "";
             content += "\n\nhello! <br>";
             content += "route: (";
@@ -154,6 +205,8 @@ void mgschwan_serve_webinterface() {
         delay (1); //That is a hack to allow the browser to receive the data
         webclient.stop();
     }
+
+    return new_game_selected;
 }
 
 void mgschwan_MDNS_loop() {
