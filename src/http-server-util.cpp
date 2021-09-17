@@ -94,14 +94,41 @@ int mgschwan_serve_webinterface() {
             }
         }
 
-        if (request_finished)
+        if (false)
+        {
+            String route = thing.substring(thing.indexOf("GET") + 5);
+            route = route.substring(0, route.indexOf(" "));
+
+            String content = "";
+            content += "<!DOCTYPE html>";
+            content += "<html>";
+            content += "<body>";
+            content += "<h1>My First Heading</h1>";
+            content += "<p>My first paragraph.</p>";
+            content += "</body>";
+            content += "</html>";
+            
+            // LOOK AT REAL WEB PAGES
+
+            webclient.println("HTTP/1.0 200 OK");
+            webclient.println("Content-type: text/html");
+            webclient.print("Content-length: ");
+            webclient.println(content.length());
+            webclient.println("");
+            webclient.print(content);
+            webclient.println();
+        }
+
+        if (request_finished)  //request_finished)
         {
             // check URL for game to set, or none (keep playing current game)
             String route = thing.substring(thing.indexOf("GET") + 5);
             route = route.substring(0, route.indexOf(" "));
 
             String content = "";
-            content += "<br>";
+            content += "<!DOCTYPE html>";
+            content += "<html>";
+            content += "<body>";
 
             // return the id from this function at the end; or, return what? -1? to indicate no new choice?
             if (route.equalsIgnoreCase("game-0"))
@@ -130,17 +157,17 @@ int mgschwan_serve_webinterface() {
             content += "<a href=\"http://cleverpet.local/game-1\">Exploring the Touchpads</a><br>";
             content += "<a href=\"http://cleverpet.local/game-2\">Engaging Consistently</a><br>";
 
+
+            content += "</body>";
+            content += "</html>";
+            
             webclient.println("HTTP/1.0 200 OK");
             webclient.println("Content-type: text/html");
             webclient.print("Content-length: ");
             webclient.println(content.length());
-
+            webclient.println("");
             webclient.print(content);
             webclient.println();
-            
-            //webclient.write(bin2c_index_html, sizeof(bin2c_index_html));
-
-            webclient.println("</body>");
 
         }
 
