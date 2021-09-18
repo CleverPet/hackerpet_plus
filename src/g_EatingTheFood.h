@@ -183,7 +183,7 @@ bool playEatingTheFood() {
 
 
 // new loop to call; same as original loop() below, but without hub.Run(20)
-void EatingTheFood_Loop()
+bool EatingTheFood_Loop()
 {
   using namespace EatingTheFood;
   unsigned int perf_total = 0;  // sum of performance of the
@@ -214,6 +214,8 @@ void EatingTheFood_Loop()
       for (unsigned char i = 0; i < HISTORY_LENGTH; ++i) performance[i] = 0;
     }
   }
+  
+  return gameIsComplete;
 }
 
 

@@ -242,7 +242,7 @@ bool playEngagingConsistently() {
 
 
 // new loop to call; same as original loop() below, but without hub.Run(20)
-void EngagingConsistently_Loop()
+bool EngagingConsistently_Loop()
 {
   using namespace EngagingConsistently;
   bool gameIsComplete = false;
@@ -266,9 +266,7 @@ void EngagingConsistently_Loop()
     reset_challenge_timer = true;
   }
 
-  if(gameIsComplete){
-    return;
-  }
+  return gameIsComplete;
 }
 
 

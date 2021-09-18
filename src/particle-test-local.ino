@@ -66,6 +66,7 @@ IPAddress broadcastAddress;
 
 long last_print = 0;
 int GAME_TO_PLAY;
+int NEXT_GAME_TO_PLAY;
 
 // setup() runs once, when the device is first turned on.
 void setup() {
@@ -75,6 +76,7 @@ void setup() {
   // TODO read GAME_TO_PLAY from eeprom!
   // what if no GAME_TO_PLAY ever written to eeprom?  ??????????????????????????????????????
   GAME_TO_PLAY = 2;
+  NEXT_GAME_TO_PLAY = 2;
 
   hub.Initialize("game_ID_here_TODO");
 
@@ -110,7 +112,7 @@ void loop() {
             // TODO
             // write new game to eeprom
             Log.info("New game selected %i", new_game_selected);
-            GAME_TO_PLAY = new_game_selected;
+            NEXT_GAME_TO_PLAY = new_game_selected;
         }
 
     }
@@ -122,24 +124,31 @@ void loop() {
 
     long int millis_step_2 = millis() - millis_start;
     millis_start = millis();
- 
+    
+    bool trial_done = false;
+
     if (GAME_TO_PLAY == 0)
     {
-        EatingTheFood_Loop();
+        trial_done = EatingTheFood_Loop();
     }
     else if (GAME_TO_PLAY == 1)
     {
-        ExploringTheTouchpads_Loop();
+        trial_done = ExploringTheTouchpads_Loop();
     }
     else if (GAME_TO_PLAY == 2)
     {
-        EngagingConsistently_Loop();
+        trial_done = EngagingConsistently_Loop();
     }
     else
     {
         Log.error("Invalid game selected!");
     }
     
+    if (trial_done && (NEXT_GAME_TO_PLAY != GAME_TO_PLAY))
+    {
+        GAME_TO_PLAY = NEXT_GAME_TO_PLAY;
+    }
+
     long int millis_step_3 = millis() - millis_start;
     millis_start = millis();
 

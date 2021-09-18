@@ -238,7 +238,7 @@ bool playExploringTheTouchpads() {
 
 
 // new loop to call; same as original loop() below, but without hub.Run(20)
-void ExploringTheTouchpads_Loop()
+bool ExploringTheTouchpads_Loop()
 {
   using namespace ExploringTheTouchpads;
 
@@ -247,9 +247,7 @@ void ExploringTheTouchpads_Loop()
   // Play 1 level of the ExploringTheTouchpads challenge
   gameIsComplete = playExploringTheTouchpads(); // Will return true if level is done
 
-  if (gameIsComplete) {
-    return;
-  }
+  return gameIsComplete;
 }
 
 
