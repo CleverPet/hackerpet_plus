@@ -74,7 +74,7 @@ void setup() {
 
   // TODO read GAME_TO_PLAY from eeprom!
   // what if no GAME_TO_PLAY ever written to eeprom?  ??????????????????????????????????????
-  GAME_TO_PLAY = 0;
+  GAME_TO_PLAY = 2;
 
   hub.Initialize("game_ID_here_TODO");
 
@@ -82,8 +82,10 @@ void setup() {
 
 // loop() runs over and over again, as quickly as it can execute.
 void loop() {
-  // The core of your code will likely live here.
 
+    long int millis_start = millis();
+
+    millis_start = millis();
     if (WiFi.ready() && system_ready == false)
     {
         broadcastAddress = mgschwan_getBroadcastAddress();
@@ -94,6 +96,9 @@ void loop() {
     else {
         //Waiting for the Wifi to become ready        
     }
+    
+    long int millis_step_0 = millis() - millis_start;
+    millis_start = millis();
 
     if (system_ready) 
     {
@@ -110,33 +115,44 @@ void loop() {
 
     }
 
+    long int millis_step_1 = millis() - millis_start;
+    millis_start = millis();
 
-  if (millis() - last_print > 3000)
-  {
+    hub.Run(20);
 
-      last_print = millis();
-      Log.info("running loop... %i", last_print);
-
-  }
-
-  hub.Run(20);
+    long int millis_step_2 = millis() - millis_start;
+    millis_start = millis();
  
-  if (GAME_TO_PLAY == 0)
-  {
-      EatingTheFood_Loop();
-  }
-  else if (GAME_TO_PLAY == 1)
-  {
-      ExploringTheTouchpads_Loop();
-  }
-  else if (GAME_TO_PLAY == 2)
-  {
-      EngagingConsistently_Loop();
-  }
-  else
-  {
-      Log.error("Invalid game selected!");
-  }
-  
+    if (GAME_TO_PLAY == 0)
+    {
+        EatingTheFood_Loop();
+    }
+    else if (GAME_TO_PLAY == 1)
+    {
+        ExploringTheTouchpads_Loop();
+    }
+    else if (GAME_TO_PLAY == 2)
+    {
+        EngagingConsistently_Loop();
+    }
+    else
+    {
+        Log.error("Invalid game selected!");
+    }
+    
+    long int millis_step_3 = millis() - millis_start;
+    millis_start = millis();
+
+    if (millis() - last_print > 2000)
+    {
+
+        last_print = millis();
+        Log.info("ran loop... %i", last_print);
+        Log.info("    millis 0: %i", millis_step_0);
+        Log.info("    millis 1: %i", millis_step_1);
+        Log.info("    millis 2: %i", millis_step_2);
+        Log.info("    millis 3: %i", millis_step_3);
+    }
+
   
 }
