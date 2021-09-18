@@ -105,7 +105,7 @@ void loop() {
     if (system_ready) 
     {
         mgschwan_MDNS_loop();
-        int new_game_selected = mgschwan_serve_webinterface();
+        int new_game_selected = mgschwan_serve_webinterface(GAME_TO_PLAY, NEXT_GAME_TO_PLAY);
 
         if (new_game_selected >= 0 && new_game_selected != GAME_TO_PLAY)
         {

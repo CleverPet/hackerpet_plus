@@ -66,9 +66,11 @@ void mgschwan_setupNetwork()
 
 
 
-int mgschwan_serve_webinterface() {
+int mgschwan_serve_webinterface(int current_game, int next_game) {
     int c = 0, last_c = 0, last_last_c = 0;
     int new_game_selected = -1;
+    
+    int overrideable_next_game = next_game;
 
     webclient = webserver.available();
     bool request_finished = false;
@@ -134,29 +136,65 @@ int mgschwan_serve_webinterface() {
             if (route.equalsIgnoreCase("game-0"))
             {
                 new_game_selected = 0;
-                content += "selected game 0!<br>";
+                //content += "selected game 0!<br>";
             }
             else if (route.equalsIgnoreCase("game-1"))
             {
                 new_game_selected = 1;
-                content += "selected game 1!<br>";                   
+                //content += "selected game 1!<br>";                   
             }
             else if (route.equalsIgnoreCase("game-2"))
             {
                 new_game_selected = 2;
-                content += "selected game 2!<br>";
+                //content += "selected game 2!<br>";
             }
 
+            if (new_game_selected >= 0)
+            {
+                overrideable_next_game = new_game_selected;
+            }
             // print list of games and URL to go to
-
-
-            //      <a href="https://www.w3schools.com">Visit W3Schools.com!</a>
+            
             content += "<br>";
-            content += "select game:<br>";
-            content += "<a href=\"http://cleverpet.local/game-0\">Eating the Food</a><br>";
-            content += "<a href=\"http://cleverpet.local/game-1\">Exploring the Touchpads</a><br>";
-            content += "<a href=\"http://cleverpet.local/game-2\">Engaging Consistently</a><br>";
+            content += "select game:<br><br>";
+            if (current_game == 0)
+            {
+                content += "[<b>playing</b>] <a href=\"http://cleverpet.local/game-0\">Eating the Food</a><br>";
+            }
+            else if (overrideable_next_game == 0)
+            {
+                content += "[<b>queued </b>] <a href=\"http://cleverpet.local/game-0\">Eating the Food</a><br>";
+            }
+            else
+            {
+                content += "[-------] <a href=\"http://cleverpet.local/game-0\">Eating the Food</a><br>";
+            }
 
+            if (current_game == 1)
+            {
+                content += "[<b>playing</b>] <a href=\"http://cleverpet.local/game-1\">Exploring the Touchpads</a><br>";
+            }
+            else if (overrideable_next_game == 1)
+            {
+                content += "[<b>queued </b>] <a href=\"http://cleverpet.local/game-1\">Exploring the Touchpads</a><br>";
+            }
+            else
+            {
+                content += "[-------] <a href=\"http://cleverpet.local/game-1\">Exploring the Touchpads</a><br>";
+            }
+
+            if (current_game == 2)
+            {
+                content += "[<b>playing</b>] <a href=\"http://cleverpet.local/game-2\">Engaging Consistently</a><br>";
+            }
+            else if (overrideable_next_game == 2)
+            {
+                content += "[<b>queued </b>] <a href=\"http://cleverpet.local/game-2\">Engaging Consistently</a><br>";
+            }
+            else
+            {
+                content += "[-------] <a href=\"http://cleverpet.local/game-2\">Engaging Consistently</a><br>";
+            }
 
             content += "</body>";
             content += "</html>";
