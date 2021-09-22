@@ -123,6 +123,8 @@ int mgschwan_serve_webinterface(int current_game, int next_game) {
 
         if (request_finished)  //request_finished)
         {
+            // this is where we will look for POST request first. Need to check if GET or POST
+
             // check URL for game to set, or none (keep playing current game)
             String route = thing.substring(thing.indexOf("GET") + 5);
             route = route.substring(0, route.indexOf(" "));

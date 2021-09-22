@@ -67,6 +67,8 @@ IPAddress broadcastAddress;
 long last_print = 0;
 int GAME_TO_PLAY;
 int NEXT_GAME_TO_PLAY;
+int EVER_STORED_ADDRESS = 10;  // what are valid addresses?
+int GAME_ADDRESS = 20;  // what are valid addresses?
 
 // setup() runs once, when the device is first turned on.
 void setup() {
@@ -75,10 +77,38 @@ void setup() {
 
   // TODO read GAME_TO_PLAY from eeprom!
   // what if no GAME_TO_PLAY ever written to eeprom?  ??????????????????????????????????????
-  GAME_TO_PLAY = 2;
-  NEXT_GAME_TO_PLAY = 2;
+    
 
-  hub.Initialize("game_ID_here_TODO");
+    bool ever_stored = false;  // have we ever stored a game to eeprom? check value against "checksum"
+    uint16_t ever_stored_check;
+    EEPROM.get(EVER_STORED_ADDRESS, ever_stored_check);
+
+    if (ever_stored_check == 12345)
+    {
+        ever_stored = true;
+    }
+
+    if (ever_stored)
+    {
+        uint16_t game_val;
+        EEPROM.get(GAME_ADDRESS, game_val);
+        GAME_TO_PLAY = game_val;
+        NEXT_GAME_TO_PLAY = game_val;
+    }
+    else
+    {
+        GAME_TO_PLAY = 0;
+        NEXT_GAME_TO_PLAY = 0;
+
+        uint16_t value = 12345;
+        EEPROM.put(EVER_STORED_ADDRESS, value);
+        value = GAME_TO_PLAY;
+        EEPROM.put(GAME_ADDRESS, value);
+    }
+
+    // TODO upon game switch, need to also write to eeprom!
+
+    hub.Initialize("game_ID_here_TODO");
 
 }
 
@@ -113,6 +143,10 @@ void loop() {
             // write new game to eeprom
             Log.info("New game selected %i", new_game_selected);
             NEXT_GAME_TO_PLAY = new_game_selected;
+            
+            // why set it here? edge case: user selects game, then hub resets / turns off before trial completes. still starts on most recently selected game in this case.
+            uint16_t value = NEXT_GAME_TO_PLAY;
+            EEPROM.put(GAME_ADDRESS, value);
         }
 
     }
