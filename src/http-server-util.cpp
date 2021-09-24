@@ -66,6 +66,42 @@ void mgschwan_setupNetwork()
 
 
 
+String get_css_string()
+{
+    String css_str = ".inline {"
+                     "display: inline;"
+                     "}"
+                     ""
+                    ".link-button {"
+                    "background: none;"
+                    "border: none;"
+                    "color: blue;"
+                    "text-decoration: underline;"
+                    "cursor: pointer;"
+                    "font-size: 1em;"
+                    "font-family: serif;"
+                    "}"
+                    ".link-button:focus {"
+                    "outline: none;"
+                    "}"
+                    ".link-button:active {"
+                    "color:red;"
+                    "}";
+
+    return css_str;
+
+}
+
+String get_post_link_string(String text, String name, String value)
+{
+    String post_link_str = "<form method=\"post\" action=\"http://cleverpet.local\" class=\"inline\">"
+                           "<input type=\"hidden\" name=\"" + name + "\" value=\"" + value + "\">"
+                           "<button type=\"submit\" name=\"submit_param\" value=\"submit_value\" class=\"link-button\">" + text + ""
+                           "</button>"
+                           "</form>";
+    return post_link_str;
+}
+
 int mgschwan_serve_webinterface(int current_game, int next_game) {
     int c = 0, last_c = 0, last_last_c = 0;
     int new_game_selected = -1;
@@ -121,17 +157,49 @@ int mgschwan_serve_webinterface(int current_game, int next_game) {
             {
                 // get and process new game value
                 // this is the section where we will set new_game_selected, not below
+                
+                //Log.info("POST request string:");
+                //Log.print(thing);
+                
+                String new_game_str = thing.substring(thing.indexOf("game=") + 5, thing.indexOf("game=") + 6);
+
+                
+                if (new_game_str.equalsIgnoreCase("0"))
+                {
+                    new_game_selected = 0;
+                    Log.info("POST: selected game 0!");
+                }
+                else if (new_game_str.equalsIgnoreCase("1"))
+                {
+                    new_game_selected = 1;
+                    Log.info("POST: selected game 1!");          
+                }
+                else if (new_game_str.equalsIgnoreCase("2"))
+                {
+                    new_game_selected = 2;
+                    Log.info("POST: selected game 2!");
+                }
+
+                if (new_game_selected >= 0)
+                {
+                    overrideable_next_game = new_game_selected;
+                }
+                
+            
             }
 
-            if (req_get)
+            if (req_get || req_post)
             {
                 // check URL for game to set, or none (keep playing current game)
-                String route = thing.substring(thing.indexOf("GET") + 5);
-                route = route.substring(0, route.indexOf(" "));
+                //String route = thing.substring(thing.indexOf("GET") + 5);
+                //route = route.substring(0, route.indexOf(" "));
 
                 String content = "";
                 content += "<!DOCTYPE html>";
                 content += "<html>";
+                content += "<head><style>";
+                content += get_css_string();
+                content += "</style></head>";
                 content += "<body>";
 
                 // enable for debugging full GET request:
@@ -141,68 +209,56 @@ int mgschwan_serve_webinterface(int current_game, int next_game) {
 
                 // return the id from this function at the end; or, return what? -1? to indicate no new choice?
 
-                //  TODO THIS STUFF MOVES TO POST ABOVE!!!
-                if (route.equalsIgnoreCase("game-0"))
-                {
-                    new_game_selected = 0;
-                    //content += "selected game 0!<br>";
-                }
-                else if (route.equalsIgnoreCase("game-1"))
-                {
-                    new_game_selected = 1;
-                    //content += "selected game 1!<br>";                   
-                }
-                else if (route.equalsIgnoreCase("game-2"))
-                {
-                    new_game_selected = 2;
-                    //content += "selected game 2!<br>";
-                }
-
-                if (new_game_selected >= 0)
-                {
-                    overrideable_next_game = new_game_selected;
-                }
                 // print list of games and URL to go to
                 
                 content += "<br>";
                 content += "select game:<br><br>";
                 if (current_game == 0)
                 {
-                    content += "[<b>playing</b>] <a href=\"http://cleverpet.local/game-0\">Eating the Food</a><br>";
+                    //content += "[<b>playing</b>] <a href=\"http://cleverpet.local/game-0\">Eating the Food</a><br>";
+                    content += "[<b>playing</b>] " + get_post_link_string("Eating the Food", "game", "0") + "<br>";
                 }
                 else if (overrideable_next_game == 0)
                 {
-                    content += "[<b>queued </b>] <a href=\"http://cleverpet.local/game-0\">Eating the Food</a><br>";
+                    //content += "[<b>queued </b>] <a href=\"http://cleverpet.local/game-0\">Eating the Food</a><br>";
+                    content += "[<b>queued</b>] " + get_post_link_string("Eating the Food", "game", "0") + "<br>";
                 }
                 else
                 {
-                    content += "[-------] <a href=\"http://cleverpet.local/game-0\">Eating the Food</a><br>";
+                    //content += "[-------] <a href=\"http://cleverpet.local/game-0\">Eating the Food</a><br>";
+                    content += "[-------] " + get_post_link_string("Eating the Food", "game", "0") + "<br>";
                 }
 
                 if (current_game == 1)
                 {
-                    content += "[<b>playing</b>] <a href=\"http://cleverpet.local/game-1\">Exploring the Touchpads</a><br>";
+                    //content += "[<b>playing</b>] <a href=\"http://cleverpet.local/game-1\">Exploring the Touchpads</a><br>";
+                    content += "[<b>playing</b>] " + get_post_link_string("Exploring the Touchpads", "game", "1") + "<br>";
                 }
                 else if (overrideable_next_game == 1)
                 {
-                    content += "[<b>queued </b>] <a href=\"http://cleverpet.local/game-1\">Exploring the Touchpads</a><br>";
+                    //content += "[<b>queued </b>] <a href=\"http://cleverpet.local/game-1\">Exploring the Touchpads</a><br>";
+                    content += "[<b>queued</b>] " + get_post_link_string("Exploring the Touchpads", "game", "1") + "<br>";
                 }
                 else
                 {
-                    content += "[-------] <a href=\"http://cleverpet.local/game-1\">Exploring the Touchpads</a><br>";
+                    //content += "[-------] <a href=\"http://cleverpet.local/game-1\">Exploring the Touchpads</a><br>";
+                    content += "[-------] " + get_post_link_string("Exploring the Touchpads", "game", "1") + "<br>";
                 }
 
                 if (current_game == 2)
                 {
-                    content += "[<b>playing</b>] <a href=\"http://cleverpet.local/game-2\">Engaging Consistently</a><br>";
+                    //content += "[<b>playing</b>] <a href=\"http://cleverpet.local/game-2\">Engaging Consistently</a><br>";
+                    content += "[<b>playing</b>] " + get_post_link_string("Engaging Consistently", "game", "2") + "<br>";
                 }
                 else if (overrideable_next_game == 2)
                 {
-                    content += "[<b>queued </b>] <a href=\"http://cleverpet.local/game-2\">Engaging Consistently</a><br>";
+                    //content += "[<b>queued </b>] <a href=\"http://cleverpet.local/game-2\">Engaging Consistently</a><br>";
+                    content += "[<b>queued</b>] " + get_post_link_string("Engaging Consistently", "game", "2") + "<br>";
                 }
                 else
                 {
-                    content += "[-------] <a href=\"http://cleverpet.local/game-2\">Engaging Consistently</a><br>";
+                    //content += "[-------] <a href=\"http://cleverpet.local/game-2\">Engaging Consistently</a><br>";
+                    content += "[-------] " + get_post_link_string("Engaging Consistently", "game", "2") + "<br>";
                 }
 
                 content += "</body>";
