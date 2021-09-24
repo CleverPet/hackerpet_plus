@@ -96,177 +96,126 @@ int mgschwan_serve_webinterface(int current_game, int next_game) {
             }
         }
 
-        if (false)
-        {
-            String route = thing.substring(thing.indexOf("GET") + 5);
-            route = route.substring(0, route.indexOf(" "));
-
-            String content = "";
-            content += "<!DOCTYPE html>";
-            content += "<html>";
-            content += "<body>";
-            content += "<h1>My First Heading</h1>";
-            content += "<p>My first paragraph.</p>";
-            content += "</body>";
-            content += "</html>";
-            
-            // LOOK AT REAL WEB PAGES
-
-            webclient.println("HTTP/1.0 200 OK");
-            webclient.println("Content-type: text/html");
-            webclient.print("Content-length: ");
-            webclient.println(content.length());
-            webclient.println("");
-            webclient.print(content);
-            webclient.println();
-        }
-
         if (request_finished)  //request_finished)
         {
             // this is where we will look for POST request first. Need to check if GET or POST
 
-            // check URL for game to set, or none (keep playing current game)
-            String route = thing.substring(thing.indexOf("GET") + 5);
-            route = route.substring(0, route.indexOf(" "));
 
-            String content = "";
-            content += "<!DOCTYPE html>";
-            content += "<html>";
-            content += "<body>";
+            bool req_get = thing.substring(0, 3).equalsIgnoreCase("GET");
+            bool req_post = thing.substring(0, 4).equalsIgnoreCase("POST");
 
-            // return the id from this function at the end; or, return what? -1? to indicate no new choice?
-            if (route.equalsIgnoreCase("game-0"))
+            if (req_get)
             {
-                new_game_selected = 0;
-                //content += "selected game 0!<br>";
+                Log.info("!!! SERVER IS SERVING GET REQUEST !!!");
             }
-            else if (route.equalsIgnoreCase("game-1"))
+            else if (req_post)
             {
-                new_game_selected = 1;
-                //content += "selected game 1!<br>";                   
-            }
-            else if (route.equalsIgnoreCase("game-2"))
-            {
-                new_game_selected = 2;
-                //content += "selected game 2!<br>";
-            }
-
-            if (new_game_selected >= 0)
-            {
-                overrideable_next_game = new_game_selected;
-            }
-            // print list of games and URL to go to
-            
-            content += "<br>";
-            content += "select game:<br><br>";
-            if (current_game == 0)
-            {
-                content += "[<b>playing</b>] <a href=\"http://cleverpet.local/game-0\">Eating the Food</a><br>";
-            }
-            else if (overrideable_next_game == 0)
-            {
-                content += "[<b>queued </b>] <a href=\"http://cleverpet.local/game-0\">Eating the Food</a><br>";
+                Log.info("!!! SERVER IS SERVING POST REQUEST !!!");
             }
             else
             {
-                content += "[-------] <a href=\"http://cleverpet.local/game-0\">Eating the Food</a><br>";
+                Log.info("!!! SERVER IS SERVING UNKNOWN REQUEST !!!");
             }
 
-            if (current_game == 1)
+            if (req_post)
             {
-                content += "[<b>playing</b>] <a href=\"http://cleverpet.local/game-1\">Exploring the Touchpads</a><br>";
-            }
-            else if (overrideable_next_game == 1)
-            {
-                content += "[<b>queued </b>] <a href=\"http://cleverpet.local/game-1\">Exploring the Touchpads</a><br>";
-            }
-            else
-            {
-                content += "[-------] <a href=\"http://cleverpet.local/game-1\">Exploring the Touchpads</a><br>";
+                // get and process new game value
+                // this is the section where we will set new_game_selected, not below
             }
 
-            if (current_game == 2)
+            if (req_get)
             {
-                content += "[<b>playing</b>] <a href=\"http://cleverpet.local/game-2\">Engaging Consistently</a><br>";
-            }
-            else if (overrideable_next_game == 2)
-            {
-                content += "[<b>queued </b>] <a href=\"http://cleverpet.local/game-2\">Engaging Consistently</a><br>";
-            }
-            else
-            {
-                content += "[-------] <a href=\"http://cleverpet.local/game-2\">Engaging Consistently</a><br>";
-            }
+                // check URL for game to set, or none (keep playing current game)
+                String route = thing.substring(thing.indexOf("GET") + 5);
+                route = route.substring(0, route.indexOf(" "));
 
-            content += "</body>";
-            content += "</html>";
-            
-            webclient.println("HTTP/1.0 200 OK");
-            webclient.println("Content-type: text/html");
-            webclient.print("Content-length: ");
-            webclient.println(content.length());
-            webclient.println("");
-            webclient.print(content);
-            webclient.println();
+                String content = "";
+                content += "<!DOCTYPE html>";
+                content += "<html>";
+                content += "<body>";
 
-        }
+                // enable for debugging full GET request:
+                //content += "<br><br>";
+                //content += thing;
+                //content += "<br><br>";
 
-        if (false)  // testing only!
-        {
-            
-            // extract URL from thing
-            // everything after GET and before next space
+                // return the id from this function at the end; or, return what? -1? to indicate no new choice?
 
-            String route = thing.substring(thing.indexOf("GET") + 5);
-            route = route.substring(0, route.indexOf(" "));
+                //  TODO THIS STUFF MOVES TO POST ABOVE!!!
+                if (route.equalsIgnoreCase("game-0"))
+                {
+                    new_game_selected = 0;
+                    //content += "selected game 0!<br>";
+                }
+                else if (route.equalsIgnoreCase("game-1"))
+                {
+                    new_game_selected = 1;
+                    //content += "selected game 1!<br>";                   
+                }
+                else if (route.equalsIgnoreCase("game-2"))
+                {
+                    new_game_selected = 2;
+                    //content += "selected game 2!<br>";
+                }
 
-            String content = "";
-            content += "\n\nhello! <br>";
-            content += "route: (";
-            content += route;
-            content += ") <br>";
-
-            if (route.equalsIgnoreCase("set-12345"))
-            {
-                content += "Setting Variable to 12345 <br>";
-
-                int addr = 10;
-                uint16_t value = 12345;
-                EEPROM.put(addr, value);
-      
-            }
-
-            else if (route.equalsIgnoreCase("set-11"))
-            {
-                content += "Setting Variable to 11 <br>";
-
-                int addr = 10;
-                uint16_t value = 11;
-                EEPROM.put(addr, value);
-            }
-
-            else if (route.equalsIgnoreCase("get"))
-            {
-                content += "Getting Variable <br>";
-                uint16_t objec;
-                int address = 10;
-                EEPROM.get(address, objec);
-                content += "value: ";
-                content += String(int(objec));
+                if (new_game_selected >= 0)
+                {
+                    overrideable_next_game = new_game_selected;
+                }
+                // print list of games and URL to go to
+                
                 content += "<br>";
+                content += "select game:<br><br>";
+                if (current_game == 0)
+                {
+                    content += "[<b>playing</b>] <a href=\"http://cleverpet.local/game-0\">Eating the Food</a><br>";
+                }
+                else if (overrideable_next_game == 0)
+                {
+                    content += "[<b>queued </b>] <a href=\"http://cleverpet.local/game-0\">Eating the Food</a><br>";
+                }
+                else
+                {
+                    content += "[-------] <a href=\"http://cleverpet.local/game-0\">Eating the Food</a><br>";
+                }
+
+                if (current_game == 1)
+                {
+                    content += "[<b>playing</b>] <a href=\"http://cleverpet.local/game-1\">Exploring the Touchpads</a><br>";
+                }
+                else if (overrideable_next_game == 1)
+                {
+                    content += "[<b>queued </b>] <a href=\"http://cleverpet.local/game-1\">Exploring the Touchpads</a><br>";
+                }
+                else
+                {
+                    content += "[-------] <a href=\"http://cleverpet.local/game-1\">Exploring the Touchpads</a><br>";
+                }
+
+                if (current_game == 2)
+                {
+                    content += "[<b>playing</b>] <a href=\"http://cleverpet.local/game-2\">Engaging Consistently</a><br>";
+                }
+                else if (overrideable_next_game == 2)
+                {
+                    content += "[<b>queued </b>] <a href=\"http://cleverpet.local/game-2\">Engaging Consistently</a><br>";
+                }
+                else
+                {
+                    content += "[-------] <a href=\"http://cleverpet.local/game-2\">Engaging Consistently</a><br>";
+                }
+
+                content += "</body>";
+                content += "</html>";
+                
+                webclient.println("HTTP/1.0 200 OK");
+                webclient.println("Content-type: text/html");
+                webclient.print("Content-length: ");
+                webclient.println(content.length());
+                webclient.println("");
+                webclient.print(content);
+                webclient.println();
             }
-
-            webclient.println("HTTP/1.0 200 OK");
-            webclient.println("Content-type: text/html");
-            webclient.print("Content-length: ");
-            webclient.println(content.length());
-
-            webclient.print(content);
-            webclient.println();
-            
-            //webclient.write(bin2c_index_html, sizeof(bin2c_index_html));
-
-            webclient.println("</body>");
         }
 
         delay (1); //That is a hack to allow the browser to receive the data
