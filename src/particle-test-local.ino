@@ -11,9 +11,18 @@
 #include "http-server-util.h"
 
 // games
-#include "g_EatingTheFood.h"
-#include "g_ExploringTheTouchpads.h"
-#include "g_EngagingConsistently.h"
+#include "g_000_EatingTheFood.h"
+#include "g_001_ExploringTheTouchpads.h"
+#include "g_002_EngagingConsistently.h"
+#include "g_003_AvoidingUnlitTouchpads.h"
+#include "g_004_LearningTheLights.h"
+#include "g_005_MasteringTheLights.h"
+#include "g_006_RespondingQuickly.h"
+#include "g_007_LearningBrightness.h"
+#include "g_008_LearningDoubleSequences.h"
+#include "g_009_LearningLongerSequences.h"
+#include "g_010_MatchingTwoColors.h"
+#include "g_011_MatchingMoreColors.h"
 
 // enables simultaneous execution of application and system thread
 SYSTEM_THREAD(ENABLED);
