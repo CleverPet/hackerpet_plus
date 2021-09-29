@@ -184,9 +184,19 @@ int mgschwan_serve_webinterface(int current_game, int next_game) {
                 //Log.print(thing);
                 
                 String new_game_str = thing.substring(thing.indexOf("game=") + 5, thing.indexOf("game=") + 6);
-
+                String new_game_str_2 = thing.substring(thing.indexOf("game=") + 5, thing.indexOf("game=") + 7);
                 
-                if (new_game_str.equalsIgnoreCase("0"))
+                if (new_game_str_2.equalsIgnoreCase("10"))
+                {
+                    new_game_selected = 10;
+                    Log.info("POST: selected game 10!");
+                }
+                else if (new_game_str_2.equalsIgnoreCase("11"))
+                {
+                    new_game_selected = 11;
+                    Log.info("POST: selected game 11!");
+                }
+                else if (new_game_str.equalsIgnoreCase("0"))
                 {
                     new_game_selected = 0;
                     Log.info("POST: selected game 0!");
@@ -236,16 +246,7 @@ int mgschwan_serve_webinterface(int current_game, int next_game) {
                     new_game_selected = 9;
                     Log.info("POST: selected game 9!");
                 }
-                else if (new_game_str.equalsIgnoreCase("10"))
-                {
-                    new_game_selected = 10;
-                    Log.info("POST: selected game 10!");
-                }
-                else if (new_game_str.equalsIgnoreCase("11"))
-                {
-                    new_game_selected = 11;
-                    Log.info("POST: selected game 11!");
-                }
+
 
                 if (new_game_selected >= 0)
                 {
