@@ -183,6 +183,42 @@ void loop() {
     {
         trial_done = EngagingConsistently_Loop();
     }
+    else if (GAME_TO_PLAY == 3)
+    {
+        trial_done = AvoidingUnlitTouchpads_Loop();
+    }
+    else if (GAME_TO_PLAY == 4)
+    {
+        trial_done = LearningTheLights_Loop();
+    }
+    else if (GAME_TO_PLAY == 5)
+    {
+        trial_done = MasteringTheLights_Loop();
+    }
+    else if (GAME_TO_PLAY == 6)
+    {
+        trial_done = RespondingQuickly_Loop();
+    }
+    else if (GAME_TO_PLAY == 7)
+    {
+        trial_done = LearningBrightness_Loop();
+    }
+    else if (GAME_TO_PLAY == 8)
+    {
+        trial_done = LearningDoubleSequences_Loop();
+    }
+    else if (GAME_TO_PLAY == 9)
+    {
+        trial_done = LearningLongerSequences_Loop();
+    }
+    else if (GAME_TO_PLAY == 10)
+    {
+        trial_done = MatchingTwoColors_Loop();
+    }
+    else if (GAME_TO_PLAY == 11)
+    {
+        trial_done = MatchingMoreColors_Loop();
+    }
     else
     {
         Log.error("Invalid game selected!");

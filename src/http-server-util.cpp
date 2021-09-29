@@ -102,6 +102,28 @@ String get_post_link_string(String text, String name, String value)
     return post_link_str;
 }
 
+String get_link_for_game(int game_index, String game_index_str, String game_name, int current_game, int overrideable_next_game)
+{
+    String content_str;
+    
+    // get_link_for_game(1, "1", "Exploring the Touchpads", current_game, overrideable_next_game);
+    
+    if (current_game == game_index)
+    {
+        content_str = "[<b>playing</b>] " + get_post_link_string(game_name, "game", game_index_str) + "<br>";
+    }
+    else if (overrideable_next_game == game_index)
+    {
+        content_str = "[<b>queued</b>] " + get_post_link_string(game_name, "game", game_index_str) + "<br>";
+    }
+    else
+    {
+        content_str = "[-------] " + get_post_link_string(game_name, "game", game_index_str) + "<br>";
+    }
+
+    return content_str;
+}
+
 int mgschwan_serve_webinterface(int current_game, int next_game) {
     int c = 0, last_c = 0, last_last_c = 0;
     int new_game_selected = -1;
@@ -179,6 +201,51 @@ int mgschwan_serve_webinterface(int current_game, int next_game) {
                     new_game_selected = 2;
                     Log.info("POST: selected game 2!");
                 }
+                else if (new_game_str.equalsIgnoreCase("3"))
+                {
+                    new_game_selected = 3;
+                    Log.info("POST: selected game 3!");
+                }
+                else if (new_game_str.equalsIgnoreCase("4"))
+                {
+                    new_game_selected = 4;
+                    Log.info("POST: selected game 4!");
+                }
+                else if (new_game_str.equalsIgnoreCase("5"))
+                {
+                    new_game_selected = 5;
+                    Log.info("POST: selected game 5!");
+                }
+                else if (new_game_str.equalsIgnoreCase("6"))
+                {
+                    new_game_selected = 6;
+                    Log.info("POST: selected game 6!");
+                }
+                else if (new_game_str.equalsIgnoreCase("7"))
+                {
+                    new_game_selected = 7;
+                    Log.info("POST: selected game 7!");
+                }
+                else if (new_game_str.equalsIgnoreCase("8"))
+                {
+                    new_game_selected = 8;
+                    Log.info("POST: selected game 8!");
+                }
+                else if (new_game_str.equalsIgnoreCase("9"))
+                {
+                    new_game_selected = 9;
+                    Log.info("POST: selected game 9!");
+                }
+                else if (new_game_str.equalsIgnoreCase("10"))
+                {
+                    new_game_selected = 10;
+                    Log.info("POST: selected game 10!");
+                }
+                else if (new_game_str.equalsIgnoreCase("11"))
+                {
+                    new_game_selected = 11;
+                    Log.info("POST: selected game 11!");
+                }
 
                 if (new_game_selected >= 0)
                 {
@@ -213,53 +280,19 @@ int mgschwan_serve_webinterface(int current_game, int next_game) {
                 
                 content += "<br>";
                 content += "select game:<br><br>";
-                if (current_game == 0)
-                {
-                    //content += "[<b>playing</b>] <a href=\"http://cleverpet.local/game-0\">Eating the Food</a><br>";
-                    content += "[<b>playing</b>] " + get_post_link_string("Eating the Food", "game", "0") + "<br>";
-                }
-                else if (overrideable_next_game == 0)
-                {
-                    //content += "[<b>queued </b>] <a href=\"http://cleverpet.local/game-0\">Eating the Food</a><br>";
-                    content += "[<b>queued</b>] " + get_post_link_string("Eating the Food", "game", "0") + "<br>";
-                }
-                else
-                {
-                    //content += "[-------] <a href=\"http://cleverpet.local/game-0\">Eating the Food</a><br>";
-                    content += "[-------] " + get_post_link_string("Eating the Food", "game", "0") + "<br>";
-                }
 
-                if (current_game == 1)
-                {
-                    //content += "[<b>playing</b>] <a href=\"http://cleverpet.local/game-1\">Exploring the Touchpads</a><br>";
-                    content += "[<b>playing</b>] " + get_post_link_string("Exploring the Touchpads", "game", "1") + "<br>";
-                }
-                else if (overrideable_next_game == 1)
-                {
-                    //content += "[<b>queued </b>] <a href=\"http://cleverpet.local/game-1\">Exploring the Touchpads</a><br>";
-                    content += "[<b>queued</b>] " + get_post_link_string("Exploring the Touchpads", "game", "1") + "<br>";
-                }
-                else
-                {
-                    //content += "[-------] <a href=\"http://cleverpet.local/game-1\">Exploring the Touchpads</a><br>";
-                    content += "[-------] " + get_post_link_string("Exploring the Touchpads", "game", "1") + "<br>";
-                }
-
-                if (current_game == 2)
-                {
-                    //content += "[<b>playing</b>] <a href=\"http://cleverpet.local/game-2\">Engaging Consistently</a><br>";
-                    content += "[<b>playing</b>] " + get_post_link_string("Engaging Consistently", "game", "2") + "<br>";
-                }
-                else if (overrideable_next_game == 2)
-                {
-                    //content += "[<b>queued </b>] <a href=\"http://cleverpet.local/game-2\">Engaging Consistently</a><br>";
-                    content += "[<b>queued</b>] " + get_post_link_string("Engaging Consistently", "game", "2") + "<br>";
-                }
-                else
-                {
-                    //content += "[-------] <a href=\"http://cleverpet.local/game-2\">Engaging Consistently</a><br>";
-                    content += "[-------] " + get_post_link_string("Engaging Consistently", "game", "2") + "<br>";
-                }
+                content += get_link_for_game(0, "0", "Eating the Food", current_game, overrideable_next_game);
+                content += get_link_for_game(1, "1", "Exploring the Touchpads", current_game, overrideable_next_game);
+                content += get_link_for_game(2, "2", "Engaging Consistently", current_game, overrideable_next_game);
+                content += get_link_for_game(3, "3", "Avoiding Unlit Touchpads", current_game, overrideable_next_game);
+                content += get_link_for_game(4, "4", "Learning the Lights", current_game, overrideable_next_game);
+                content += get_link_for_game(5, "5", "Mastering the Lights", current_game, overrideable_next_game);
+                content += get_link_for_game(6, "6", "Responding Quickly", current_game, overrideable_next_game);
+                content += get_link_for_game(7, "7", "Learning Brightness", current_game, overrideable_next_game);
+                content += get_link_for_game(8, "8", "Learning Double Sequences", current_game, overrideable_next_game);
+                content += get_link_for_game(9, "9", "Learning Longer Sequences", current_game, overrideable_next_game);
+                content += get_link_for_game(10, "10", "Matching Two Colors", current_game, overrideable_next_game);
+                content += get_link_for_game(11, "11", "Matching More Colors", current_game, overrideable_next_game);
 
                 content += "</body>";
                 content += "</html>";
