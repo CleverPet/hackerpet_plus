@@ -26,127 +26,46 @@
 */
 
 #include <hackerpet.h>
+#include "game_helper_functions.h"
 
-// Set this to the name of your player (dog, cat, etc.)
-const char PlayerName[] = "Pet, Clever";
+namespace LearningTheLights
+{
+    /**
+     * Challenge settings
+     * -------------
+     *
+     * These constants (capitalized SNAKE_CASE) and variables (camelCase) define the
+     * gameplay
+     */
+    int currentLevel = 1;          // current and starting level
+    const int MAX_LEVEL = 1;         // Maximum number of levels
+    const int HISTORY_LENGTH = 50;   // Number of previous interactions to look at for
+                                    // performance
+    const int ENOUGH_SUCCESSES = 30; // if num successes >= ENOUGH_SUCCESSES level-up
+    const unsigned long FOODTREAT_DURATION = 5000;   // (ms) how long to present
+                                                    // foodtreat
+    const int FLASHING = 0;
+    const int FLASHING_DUTY_CYCLE = 99;
+    const unsigned long TIMEOUT_MS = 60000; // (ms) how long to wait until restarting
+                                          // the interaction
+    const int NUM_PADS = 1; // Choose number of pads to light up at once (1, 2 or 3)
 
-/**
- * Challenge settings
- * -------------
- *
- * These constants (capitalized SNAKE_CASE) and variables (camelCase) define the
- * gameplay
- */
-int currentLevel = 1;          // current and starting level
-const int MAX_LEVEL = 1;         // Maximum number of levels
-const int HISTORY_LENGTH = 50;   // Number of previous interactions to look at for
-                                // performance
-const int ENOUGH_SUCCESSES = 30; // if num successes >= ENOUGH_SUCCESSES level-up
-const unsigned long FOODTREAT_DURATION = 5000;   // (ms) how long to present
-                                                // foodtreat
-const int FLASHING = 0;
-const int FLASHING_DUTY_CYCLE = 99;
-const unsigned long TIMEOUT_MS = 60000; // (ms) how long to wait until restarting
-                                       // the interaction
-const int NUM_PADS = 1; // Choose number of pads to light up at once (1, 2 or 3)
+    /**
+     * Global variables and constants
+     * ------------------------------
+     */
+    const unsigned long SOUND_FOODTREAT_DELAY = 1200; // (ms) delay for reward sound
+    const unsigned long SOUND_TOUCHPAD_DELAY = 300; // (ms) delay for touchpad sound
 
-/**
- * Global variables and constants
- * ------------------------------
- */
-const unsigned long SOUND_FOODTREAT_DELAY = 1200; // (ms) delay for reward sound
-const unsigned long SOUND_TOUCHPAD_DELAY = 300; // (ms) delay for touchpad sound
-
-bool performance[HISTORY_LENGTH] = {0}; // store the progress in this challenge
-unsigned char perfPos = 0;   // to keep our position in the performance array
-unsigned char perfDepth = 0; // size of the number of perf numbers to consider
-
-// Use primary serial over USB interface for logging output (9600)
-// Choose logging level here (ERROR, WARN, INFO)
-SerialLogHandler logHandler(LOG_LEVEL_INFO, { // Logging level for all messages
-    { "app.hackerpet", LOG_LEVEL_ERROR }, // Logging level for library messages
-    { "app", LOG_LEVEL_INFO } // Logging level for application messages
-});
-
-// initialize hub interface (from hackerpet)
-HubInterface hub;
-
-// enables simultaneous execution of application and system thread
-SYSTEM_THREAD(ENABLED);
-
-/**
- * Helper functions
- * ----------------
- */
-
-/// return the number of successful interactions in performance history for current level
-unsigned int countSuccesses() {
-  unsigned int total = 0;
-  for (unsigned char i = 0; i <= perfDepth - 1; i++)
-    if (performance[i] == 1)
-      total++;
-  return total;
+    bool performance[HISTORY_LENGTH] = {0}; // store the progress in this challenge
+    unsigned char perfPos = 0;   // to keep our position in the performance array
+    unsigned char perfDepth = 0; // size of the number of perf numbers to consider
 }
 
-/// return the number of misses in performance history for current level
-unsigned int countMisses() {
-  unsigned int total = 0;
-  for (unsigned char i = 0; i <= perfDepth - 1; i++)
-    if (performance[i] == 0)
-      total++;
-  return total;
-}
-
-/// reset performance history to 0
-void resetPerformanceHistory() {
-  for (unsigned char i = 0; i < HISTORY_LENGTH; i++)
-    performance[i] = 0;
-  perfPos = 0;
-  perfDepth = 0;
-}
-
-/// add an interaction result to the performance history
-void addResultToPerformanceHistory(bool entry) {
-  // Log.info("Adding %u", entry);
-  performance[perfPos] = entry;
-  perfPos++;
-  if (perfDepth < HISTORY_LENGTH)
-    perfDepth++;
-  if (perfPos > (HISTORY_LENGTH - 1)) { // make our performance array circular
-    perfPos = 0;
-  }
-  // Log.info("perfPos %u, perfDepth %u", perfPos, perfDepth);
-  Log.info("New successful interactions: %u, misses: %u", countSuccesses(),
-           countMisses());
-}
-
-/// print the performance history for debugging
-void printPerformanceArray() {
-  Serial.printf("performance: {");
-  for (unsigned char i = 0; i < perfDepth; i++) {
-    Serial.printf("%u", performance[i]);
-    if ((i + 1) == perfPos)
-      Serial.printf("|");
-  }
-  Serial.printf("}\n");
-}
-
-/// converts a bitfield of pressed touchpads to letters
-/// multiple consecutive touches are possible and will be reported L -> M - > R
-/// @returns String
-String convertBitfieldToLetter(unsigned char pad){
-  String letters = "";
-  if (pad & hub.BUTTON_LEFT)
-    letters += 'L';
-  if (pad & hub.BUTTON_MIDDLE)
-    letters += 'M';
-  if (pad & hub.BUTTON_RIGHT)
-    letters += 'R';
-  return letters;
-}
 
 /// The actual LearningTheLights challenge. This function needs to be called in a loop.
 bool playLearningTheLights() {
+  using namespace LearningTheLights;
   yield_begin();
 
   static unsigned long timestampBefore, activityDuration, timestampTouchpad = 0;
@@ -286,20 +205,20 @@ bool playLearningTheLights() {
   // Update performance, even on timeout
   // Check if we're ready for next challenge
   if (currentLevel == MAX_LEVEL) {
-    addResultToPerformanceHistory(accurate);
-    if (countSuccesses() >= ENOUGH_SUCCESSES) {
+    addResultToPerformanceHistory(accurate, performance, perfDepth, perfPos, HISTORY_LENGTH);
+    if (countSuccesses(performance, perfDepth) >= ENOUGH_SUCCESSES) {
       Log.info("At MAX level! %u", currentLevel);
       challengeComplete = true;
-      resetPerformanceHistory();
+      resetPerformanceHistory(performance, perfDepth, perfPos, HISTORY_LENGTH);
     }
   } else {
     // Increase level if foodtreat eaten and good performance in this level
-    addResultToPerformanceHistory(accurate);
-    if (countSuccesses() >= ENOUGH_SUCCESSES) {
+    addResultToPerformanceHistory(accurate, performance, perfDepth, perfPos, HISTORY_LENGTH);
+    if (countSuccesses(performance, perfDepth) >= ENOUGH_SUCCESSES) {
       if (currentLevel < MAX_LEVEL) {
         currentLevel++;
         Log.info("Leveling UP %u", currentLevel);
-        resetPerformanceHistory();
+        resetPerformanceHistory(performance, perfDepth, perfPos, HISTORY_LENGTH);
       }
     }
   }
@@ -347,31 +266,40 @@ bool playLearningTheLights() {
   return true;
 }
 
-/**
- * Setup function
- * --------------
- */
-void setup() {
-  // Initializes the hub and passes the current filename as ID for reporting
-  hub.Initialize(__FILE__);
-}
-
-/**
- * Main loop function
- * ------------------
- */
-void loop() {
+bool LearningTheLights_Loop()
+{
+  using namespace LearningTheLights;
   bool gameIsComplete = false;
-
-  // Advance the device layer state machine, but with 20 ms max time
-  // spent per loop cycle.
-  hub.Run(20);
-
-  // Play 1 interaction of the Learning The Lights challenge
-  gameIsComplete = playLearningTheLights(); // Will return true if level is done
-
-  if (gameIsComplete) {
-    // Interaction end
-    return;
-  }
+  gameIsComplete = playLearningTheLights();// Returns true if level is done
+  return gameIsComplete;
 }
+
+
+// /**
+//  * Setup function
+//  * --------------
+//  */
+// void setup() {
+//   // Initializes the hub and passes the current filename as ID for reporting
+//   hub.Initialize(__FILE__);
+// }
+
+// /**
+//  * Main loop function
+//  * ------------------
+//  */
+// void loop() {
+//   bool gameIsComplete = false;
+
+//   // Advance the device layer state machine, but with 20 ms max time
+//   // spent per loop cycle.
+//   hub.Run(20);
+
+//   // Play 1 interaction of the Learning The Lights challenge
+//   gameIsComplete = playLearningTheLights(); // Will return true if level is done
+
+//   if (gameIsComplete) {
+//     // Interaction end
+//     return;
+//   }
+// }

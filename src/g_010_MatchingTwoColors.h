@@ -38,160 +38,54 @@
 */
 
 #include <hackerpet.h>
-#include <algorithm>
+#include "game_helper_functions.h"
 
-// Set this to the name of your player (dog, cat, etc.)
-const char PlayerName[] = "Pet, Clever";
+namespace MatchingTwoColors
+{
+    /**
+     * Challenge settings
+     * -------------
+     *
+     * These constants (capitalized SNAKE_CASE) and variables (camelCase) define the
+     * gameplay
+     */
+    const int STARTING_LEVEL = 1;
+    const int MAX_LEVEL =           4;   // Maximum number of levels
+    const int HISTORY_LENGTH =      5;   // Number of previous interactions to look at for performance
+    const int ENOUGH_SUCCESSES =    4;   // if num successes >= ENOUGH_SUCCESSES level-up
+    const int TOO_MANY_MISSES =     3;   // if number of misses >= TOO_MANY_MISSES level-down
+    const int PADS_PRESSED_MAX[MAX_LEVEL] = {100,10,6,4};
+    const unsigned long FOODTREAT_DURATION = 6000; // (ms) how long to present foodtreat
+    const unsigned long TIMEOUT_MS = 300002; // (ms) how long to wait until restarting the interaction
+    const unsigned long WRONG_INTERACTION_DELAY = 6000;
+    const unsigned char TOUCHPADS[3][2][2] = { //[pad][color][Y,B] //TODO make this easier
+                        {{90, 00},{00, 90}},
+                        {{90, 00},{00, 90}},
+                        {{90, 00},{00, 90}},
+                        };
+    const unsigned char REPORT_COLORS[2] = {'Y','B'};
 
-/**
- * Challenge settings
- * -------------
- *
- * These constants (capitalized SNAKE_CASE) and variables (camelCase) define the
- * gameplay
- */
-const int STARTING_LEVEL = 1;
-const int MAX_LEVEL =           4;   // Maximum number of levels
-const int HISTORY_LENGTH =      5;   // Number of previous interactions to look at for performance
-const int ENOUGH_SUCCESSES =    4;   // if num successes >= ENOUGH_SUCCESSES level-up
-const int TOO_MANY_MISSES =     3;   // if number of misses >= TOO_MANY_MISSES level-down
-const int PADS_PRESSED_MAX[MAX_LEVEL] = {100,10,6,4};
-const unsigned long FOODTREAT_DURATION = 6000; // (ms) how long to present foodtreat
-const unsigned long TIMEOUT_MS = 300002; // (ms) how long to wait until restarting the interaction
-const unsigned long WRONG_INTERACTION_DELAY = 6000;
-const unsigned char TOUCHPADS[3][2][2] = { //[pad][color][Y,B] //TODO make this easier
-                    {{90, 00},{00, 90}},
-                    {{90, 00},{00, 90}},
-                    {{90, 00},{00, 90}},
-                    };
-const unsigned char REPORT_COLORS[2] = {'Y','B'};
+    /**
+     * Global variables and constants
+     * ------------------------------
+     */
+    const unsigned long SOUND_DO_DELAY = 600; // (ms) delay between reward sound and foodtreat
+    const unsigned long SOUND_FOODTREAT_DELAY = 600; // (ms) delay for reward sound
+    const unsigned long SOUND_TOUCHPAD_DELAY = 300; // (ms) delay for touchpad sound
 
-/**
- * Global variables and constants
- * ------------------------------
- */
-const unsigned long SOUND_DO_DELAY = 600; // (ms) delay between reward sound and foodtreat
-const unsigned long SOUND_FOODTREAT_DELAY = 600; // (ms) delay for reward sound
-const unsigned long SOUND_TOUCHPAD_DELAY = 300; // (ms) delay for touchpad sound
-
-bool performance[HISTORY_LENGTH] = {0}; // store the progress in this challenge
-unsigned char perfPos = 0; // to keep our position in the performance array
-unsigned char perfDepth = 0; // to keep the size of the number of perf numbers to consider
-unsigned char touchpadsColor[3] = {};
-
-// Use primary serial over USB interface for logging output (9600)
-// Choose logging level here (ERROR, WARN, INFO)
-SerialLogHandler logHandler(LOG_LEVEL_INFO, { // Logging level for all messages
-    { "app.hackerpet", LOG_LEVEL_ERROR }, // Logging level for library messages
-    { "app", LOG_LEVEL_INFO } // Logging level for application messages
-});
-
-// access to hub functionality (lights, foodtreats, etc.)
-HubInterface hub;
-
-// enables simultaneous execution of application and system thread
-SYSTEM_THREAD(ENABLED);
-
-/**
- * Helper functions
- * ----------------
- */
-
-/// return the number of successful interactions in performance history for current level
-unsigned int countSuccesses(){
-    unsigned int total = 0;
-    for (unsigned char i = 0; i <= perfDepth-1 ; i++)
-        if(performance[i]==1)
-            total++;
-    return total;
+    bool performance[HISTORY_LENGTH] = {0}; // store the progress in this challenge
+    unsigned char perfPos = 0; // to keep our position in the performance array
+    unsigned char perfDepth = 0; // to keep the size of the number of perf numbers to consider
+    unsigned char touchpadsColor[3] = {};
 }
 
-/// return the number of misses in performance history for current level
-unsigned int countMisses(){
-    unsigned int total = 0;
-    for (unsigned char i = 0; i <= perfDepth-1 ; i++)
-        if(performance[i]==0)
-            total++;
-    return total;
-}
 
-/// reset performance history to 0
-void resetPerformanceHistory(){
-    for (unsigned char i = 0; i < HISTORY_LENGTH ; i++)
-        performance[i] = 0;
-    perfPos = 0;
-    perfDepth = 0;
-}
 
-/// add an interaction result to the performance history
-void addResultToPerformanceHistory(bool entry){
-        // Log.info("Adding %u", entry);
-    performance[perfPos] = entry;
-    perfPos++;
-    if (perfDepth < HISTORY_LENGTH)
-        perfDepth++;
-    if (perfPos > (HISTORY_LENGTH - 1)){ // make our performance array circular
-        perfPos = 0;
-    }
-    // Log.info("perfPos %u, perfDepth %u", perfPos, perfDepth);
-    Log.info("New successes: %u, misses: %u", countSuccesses(), countMisses());
 
-}
-
-/// print the performance history for debugging
-void printPerformanceArray(){
-    Serial.printf("performance: {");
-    for (unsigned char i = 0; i < perfDepth ; i++){
-        Serial.printf("%u",performance[i]);
-        if ((i+1) == perfPos)
-            Serial.printf("|");
-    }
-    Serial.printf("}\n");
-}
-
-/// advance a touchpad to the next color
-void advanceTouchpad(unsigned char pad){
-    touchpadsColor[pad]++;
-    if (touchpadsColor[pad]>1)
-        touchpadsColor[pad]=0;
-}
-
-/// update the touchpad lights on the hub
-void updateTouchpadLights(){
-  hub.SetLights(hub.LIGHT_LEFT, TOUCHPADS[0][touchpadsColor[0]][0],
-                TOUCHPADS[0][touchpadsColor[0]][1], 0);
-  hub.SetLights(hub.LIGHT_MIDDLE, TOUCHPADS[1][touchpadsColor[1]][0],
-                TOUCHPADS[1][touchpadsColor[1]][1], 0);
-  hub.SetLights(hub.LIGHT_RIGHT, TOUCHPADS[2][touchpadsColor[2]][0],
-                TOUCHPADS[2][touchpadsColor[2]][1], 0);
-};
-
-/// check if all touchpad colors match
-bool checkMatch(){
-    if ((touchpadsColor[0]==touchpadsColor[1]) && (touchpadsColor[1]==touchpadsColor[2]))
-        return true;
-    return false;
-}
-
-/// converts a bitfield of pressed touchpads to letters
-/// multiple consecutive touches will be reported as X
-/// @returns String
-String convertBitfieldToLetter(unsigned char pad){
-  if ((pad & (pad-1)) != 0) // targetPad has multiple pads set
-    return "X";
-
-  String letters = "";
-  if (pad & hub.BUTTON_LEFT)
-    letters += 'L';
-  if (pad & hub.BUTTON_MIDDLE)
-    letters += 'M';
-  if (pad & hub.BUTTON_RIGHT)
-    letters += 'R';
-  return letters;
-}
 
 /// The actual MatchingTwoColors challenge. This function needs to be called in a loop.
 bool playMatchingTwoColors(){
+    using namespace MatchingTwoColors;
     yield_begin();
 
     static unsigned long timestampBefore, timestampTouchpad, gameStartTime, activityDuration = 0;
@@ -249,7 +143,7 @@ bool playMatchingTwoColors(){
             touchpadsColor[0] = random(0,2);
             touchpadsColor[1] = random(0,2);
             touchpadsColor[2] = random(0,2);
-        } while (checkMatch());
+        } while (checkMatch(touchpadsColor));
     } else {
         Log.info("Doing a retry interaction");
     }
@@ -261,7 +155,7 @@ bool playMatchingTwoColors(){
                                     REPORT_COLORS[touchpadsColor[1]],
                                     REPORT_COLORS[touchpadsColor[2]]);
 
-    updateTouchpadLights();
+    updateTouchpadLights(TOUCHPADS, touchpadsColor);
 
     hub.SetButtonAudioEnabled(true);
 
@@ -284,13 +178,13 @@ bool playMatchingTwoColors(){
 
         if (pressed == hub.BUTTON_LEFT){
             Log.info("Left touchpad pressed");
-            advanceTouchpad(0);
+            advanceTouchpad_MatchingTwoColors(0, touchpadsColor);
         } else if (pressed == hub.BUTTON_MIDDLE){
             Log.info("Middle touchpad pressed");
-            advanceTouchpad(1);
+            advanceTouchpad_MatchingTwoColors(1, touchpadsColor);
         } else if (pressed == hub.BUTTON_RIGHT){
             Log.info("Right touchpad pressed");
-            advanceTouchpad(2);
+            advanceTouchpad_MatchingTwoColors(2, touchpadsColor);
         } else if (pressed == 0) {
             timeout = true;
             accurate = false;
@@ -299,10 +193,10 @@ bool playMatchingTwoColors(){
         }
 
         // add our press to the reporting sequence
-        pressedSeq += convertBitfieldToLetter(pressed);
+        pressedSeq += convertBitfieldToLetter_ColorMatch(pressed);
 
         // update lights
-        updateTouchpadLights();
+        updateTouchpadLights(TOUCHPADS, touchpadsColor);
 
         // increase pressed counter
         pads_pressed++;
@@ -314,7 +208,7 @@ bool playMatchingTwoColors(){
             break;
         }
         // check for match
-        if (checkMatch()){
+        if (checkMatch(touchpadsColor)){
             Log.info("We have a match");
             match = true;
             break;
@@ -339,7 +233,7 @@ bool playMatchingTwoColors(){
     }
 
     // check if we have a match on all touchpads
-    accurate = checkMatch();
+    accurate = checkMatch(touchpadsColor);
 
     if (accurate){
         timeout = false; // rare case
@@ -383,33 +277,33 @@ bool playMatchingTwoColors(){
 
     // keep track of performance
     if (!timeout){
-        addResultToPerformanceHistory(accurate);
+        addResultToPerformanceHistory(accurate, performance, perfDepth, perfPos, HISTORY_LENGTH);
     }
 
     // Check if we're ready for next challenge
     if (currentLevel == MAX_LEVEL){
-        if (countSuccesses() >= ENOUGH_SUCCESSES){
+        if (countSuccesses(performance, perfDepth) >= ENOUGH_SUCCESSES){
             Log.info("At MAX level! %u", currentLevel);
             challengeComplete = true;
-            resetPerformanceHistory();
+            resetPerformanceHistory(performance, perfDepth, perfPos, HISTORY_LENGTH);
         }
     }
 
     if (currentLevel < MAX_LEVEL){
-        if (countSuccesses() >= ENOUGH_SUCCESSES){
+        if (countSuccesses(performance, perfDepth) >= ENOUGH_SUCCESSES){
             currentLevel++;
             Log.info("Leveling UP %u", currentLevel);
             retryGame = false;
-            resetPerformanceHistory();
+            resetPerformanceHistory(performance, perfDepth, perfPos, HISTORY_LENGTH);
         }
     }
 
-    if (countMisses() >= TOO_MANY_MISSES){
+    if (countMisses(performance, perfDepth) >= TOO_MANY_MISSES){
         if (currentLevel > 1){
             currentLevel--;
             Log.info("Leveling DOWN %u", currentLevel);
             retryGame = false;
-            resetPerformanceHistory();
+            resetPerformanceHistory(performance, perfDepth, perfPos, HISTORY_LENGTH);
         }
     }
 
@@ -449,33 +343,42 @@ bool playMatchingTwoColors(){
     return true;
 }
 
-/**
- * Setup function
- * --------------
- */
-void setup() {
-  // Initializes the hub and passes the current filename as ID for reporting
-  hub.Initialize(__FILE__);
-}
 
-/**
- * Main loop function
- * ------------------
- */
-void loop()
+bool MatchingTwoColors_Loop()
 {
-    bool gameIsComplete = false;
-
-    // Advance the device layer state machine, but with 20 ms max time
-    // spent per loop cycle.
-    hub.Run(20);
-
-    // Play 1 interaction of the Matching Two Colors challenge
-    gameIsComplete = playMatchingTwoColors(); // Returns true if level is done
-
-    if(gameIsComplete){
-        // Interaction end
-        return;
-    }
-
+  using namespace MatchingTwoColors;
+  bool gameIsComplete = false;
+  gameIsComplete = playMatchingTwoColors();// Returns true if level is done
+  return gameIsComplete;
 }
+
+// /**
+//  * Setup function
+//  * --------------
+//  */
+// void setup() {
+//   // Initializes the hub and passes the current filename as ID for reporting
+//   hub.Initialize(__FILE__);
+// }
+
+// /**
+//  * Main loop function
+//  * ------------------
+//  */
+// void loop()
+// {
+//     bool gameIsComplete = false;
+
+//     // Advance the device layer state machine, but with 20 ms max time
+//     // spent per loop cycle.
+//     hub.Run(20);
+
+//     // Play 1 interaction of the Matching Two Colors challenge
+//     gameIsComplete = playMatchingTwoColors(); // Returns true if level is done
+
+//     if(gameIsComplete){
+//         // Interaction end
+//         return;
+//     }
+
+// }

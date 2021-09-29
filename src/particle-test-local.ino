@@ -118,6 +118,7 @@ void setup() {
     // TODO upon game switch, need to also write to eeprom!
 
     hub.Initialize("game_ID_here_TODO");
+    // in games it was: hub.Initialize(__FILE__);
 
 }
 

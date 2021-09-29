@@ -34,161 +34,45 @@
 */
 
 #include <hackerpet.h>
-#include <algorithm>
+#include "game_helper_functions.h"
 
-// Set this to the name of your player (dog, cat, etc.)
-const char PlayerName[] = "Pet, Clever";
+namespace LearningDoubleSequences
+{
+    /**
+     * Challenge settings
+     * -------------
+     *
+     * These constants (capitalized SNAKE_CASE) and variables (camelCase) define the
+     * gameplay
+     */
+    int currentLevel = 1;
+    const int MAX_LEVEL=           1;   // Maximum number of levels
+    const int HISTORY_LENGTH=      50;   // Number of previous interactions to look at for performance
+    const int ENOUGH_SUCCESSES=    40;   // if num successes >= ENOUGH_SUCCESSES level-up
+    const int SEQUENCE_LENGTH = 2;
+    const int TARGET_INTENSITY = 75;
+    const int NEXT_TARGET_INTENSITY = 10;
+    const int SLEW = 90;
+    const unsigned long FOODTREAT_DURATION = 6000; // (ms) how long to present foodtreat
+    const unsigned long TIMEOUT_MS = 300002; // (ms) how long to wait until restarting the interaction
+    const unsigned long INTER_GAME_DELAY = 10000;
 
-/**
- * Challenge settings
- * -------------
- *
- * These constants (capitalized SNAKE_CASE) and variables (camelCase) define the
- * gameplay
- */
-int currentLevel = 1;
-const int MAX_LEVEL=           1;   // Maximum number of levels
-const int HISTORY_LENGTH=      50;   // Number of previous interactions to look at for performance
-const int ENOUGH_SUCCESSES=    40;   // if num successes >= ENOUGH_SUCCESSES level-up
-const int SEQUENCE_LENGTH = 2;
-const int TARGET_INTENSITY = 75;
-const int NEXT_TARGET_INTENSITY = 10;
-const int SLEW = 90;
-const unsigned long FOODTREAT_DURATION = 6000; // (ms) how long to present foodtreat
-const unsigned long TIMEOUT_MS = 300002; // (ms) how long to wait until restarting the interaction
-const unsigned long INTER_GAME_DELAY = 10000;
+    /**
+     * Global variables and constants
+     * ------------------------------
+     */
+    const unsigned long SOUND_FOODTREAT_DELAY = 1200; // (ms) delay for reward sound
+    const unsigned long SOUND_TOUCHPAD_DELAY = 300; // (ms) delay for touchpad sound
 
-/**
- * Global variables and constants
- * ------------------------------
- */
-const unsigned long SOUND_FOODTREAT_DELAY = 1200; // (ms) delay for reward sound
-const unsigned long SOUND_TOUCHPAD_DELAY = 300; // (ms) delay for touchpad sound
-
-bool performance[HISTORY_LENGTH] = {0}; // store the progress in this challenge
-unsigned char perfPos = 0; // to keep our position in the performance array
-unsigned char perfDepth = 0; // to keep the size of the number of perf numbers to consider
-
-// Use primary serial over USB interface for logging output (9600)
-// Choose logging level here (ERROR, WARN, INFO)
-SerialLogHandler logHandler(LOG_LEVEL_INFO, { // Logging level for all messages
-    { "app.hackerpet", LOG_LEVEL_ERROR }, // Logging level for library messages
-    { "app", LOG_LEVEL_INFO } // Logging level for application messages
-});
-
-// access to hub functionality (lights, foodtreats, etc.)
-HubInterface hub;
-
-// enables simultaneous execution of application and system thread
-SYSTEM_THREAD(ENABLED);
-
-/**
- * Helper functions
- * ----------------
- */
-
-/// return the number of successful interactions in performance history for current level
-unsigned int countSuccesses(){
-    unsigned int total = 0;
-    for (unsigned char i = 0; i <= perfDepth-1 ; i++)
-        if(performance[i]==1)
-            total++;
-    return total;
+    bool performance[HISTORY_LENGTH] = {0}; // store the progress in this challenge
+    unsigned char perfPos = 0; // to keep our position in the performance array
+    unsigned char perfDepth = 0; // to keep the size of the number of perf numbers to consider
 }
 
-/// return the number of misses in performance history for current level
-unsigned int countMisses(){
-    unsigned int total = 0;
-    for (unsigned char i = 0; i <= perfDepth-1 ; i++)
-        if(performance[i]==0)
-            total++;
-    return total;
-}
-
-/// reset performance history to 0
-void resetPerformanceHistory(){
-    for (unsigned char i = 0; i < HISTORY_LENGTH ; i++)
-        performance[i] = 0;
-    perfPos = 0;
-    perfDepth = 0;
-}
-
-/// add an interaction result to the performance history
-void addResultToPerformanceHistory(bool entry){
-        // Log.info("Adding %u", entry);
-    performance[perfPos] = entry;
-    perfPos++;
-    if (perfDepth < HISTORY_LENGTH)
-        perfDepth++;
-    if (perfPos > (HISTORY_LENGTH - 1)){ // make our performance array circular
-        perfPos = 0;
-    }
-    // Log.info("perfPos %u, perfDepth %u", perfPos, perfDepth);
-    Log.info("New successful interactions: %u, misses: %u", countSuccesses(), countMisses());
-
-}
-
-/// print the performance history for debugging
-void printPerformanceArray(){
-    Serial.printf("performance: {");
-    for (unsigned char i = 0; i < perfDepth ; i++){
-        Serial.printf("%u",performance[i]);
-        if ((i+1) == perfPos)
-            Serial.printf("|");
-    }
-    Serial.printf("}\n");
-}
-/// converts a bitfield of pressed touchpads to letters
-/// multiple consecutive touches are possible and will be reported L -> M - > R
-/// @returns String
-String convertBitfieldToLetter(unsigned char pad){
-  String letters = "";
-  if (pad & hub.BUTTON_LEFT)
-    letters += 'L';
-  if (pad & hub.BUTTON_MIDDLE)
-    letters += 'M';
-  if (pad & hub.BUTTON_RIGHT)
-    letters += 'R';
-  return letters;
-}
-
-/// converts requested touchpad bitfield and pressed touchpad bitfield to a
-/// letter. Requested bitfield should have only one bit set. Touched pad bitfield
-/// can have multiple bits set. If correct, the correct pad will be returned, if
-/// wrong only the wrong pad will be returned, if multiple wrong pads pressed,
-/// only one wrong pad will be returned in order L -> M -> R
-/// @returns String
-String convertBitfieldToSingleLetter(unsigned char targetPad, unsigned char pad){
-  if ((targetPad & (targetPad-1)) != 0) // error targetPad has multiple pads set
-    return "X";
-
-  String letter = "";
-  if (targetPad == pad){ // did we get it right?
-    letter += convertBitfieldToLetter(targetPad); // report right pad
-  }
-  else { // we have a wrong pad touched or multiple pads touched (of which one is wrong)
-    unsigned char maskedPressed = ~targetPad & pad; // mask out the correct pad
-    // check if multiple pads touched (except for correct one)
-    if ((maskedPressed & (maskedPressed-1)) != 0)
-    {
-      // multiple wrong pads touched
-      //just pick one to report, L -> M -> R
-      if (maskedPressed & hub.BUTTON_LEFT)
-        letter += 'L';
-      else if (maskedPressed & hub.BUTTON_MIDDLE)
-        letter += 'M';
-      else if (maskedPressed & hub.BUTTON_RIGHT)
-        letter += 'R';
-    } else {
-      //only one wrong pad touched
-      letter += convertBitfieldToLetter(maskedPressed);
-    }
-  }
-  return letter;
-}
 
 /// The actual LearningDoubleSequences challenge. This function needs to be called in a loop.
 bool playLearningDoubleSequences(){
+    using namespace LearningDoubleSequences;
     yield_begin();
 
     static unsigned long gameStartTime, timestampTouchpad, timestampBefore, activityDuration = 0;
@@ -373,15 +257,15 @@ bool playLearningDoubleSequences(){
 
     // keep track of performance
     if (!timeout){
-        addResultToPerformanceHistory(accurate);
+        addResultToPerformanceHistory(accurate, performance, perfDepth, perfPos, HISTORY_LENGTH);
     }
 
     // Check if we're ready for next challenge
     if (currentLevel == MAX_LEVEL){
-        if (countSuccesses() >= ENOUGH_SUCCESSES){
+        if (countSuccesses(performance, perfDepth) >= ENOUGH_SUCCESSES){
             Log.info("At MAX level! %u", currentLevel);
             challengeComplete = true;
-            resetPerformanceHistory();
+            resetPerformanceHistory(performance, perfDepth, perfPos, HISTORY_LENGTH);
         }
     }
 
@@ -429,34 +313,43 @@ bool playLearningDoubleSequences(){
 }
 
 
-/**
- * Setup function
- * --------------
- */
-void setup() {
-  // Initializes the hub and passes the current filename as ID for reporting
-  hub.Initialize(__FILE__);
-}
 
-/**
- * Main loop function
- * ------------------
- */
-void loop()
+bool LearningDoubleSequences_Loop()
 {
-    bool gameIsComplete = false;
-
-    // Advance the device layer state machine, but with 20 ms max time
-    // spent per loop cycle.
-    hub.Run(20);
-
-    // Play 1 interaction of the Learning Double Sequences challenge
-    // Will return true if level is done
-    gameIsComplete = playLearningDoubleSequences();
-
-    if(gameIsComplete){
-        // Interaction end
-        return;
-    }
-
+  using namespace LearningDoubleSequences;
+  bool gameIsComplete = false;
+  gameIsComplete = playLearningDoubleSequences();// Returns true if level is done
+  return gameIsComplete;
 }
+
+// /**
+//  * Setup function
+//  * --------------
+//  */
+// void setup() {
+//   // Initializes the hub and passes the current filename as ID for reporting
+//   hub.Initialize(__FILE__);
+// }
+
+// /**
+//  * Main loop function
+//  * ------------------
+//  */
+// void loop()
+// {
+//     bool gameIsComplete = false;
+
+//     // Advance the device layer state machine, but with 20 ms max time
+//     // spent per loop cycle.
+//     hub.Run(20);
+
+//     // Play 1 interaction of the Learning Double Sequences challenge
+//     // Will return true if level is done
+//     gameIsComplete = playLearningDoubleSequences();
+
+//     if(gameIsComplete){
+//         // Interaction end
+//         return;
+//     }
+
+// }
