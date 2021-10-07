@@ -124,7 +124,7 @@ String get_link_for_game(int game_index, String game_index_str, String game_name
     return content_str;
 }
 
-int mgschwan_serve_webinterface(int current_game, int next_game) {
+int mgschwan_serve_webinterface(int current_game, int next_game, String display_error_msg) {
     int c = 0, last_c = 0, last_last_c = 0;
     int new_game_selected = -1;
     
@@ -161,6 +161,10 @@ int mgschwan_serve_webinterface(int current_game, int next_game) {
 
             bool req_get = thing.substring(0, 3).equalsIgnoreCase("GET");
             bool req_post = thing.substring(0, 4).equalsIgnoreCase("POST");
+            
+            // detect if this is an API request
+            // look for: /local-api
+            
 
             if (req_get)
             {
@@ -294,6 +298,9 @@ int mgschwan_serve_webinterface(int current_game, int next_game) {
                 content += get_link_for_game(9, "9", "Learning Longer Sequences", current_game, overrideable_next_game);
                 content += get_link_for_game(10, "10", "Matching Two Colors", current_game, overrideable_next_game);
                 content += get_link_for_game(11, "11", "Matching More Colors", current_game, overrideable_next_game);
+
+                content += "<br>";
+                content += display_error_msg;
 
                 content += "</body>";
                 content += "</html>";
