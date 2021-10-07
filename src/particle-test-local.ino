@@ -145,24 +145,7 @@ void loop() {
     if (system_ready) 
     {
         mgschwan_MDNS_loop();
-
-        // TODO: move this to a function when cleaning up
-        
-        String display_error_msg = "";
-        if (hub.IsHubOutOfFood())
-        {
-            display_error_msg += "<br><br><b>Your hub is out of food. Please place food in the singulator and remove and replace dome.</b>";
-        }
-        if (hub.IsPlatterStuck() || hub.IsPlatterError())
-        {
-            display_error_msg += "<br><br><b>Your hub's platter is jammed. Please remove dome and clear the obstruction, then replace dome.</b>";
-        }
-        if (hub.IsSingulatorError())
-        {
-            display_error_msg += "<br><br><b>Your hub's singulator is jammed. Please remove dome and clear the obstruction, then replace dome.</b>";
-        }
-
-        int new_game_selected = mgschwan_serve_webinterface(GAME_TO_PLAY, NEXT_GAME_TO_PLAY, display_error_msg);
+        int new_game_selected = mgschwan_serve_webinterface(GAME_TO_PLAY, NEXT_GAME_TO_PLAY);
 
         if (new_game_selected >= 0 && new_game_selected != GAME_TO_PLAY)
         {
@@ -177,7 +160,7 @@ void loop() {
         }
 
     }
-    
+
     long int millis_step_1 = millis() - millis_start;
     millis_start = millis();
 
@@ -187,8 +170,6 @@ void loop() {
     millis_start = millis();
     
     bool trial_done = false;
-    
-    // TODO simplify this / move to a function when cleaning up
 
     if (GAME_TO_PLAY == 0)
     {
