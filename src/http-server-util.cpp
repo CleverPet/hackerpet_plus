@@ -124,6 +124,37 @@ String get_link_for_game(int game_index, String game_index_str, String game_name
     return content_str;
 }
 
+String get_script_html()
+{
+    String content_str = "<script>"
+                         "function updateAllEvents() { \n"
+                         "  var xhttp = new XMLHttpRequest();\n"
+                         "  var status_element = document.getElementById(\"api-hub-status\");\n"
+                         "  xhttp.open(\"GET\", \"http://cleverpet.local/local-api\", true);\n"
+                         "  xhttp.send();\n"
+                         "  xhttp.onload = function () {"
+                         "      console.log('DONE', xhttp.readyState);" // readyState will be 4
+                         "      console.log(xhttp.responseText);"
+                         "      var data = JSON.parse(xhttp.responseText);"
+                         "      status_element.innerHTML = data.status;\n"
+                         "  };"
+                         "}\n"
+                         "\n"
+                         "setInterval(updateAllEvents, 2000);\n"
+                         "</script>";
+    return content_str;
+}
+
+String get_async_html()
+{
+    String content_str = "<div class=\"event\" id=\"temp-event\">"
+                         "HUB STATUS:<BR>"
+                         "<strong class=\"api-msg\" id=\"api-hub-status\">init-status</strong><br />"
+                         "</div>";
+
+    return content_str;
+}
+
 int mgschwan_serve_webinterface(int current_game, int next_game, String display_error_msg) {
     int c = 0, last_c = 0, last_last_c = 0;
     int new_game_selected = -1;
@@ -164,154 +195,170 @@ int mgschwan_serve_webinterface(int current_game, int next_game, String display_
             
             // detect if this is an API request
             // look for: /local-api
-            
+            if (thing.indexOf("local-api") > -1)
+            {
+                // this is an API request (asynchronous webpage update)
+                Log.info("!!! SERVER IS SERVING API REQUEST !!!");
+                Log.info("API request string:");
+                Log.print(thing);
 
-            if (req_get)
-            {
-                Log.info("!!! SERVER IS SERVING GET REQUEST !!!");
-            }
-            else if (req_post)
-            {
-                Log.info("!!! SERVER IS SERVING POST REQUEST !!!");
+                String return_str = "{\"status\":\"" + display_error_msg + "\"}";
+                webclient.println(return_str);  // println?
             }
             else
             {
-                Log.info("!!! SERVER IS SERVING UNKNOWN REQUEST !!!");
-            }
-
-            if (req_post)
-            {
-                // get and process new game value
-                // this is the section where we will set new_game_selected, not below
+                // this is a regular POST or GET request
                 
-                //Log.info("POST request string:");
-                //Log.print(thing);
+                if (req_get)
+                {
+                    Log.info("!!! SERVER IS SERVING GET REQUEST !!!");
+                }
+                else if (req_post)
+                {
+                    Log.info("!!! SERVER IS SERVING POST REQUEST !!!");
+                }
+                else
+                {
+                    Log.info("!!! SERVER IS SERVING UNKNOWN REQUEST !!!");
+                }
+
+                if (req_post)
+                {
+                    // get and process new game value
+                    // this is the section where we will set new_game_selected, not below
+                    
+                    //Log.info("POST request string:");
+                    //Log.print(thing);
+                    
+                    String new_game_str = thing.substring(thing.indexOf("game=") + 5, thing.indexOf("game=") + 6);
+                    String new_game_str_2 = thing.substring(thing.indexOf("game=") + 5, thing.indexOf("game=") + 7);
+                    
+                    if (new_game_str_2.equalsIgnoreCase("10"))
+                    {
+                        new_game_selected = 10;
+                        Log.info("POST: selected game 10!");
+                    }
+                    else if (new_game_str_2.equalsIgnoreCase("11"))
+                    {
+                        new_game_selected = 11;
+                        Log.info("POST: selected game 11!");
+                    }
+                    else if (new_game_str.equalsIgnoreCase("0"))
+                    {
+                        new_game_selected = 0;
+                        Log.info("POST: selected game 0!");
+                    }
+                    else if (new_game_str.equalsIgnoreCase("1"))
+                    {
+                        new_game_selected = 1;
+                        Log.info("POST: selected game 1!");          
+                    }
+                    else if (new_game_str.equalsIgnoreCase("2"))
+                    {
+                        new_game_selected = 2;
+                        Log.info("POST: selected game 2!");
+                    }
+                    else if (new_game_str.equalsIgnoreCase("3"))
+                    {
+                        new_game_selected = 3;
+                        Log.info("POST: selected game 3!");
+                    }
+                    else if (new_game_str.equalsIgnoreCase("4"))
+                    {
+                        new_game_selected = 4;
+                        Log.info("POST: selected game 4!");
+                    }
+                    else if (new_game_str.equalsIgnoreCase("5"))
+                    {
+                        new_game_selected = 5;
+                        Log.info("POST: selected game 5!");
+                    }
+                    else if (new_game_str.equalsIgnoreCase("6"))
+                    {
+                        new_game_selected = 6;
+                        Log.info("POST: selected game 6!");
+                    }
+                    else if (new_game_str.equalsIgnoreCase("7"))
+                    {
+                        new_game_selected = 7;
+                        Log.info("POST: selected game 7!");
+                    }
+                    else if (new_game_str.equalsIgnoreCase("8"))
+                    {
+                        new_game_selected = 8;
+                        Log.info("POST: selected game 8!");
+                    }
+                    else if (new_game_str.equalsIgnoreCase("9"))
+                    {
+                        new_game_selected = 9;
+                        Log.info("POST: selected game 9!");
+                    }
+
+
+                    if (new_game_selected >= 0)
+                    {
+                        overrideable_next_game = new_game_selected;
+                    }
+                    
                 
-                String new_game_str = thing.substring(thing.indexOf("game=") + 5, thing.indexOf("game=") + 6);
-                String new_game_str_2 = thing.substring(thing.indexOf("game=") + 5, thing.indexOf("game=") + 7);
-                
-                if (new_game_str_2.equalsIgnoreCase("10"))
-                {
-                    new_game_selected = 10;
-                    Log.info("POST: selected game 10!");
-                }
-                else if (new_game_str_2.equalsIgnoreCase("11"))
-                {
-                    new_game_selected = 11;
-                    Log.info("POST: selected game 11!");
-                }
-                else if (new_game_str.equalsIgnoreCase("0"))
-                {
-                    new_game_selected = 0;
-                    Log.info("POST: selected game 0!");
-                }
-                else if (new_game_str.equalsIgnoreCase("1"))
-                {
-                    new_game_selected = 1;
-                    Log.info("POST: selected game 1!");          
-                }
-                else if (new_game_str.equalsIgnoreCase("2"))
-                {
-                    new_game_selected = 2;
-                    Log.info("POST: selected game 2!");
-                }
-                else if (new_game_str.equalsIgnoreCase("3"))
-                {
-                    new_game_selected = 3;
-                    Log.info("POST: selected game 3!");
-                }
-                else if (new_game_str.equalsIgnoreCase("4"))
-                {
-                    new_game_selected = 4;
-                    Log.info("POST: selected game 4!");
-                }
-                else if (new_game_str.equalsIgnoreCase("5"))
-                {
-                    new_game_selected = 5;
-                    Log.info("POST: selected game 5!");
-                }
-                else if (new_game_str.equalsIgnoreCase("6"))
-                {
-                    new_game_selected = 6;
-                    Log.info("POST: selected game 6!");
-                }
-                else if (new_game_str.equalsIgnoreCase("7"))
-                {
-                    new_game_selected = 7;
-                    Log.info("POST: selected game 7!");
-                }
-                else if (new_game_str.equalsIgnoreCase("8"))
-                {
-                    new_game_selected = 8;
-                    Log.info("POST: selected game 8!");
-                }
-                else if (new_game_str.equalsIgnoreCase("9"))
-                {
-                    new_game_selected = 9;
-                    Log.info("POST: selected game 9!");
                 }
 
-
-                if (new_game_selected >= 0)
+                if (req_get || req_post)
                 {
-                    overrideable_next_game = new_game_selected;
+                    // check URL for game to set, or none (keep playing current game)
+                    //String route = thing.substring(thing.indexOf("GET") + 5);
+                    //route = route.substring(0, route.indexOf(" "));
+
+                    String content = "";
+                    content += "<!DOCTYPE html>";
+                    content += "<html>";
+                    content += "<head><style>";
+                    content += get_css_string();
+                    content += "</style>";
+                    content += get_script_html();
+                    content += "</head>";
+                    content += "<body>";
+
+                    // enable for debugging full GET request:
+                    //content += "<br><br>";
+                    //content += thing;
+                    //content += "<br><br>";
+
+                    // return the id from this function at the end; or, return what? -1? to indicate no new choice?
+
+                    // print list of games and URL to go to
+                    
+                    content += "<br>";
+                    content += "select game:<br><br>";
+
+                    content += get_link_for_game(0, "0", "Eating the Food", current_game, overrideable_next_game);
+                    content += get_link_for_game(1, "1", "Exploring the Touchpads", current_game, overrideable_next_game);
+                    content += get_link_for_game(2, "2", "Engaging Consistently", current_game, overrideable_next_game);
+                    content += get_link_for_game(3, "3", "Avoiding Unlit Touchpads", current_game, overrideable_next_game);
+                    content += get_link_for_game(4, "4", "Learning the Lights", current_game, overrideable_next_game);
+                    content += get_link_for_game(5, "5", "Mastering the Lights", current_game, overrideable_next_game);
+                    content += get_link_for_game(6, "6", "Responding Quickly", current_game, overrideable_next_game);
+                    content += get_link_for_game(7, "7", "Learning Brightness", current_game, overrideable_next_game);
+                    content += get_link_for_game(8, "8", "Learning Double Sequences", current_game, overrideable_next_game);
+                    content += get_link_for_game(9, "9", "Learning Longer Sequences", current_game, overrideable_next_game);
+                    content += get_link_for_game(10, "10", "Matching Two Colors", current_game, overrideable_next_game);
+                    content += get_link_for_game(11, "11", "Matching More Colors", current_game, overrideable_next_game);
+
+                    content += "<br>";
+                    //content += display_error_msg;
+                    //content += "<br>";
+                    content += get_async_html();
+                    content += "</body>";
+                    content += "</html>";
+                    
+                    webclient.println("HTTP/1.0 200 OK");
+                    webclient.println("Content-type: text/html");
+                    webclient.print("Content-length: ");
+                    webclient.println(content.length());
+                    webclient.println("");
+                    webclient.print(content);
+                    webclient.println();
                 }
-                
-            
-            }
-
-            if (req_get || req_post)
-            {
-                // check URL for game to set, or none (keep playing current game)
-                //String route = thing.substring(thing.indexOf("GET") + 5);
-                //route = route.substring(0, route.indexOf(" "));
-
-                String content = "";
-                content += "<!DOCTYPE html>";
-                content += "<html>";
-                content += "<head><style>";
-                content += get_css_string();
-                content += "</style></head>";
-                content += "<body>";
-
-                // enable for debugging full GET request:
-                //content += "<br><br>";
-                //content += thing;
-                //content += "<br><br>";
-
-                // return the id from this function at the end; or, return what? -1? to indicate no new choice?
-
-                // print list of games and URL to go to
-                
-                content += "<br>";
-                content += "select game:<br><br>";
-
-                content += get_link_for_game(0, "0", "Eating the Food", current_game, overrideable_next_game);
-                content += get_link_for_game(1, "1", "Exploring the Touchpads", current_game, overrideable_next_game);
-                content += get_link_for_game(2, "2", "Engaging Consistently", current_game, overrideable_next_game);
-                content += get_link_for_game(3, "3", "Avoiding Unlit Touchpads", current_game, overrideable_next_game);
-                content += get_link_for_game(4, "4", "Learning the Lights", current_game, overrideable_next_game);
-                content += get_link_for_game(5, "5", "Mastering the Lights", current_game, overrideable_next_game);
-                content += get_link_for_game(6, "6", "Responding Quickly", current_game, overrideable_next_game);
-                content += get_link_for_game(7, "7", "Learning Brightness", current_game, overrideable_next_game);
-                content += get_link_for_game(8, "8", "Learning Double Sequences", current_game, overrideable_next_game);
-                content += get_link_for_game(9, "9", "Learning Longer Sequences", current_game, overrideable_next_game);
-                content += get_link_for_game(10, "10", "Matching Two Colors", current_game, overrideable_next_game);
-                content += get_link_for_game(11, "11", "Matching More Colors", current_game, overrideable_next_game);
-
-                content += "<br>";
-                content += display_error_msg;
-
-                content += "</body>";
-                content += "</html>";
-                
-                webclient.println("HTTP/1.0 200 OK");
-                webclient.println("Content-type: text/html");
-                webclient.print("Content-length: ");
-                webclient.println(content.length());
-                webclient.println("");
-                webclient.print(content);
-                webclient.println();
             }
         }
 

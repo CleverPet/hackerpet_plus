@@ -148,18 +148,22 @@ void loop() {
 
         // TODO: move this to a function when cleaning up
         
-        String display_error_msg = "";
+        String display_error_msg = "<b> Your hub is functioning normally.</b>";
         if (hub.IsHubOutOfFood())
         {
-            display_error_msg += "<br><br><b>Your hub is out of food. Please place food in the singulator and remove and replace dome.</b>";
+            display_error_msg = "<b> Your hub is out of food. Please place food in the singulator and remove and replace dome.</b>";
         }
         if (hub.IsPlatterStuck() || hub.IsPlatterError())
         {
-            display_error_msg += "<br><br><b>Your hub's platter is jammed. Please remove dome and clear the obstruction, then replace dome.</b>";
+            display_error_msg = "<b> Your hub's platter is jammed. Please remove dome and clear the obstruction, then replace dome.</b>";
         }
         if (hub.IsSingulatorError())
         {
-            display_error_msg += "<br><br><b>Your hub's singulator is jammed. Please remove dome and clear the obstruction, then replace dome.</b>";
+            display_error_msg = "<b> Your hub's singulator is jammed. Please remove dome and clear the obstruction, then replace dome.</b>";
+        }
+        if (hub.IsDomeRemoved())
+        {
+            display_error_msg = "<b> Your hub's dome is removed.</b>";
         }
 
         int new_game_selected = mgschwan_serve_webinterface(GAME_TO_PLAY, NEXT_GAME_TO_PLAY, display_error_msg);
