@@ -52,6 +52,13 @@ bool mgschwan_setupMDNS() {
     return success;
 }
 
+String int_to_string(int the_int)
+{
+    char the_str[30];
+    sprintf(the_str,"%d", the_int);
+    String the_str2 = String(the_str);
+    return the_str2;
+}
 
 void mgschwan_setupNetwork()
 {
@@ -104,10 +111,35 @@ String get_post_link_string(String text, String name, String value)
 
 String get_link_for_game(int game_index, String game_index_str, String game_name, int current_game, int overrideable_next_game)
 {
-    String content_str;
+
+    /*
+    String content_str = "<div class=\"event\" id=\"temp-event\">"
+                         "HUB STATUS:<BR>"
+                         "<strong class=\"api-msg\" id=\"api-hub-status\">init-status</strong><br />"
+                         "</div>";
+    */
     
     // get_link_for_game(1, "1", "Exploring the Touchpads", current_game, overrideable_next_game);
-    
+    String placeholder;  // on reload or post to page
+
+    if(current_game == game_index)
+    {
+        placeholder = "playing";
+    }
+    else if (overrideable_next_game == game_index)
+    {
+        placeholder = "queued";
+    }
+    else
+    {
+        placeholder = "-------";
+    }
+
+    String content_str = "<div class=\"event\" id=\"temp-game-status-" + game_index_str + "\">"
+                         "[<b><strong class=\"api-msg\" id=\"game-status-" + game_index_str + "\">" + placeholder + "</strong></b>] " + get_post_link_string(game_name, "game", game_index_str) + "<br />"
+                         "</div>";
+    // old:
+    /*    
     if (current_game == game_index)
     {
         content_str = "[<b>playing</b>] " + get_post_link_string(game_name, "game", game_index_str) + "<br>";
@@ -120,24 +152,52 @@ String get_link_for_game(int game_index, String game_index_str, String game_name
     {
         content_str = "[-------] " + get_post_link_string(game_name, "game", game_index_str) + "<br>";
     }
+    */
 
     return content_str;
 }
 
 String get_script_html()
 {
+
+    // now have also: game-id-queued, game-id-playing
+
+    String num_games = "12";
+    
     String content_str = "<script>"
                          "function updateAllEvents() { \n"
                          "  var xhttp = new XMLHttpRequest();\n"
                          "  var status_element = document.getElementById(\"api-hub-status\");\n"
                          "  xhttp.open(\"GET\", \"http://cleverpet.local/local-api\", true);\n"
                          "  xhttp.send();\n"
-                         "  xhttp.onload = function () {"
-                         "      console.log('DONE', xhttp.readyState);" // readyState will be 4
-                         "      console.log(xhttp.responseText);"
-                         "      var data = JSON.parse(xhttp.responseText);"
+                         "  xhttp.onload = function () {\n"
+                         "      console.log('DONE', xhttp.readyState);\n" // readyState will be 4
+                         "      console.log(xhttp.responseText);\n"
+                         "      var data = JSON.parse(xhttp.responseText);\n"
                          "      status_element.innerHTML = data.status;\n"
-                         "  };"
+                         "      for(let i=0; i < " + num_games + "; i++)\n"
+                         "      {\n"
+                         "           console.log(\"game-status-\" + i.toString());\n"
+                         "           var game_element = document.getElementById(\"game-status-\" + i.toString());\n"
+                         "           if (parseInt(data.game_id_playing)==i)\n"  // playing same game overrides the element if also queued same
+                         "           {\n"
+                         "              console.log(\"playing found\");\n"
+                         "              game_element.innerHTML=\"playing\";\n"
+                         "           }\n"
+                         "           else\n"
+                         "           {\n"
+                         "              if (parseInt(data.game_id_queued)==i)\n"
+                         "              {\n"
+                         "                  console.log(\"queued found\");\n"
+                         "                  game_element.innerHTML=\"queued\";\n"
+                         "              }\n"
+                         "              else\n"
+                         "              {\n"
+                         "                  game_element.innerHTML=\"-------\";\n"
+                         "              }\n"
+                         "           }\n"
+                         "      }\n"
+                         "  };\n"
                          "}\n"
                          "\n"
                          "setInterval(updateAllEvents, 2000);\n"
@@ -202,7 +262,14 @@ int mgschwan_serve_webinterface(int current_game, int next_game, String display_
                 Log.info("API request string:");
                 Log.print(thing);
 
-                String return_str = "{\"status\":\"" + display_error_msg + "\"}";
+                String next_game_str = int_to_string(next_game);
+                String current_game_str = int_to_string(current_game);
+
+                String return_str = "{"
+                                    "\"status\":\"" + display_error_msg + "\","
+                                    "\"game_id_queued\":\"" + next_game_str + "\","
+                                    "\"game_id_playing\":\"" + current_game_str + "\""
+                                    "}";
                 webclient.println(return_str);  // println?
             }
             else
