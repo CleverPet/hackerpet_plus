@@ -72,40 +72,133 @@ void mgschwan_setupNetwork()
 }
 
 
+String get_time_zone_string()
+{
+
+    String time_zone_string = 
+    "Select Timezone: <select>\n"
+	"<option timeZoneId=\"1\" gmtAdjustment=\"GMT-12:00\" useDaylightTime=\"0\" value=\"-12\">(GMT-12:00) International Date Line West</option>\n"
+	"<option timeZoneId=\"2\" gmtAdjustment=\"GMT-11:00\" useDaylightTime=\"0\" value=\"-11\">(GMT-11:00) Midway Island, Samoa</option>\n"
+	"<option timeZoneId=\"3\" gmtAdjustment=\"GMT-10:00\" useDaylightTime=\"0\" value=\"-10\">(GMT-10:00) Hawaii</option>\n"
+	"<option timeZoneId=\"4\" gmtAdjustment=\"GMT-09:00\" useDaylightTime=\"1\" value=\"-9\">(GMT-09:00) Alaska</option>\n"
+	"<option timeZoneId=\"5\" gmtAdjustment=\"GMT-08:00\" useDaylightTime=\"1\" value=\"-8\">(GMT-08:00) Pacific Time (US & Canada)</option>\n"
+	"<option timeZoneId=\"6\" gmtAdjustment=\"GMT-08:00\" useDaylightTime=\"1\" value=\"-8\">(GMT-08:00) Tijuana, Baja California</option>\n"
+	"<option timeZoneId=\"7\" gmtAdjustment=\"GMT-07:00\" useDaylightTime=\"0\" value=\"-7\">(GMT-07:00) Arizona</option>\n"
+	"<option timeZoneId=\"8\" gmtAdjustment=\"GMT-07:00\" useDaylightTime=\"1\" value=\"-7\">(GMT-07:00) Chihuahua, La Paz, Mazatlan</option>\n"
+	"<option timeZoneId=\"9\" gmtAdjustment=\"GMT-07:00\" useDaylightTime=\"1\" value=\"-7\">(GMT-07:00) Mountain Time (US & Canada)</option>\n"
+	"<option timeZoneId=\"10\" gmtAdjustment=\"GMT-06:00\" useDaylightTime=\"0\" value=\"-6\">(GMT-06:00) Central America</option>\n"
+	"<option timeZoneId=\"11\" gmtAdjustment=\"GMT-06:00\" useDaylightTime=\"1\" value=\"-6\">(GMT-06:00) Central Time (US & Canada)</option>\n"
+	"<option timeZoneId=\"12\" gmtAdjustment=\"GMT-06:00\" useDaylightTime=\"1\" value=\"-6\">(GMT-06:00) Guadalajara, Mexico City, Monterrey</option>\n"
+	"<option timeZoneId=\"13\" gmtAdjustment=\"GMT-06:00\" useDaylightTime=\"0\" value=\"-6\">(GMT-06:00) Saskatchewan</option>\n"
+	"<option timeZoneId=\"14\" gmtAdjustment=\"GMT-05:00\" useDaylightTime=\"0\" value=\"-5\">(GMT-05:00) Bogota, Lima, Quito, Rio Branco</option>\n"
+	"<option timeZoneId=\"15\" gmtAdjustment=\"GMT-05:00\" useDaylightTime=\"1\" value=\"-5\">(GMT-05:00) Eastern Time (US & Canada)</option>\n"
+	"<option timeZoneId=\"16\" gmtAdjustment=\"GMT-05:00\" useDaylightTime=\"1\" value=\"-5\">(GMT-05:00) Indiana (East)</option>\n"
+	"<option timeZoneId=\"17\" gmtAdjustment=\"GMT-04:00\" useDaylightTime=\"1\" value=\"-4\">(GMT-04:00) Atlantic Time (Canada)</option>\n"
+	"<option timeZoneId=\"18\" gmtAdjustment=\"GMT-04:00\" useDaylightTime=\"0\" value=\"-4\">(GMT-04:00) Caracas, La Paz</option>\n"
+	"<option timeZoneId=\"19\" gmtAdjustment=\"GMT-04:00\" useDaylightTime=\"0\" value=\"-4\">(GMT-04:00) Manaus</option>\n"
+	"<option timeZoneId=\"20\" gmtAdjustment=\"GMT-04:00\" useDaylightTime=\"1\" value=\"-4\">(GMT-04:00) Santiago</option>\n"
+	"<option timeZoneId=\"21\" gmtAdjustment=\"GMT-03:30\" useDaylightTime=\"1\" value=\"-3.5\">(GMT-03:30) Newfoundland</option>\n"
+	"<option timeZoneId=\"22\" gmtAdjustment=\"GMT-03:00\" useDaylightTime=\"1\" value=\"-3\">(GMT-03:00) Brasilia</option>\n"
+	"<option timeZoneId=\"23\" gmtAdjustment=\"GMT-03:00\" useDaylightTime=\"0\" value=\"-3\">(GMT-03:00) Buenos Aires, Georgetown</option>\n"
+	"<option timeZoneId=\"24\" gmtAdjustment=\"GMT-03:00\" useDaylightTime=\"1\" value=\"-3\">(GMT-03:00) Greenland</option>\n"
+	"<option timeZoneId=\"25\" gmtAdjustment=\"GMT-03:00\" useDaylightTime=\"1\" value=\"-3\">(GMT-03:00) Montevideo</option>\n"
+	"<option timeZoneId=\"26\" gmtAdjustment=\"GMT-02:00\" useDaylightTime=\"1\" value=\"-2\">(GMT-02:00) Mid-Atlantic</option>\n"
+	"<option timeZoneId=\"27\" gmtAdjustment=\"GMT-01:00\" useDaylightTime=\"0\" value=\"-1\">(GMT-01:00) Cape Verde Is.</option>\n"
+	"<option timeZoneId=\"28\" gmtAdjustment=\"GMT-01:00\" useDaylightTime=\"1\" value=\"-1\">(GMT-01:00) Azores</option>\n"
+	"<option timeZoneId=\"29\" gmtAdjustment=\"GMT+00:00\" useDaylightTime=\"0\" value=\"0\">(GMT+00:00) Casablanca, Monrovia, Reykjavik</option>\n"
+	"<option timeZoneId=\"30\" gmtAdjustment=\"GMT+00:00\" useDaylightTime=\"1\" value=\"0\">(GMT+00:00) Greenwich Mean Time : Dublin, Edinburgh, Lisbon, London</option>\n"
+	"<option timeZoneId=\"31\" gmtAdjustment=\"GMT+01:00\" useDaylightTime=\"1\" value=\"1\">(GMT+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna</option>\n"
+	"<option timeZoneId=\"32\" gmtAdjustment=\"GMT+01:00\" useDaylightTime=\"1\" value=\"1\">(GMT+01:00) Belgrade, Bratislava, Budapest, Ljubljana, Prague</option>\n"
+	"<option timeZoneId=\"33\" gmtAdjustment=\"GMT+01:00\" useDaylightTime=\"1\" value=\"1\">(GMT+01:00) Brussels, Copenhagen, Madrid, Paris</option>\n"
+	"<option timeZoneId=\"34\" gmtAdjustment=\"GMT+01:00\" useDaylightTime=\"1\" value=\"1\">(GMT+01:00) Sarajevo, Skopje, Warsaw, Zagreb</option>\n"
+	"<option timeZoneId=\"35\" gmtAdjustment=\"GMT+01:00\" useDaylightTime=\"1\" value=\"1\">(GMT+01:00) West Central Africa</option>\n"
+	"<option timeZoneId=\"36\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"1\" value=\"2\">(GMT+02:00) Amman</option>\n"
+	"<option timeZoneId=\"37\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"1\" value=\"2\">(GMT+02:00) Athens, Bucharest, Istanbul</option>\n"
+	"<option timeZoneId=\"38\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"1\" value=\"2\">(GMT+02:00) Beirut</option>\n"
+	"<option timeZoneId=\"39\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"1\" value=\"2\">(GMT+02:00) Cairo</option>\n"
+	"<option timeZoneId=\"40\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"0\" value=\"2\">(GMT+02:00) Harare, Pretoria</option>\n"
+	"<option timeZoneId=\"41\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"1\" value=\"2\">(GMT+02:00) Helsinki, Kyiv, Riga, Sofia, Tallinn, Vilnius</option>\n"
+	"<option timeZoneId=\"42\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"1\" value=\"2\">(GMT+02:00) Jerusalem</option>\n"
+	"<option timeZoneId=\"43\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"1\" value=\"2\">(GMT+02:00) Minsk</option>\n"
+	"<option timeZoneId=\"44\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"1\" value=\"2\">(GMT+02:00) Windhoek</option>\n"
+	"<option timeZoneId=\"45\" gmtAdjustment=\"GMT+03:00\" useDaylightTime=\"0\" value=\"3\">(GMT+03:00) Kuwait, Riyadh, Baghdad</option>\n"
+	"<option timeZoneId=\"46\" gmtAdjustment=\"GMT+03:00\" useDaylightTime=\"1\" value=\"3\">(GMT+03:00) Moscow, St. Petersburg, Volgograd</option>\n"
+	"<option timeZoneId=\"47\" gmtAdjustment=\"GMT+03:00\" useDaylightTime=\"0\" value=\"3\">(GMT+03:00) Nairobi</option>\n"
+	"<option timeZoneId=\"48\" gmtAdjustment=\"GMT+03:00\" useDaylightTime=\"0\" value=\"3\">(GMT+03:00) Tbilisi</option>\n"
+	"<option timeZoneId=\"49\" gmtAdjustment=\"GMT+03:30\" useDaylightTime=\"1\" value=\"3.5\">(GMT+03:30) Tehran</option>\n"
+	"<option timeZoneId=\"50\" gmtAdjustment=\"GMT+04:00\" useDaylightTime=\"0\" value=\"4\">(GMT+04:00) Abu Dhabi, Muscat</option>\n"
+	"<option timeZoneId=\"51\" gmtAdjustment=\"GMT+04:00\" useDaylightTime=\"1\" value=\"4\">(GMT+04:00) Baku</option>\n"
+	"<option timeZoneId=\"52\" gmtAdjustment=\"GMT+04:00\" useDaylightTime=\"1\" value=\"4\">(GMT+04:00) Yerevan</option>\n"
+	"<option timeZoneId=\"53\" gmtAdjustment=\"GMT+04:30\" useDaylightTime=\"0\" value=\"4.5\">(GMT+04:30) Kabul</option>\n"
+	"<option timeZoneId=\"54\" gmtAdjustment=\"GMT+05:00\" useDaylightTime=\"1\" value=\"5\">(GMT+05:00) Yekaterinburg</option>\n"
+	"<option timeZoneId=\"55\" gmtAdjustment=\"GMT+05:00\" useDaylightTime=\"0\" value=\"5\">(GMT+05:00) Islamabad, Karachi, Tashkent</option>\n"
+	"<option timeZoneId=\"56\" gmtAdjustment=\"GMT+05:30\" useDaylightTime=\"0\" value=\"5.5\">(GMT+05:30) Sri Jayawardenapura</option>\n"
+	"<option timeZoneId=\"57\" gmtAdjustment=\"GMT+05:30\" useDaylightTime=\"0\" value=\"5.5\">(GMT+05:30) Chennai, Kolkata, Mumbai, New Delhi</option>\n"
+	"<option timeZoneId=\"58\" gmtAdjustment=\"GMT+05:45\" useDaylightTime=\"0\" value=\"5.75\">(GMT+05:45) Kathmandu</option>\n"
+	"<option timeZoneId=\"59\" gmtAdjustment=\"GMT+06:00\" useDaylightTime=\"1\" value=\"6\">(GMT+06:00) Almaty, Novosibirsk</option>\n"
+	"<option timeZoneId=\"60\" gmtAdjustment=\"GMT+06:00\" useDaylightTime=\"0\" value=\"6\">(GMT+06:00) Astana, Dhaka</option>\n"
+	"<option timeZoneId=\"61\" gmtAdjustment=\"GMT+06:30\" useDaylightTime=\"0\" value=\"6.5\">(GMT+06:30) Yangon (Rangoon)</option>\n"
+	"<option timeZoneId=\"62\" gmtAdjustment=\"GMT+07:00\" useDaylightTime=\"0\" value=\"7\">(GMT+07:00) Bangkok, Hanoi, Jakarta</option>\n"
+	"<option timeZoneId=\"63\" gmtAdjustment=\"GMT+07:00\" useDaylightTime=\"1\" value=\"7\">(GMT+07:00) Krasnoyarsk</option>\n"
+	"<option timeZoneId=\"64\" gmtAdjustment=\"GMT+08:00\" useDaylightTime=\"0\" value=\"8\">(GMT+08:00) Beijing, Chongqing, Hong Kong, Urumqi</option>\n"
+	"<option timeZoneId=\"65\" gmtAdjustment=\"GMT+08:00\" useDaylightTime=\"0\" value=\"8\">(GMT+08:00) Kuala Lumpur, Singapore</option>\n"
+	"<option timeZoneId=\"66\" gmtAdjustment=\"GMT+08:00\" useDaylightTime=\"0\" value=\"8\">(GMT+08:00) Irkutsk, Ulaan Bataar</option>\n"
+	"<option timeZoneId=\"67\" gmtAdjustment=\"GMT+08:00\" useDaylightTime=\"0\" value=\"8\">(GMT+08:00) Perth</option>\n"
+	"<option timeZoneId=\"68\" gmtAdjustment=\"GMT+08:00\" useDaylightTime=\"0\" value=\"8\">(GMT+08:00) Taipei</option>\n"
+	"<option timeZoneId=\"69\" gmtAdjustment=\"GMT+09:00\" useDaylightTime=\"0\" value=\"9\">(GMT+09:00) Osaka, Sapporo, Tokyo</option>\n"
+	"<option timeZoneId=\"70\" gmtAdjustment=\"GMT+09:00\" useDaylightTime=\"0\" value=\"9\">(GMT+09:00) Seoul</option>\n"
+	"<option timeZoneId=\"71\" gmtAdjustment=\"GMT+09:00\" useDaylightTime=\"1\" value=\"9\">(GMT+09:00) Yakutsk</option>\n"
+	"<option timeZoneId=\"72\" gmtAdjustment=\"GMT+09:30\" useDaylightTime=\"0\" value=\"9.5\">(GMT+09:30) Adelaide</option>\n"
+	"<option timeZoneId=\"73\" gmtAdjustment=\"GMT+09:30\" useDaylightTime=\"0\" value=\"9.5\">(GMT+09:30) Darwin</option>\n"
+	"<option timeZoneId=\"74\" gmtAdjustment=\"GMT+10:00\" useDaylightTime=\"0\" value=\"10\">(GMT+10:00) Brisbane</option>\n"
+	"<option timeZoneId=\"75\" gmtAdjustment=\"GMT+10:00\" useDaylightTime=\"1\" value=\"10\">(GMT+10:00) Canberra, Melbourne, Sydney</option>\n"
+	"<option timeZoneId=\"76\" gmtAdjustment=\"GMT+10:00\" useDaylightTime=\"1\" value=\"10\">(GMT+10:00) Hobart</option>\n"
+	"<option timeZoneId=\"77\" gmtAdjustment=\"GMT+10:00\" useDaylightTime=\"0\" value=\"10\">(GMT+10:00) Guam, Port Moresby</option>\n"
+	"<option timeZoneId=\"78\" gmtAdjustment=\"GMT+10:00\" useDaylightTime=\"1\" value=\"10\">(GMT+10:00) Vladivostok</option>\n"
+	"<option timeZoneId=\"79\" gmtAdjustment=\"GMT+11:00\" useDaylightTime=\"1\" value=\"11\">(GMT+11:00) Magadan, Solomon Is., New Caledonia</option>\n"
+	"<option timeZoneId=\"80\" gmtAdjustment=\"GMT+12:00\" useDaylightTime=\"1\" value=\"12\">(GMT+12:00) Auckland, Wellington</option>\n"
+	"<option timeZoneId=\"81\" gmtAdjustment=\"GMT+12:00\" useDaylightTime=\"0\" value=\"12\">(GMT+12:00) Fiji, Kamchatka, Marshall Is.</option>\n"
+	"<option timeZoneId=\"82\" gmtAdjustment=\"GMT+13:00\" useDaylightTime=\"0\" value=\"13\">(GMT+13:00) Nuku'alofa</option>\n"
+    "</select><br>\n";				
+
+    return time_zone_string;
+}
+
 
 String get_css_string()
 {
-    String css_str = ".inline {"
-                     "display: inline;"
-                     "}"
-                     ""
-                    ".link-button {"
-                    "background: none;"
-                    "border: none;"
-                    "color: blue;"
-                    "text-decoration: underline;"
-                    "cursor: pointer;"
-                    "font-size: 1em;"
-                    "font-family: serif;"
-                    "}"
-                    ".link-button:focus {"
-                    "outline: none;"
-                    "}"
-                    ".link-button:active {"
-                    "color:red;"
-                    "}";
+    String css_str = ".inline {\n"
+                     "display: inline;\n"
+                     "}\n"
+                     "\n"
+                    ".link-button {\n"
+                    "background: none;\n"
+                    "border: none;\n"
+                    "color: blue;\n"
+                    "text-decoration: underline;\n"
+                    "cursor: pointer;\n"
+                    "font-size: 1em;\n"
+                    "font-family: serif;\n"
+                    "}\n"
+                    ".link-button:focus {\n"
+                    "outline: none;\n"
+                    "}\n"
+                    ".link-button:active {\n"
+                    "color:red;\n"
+                    "}\n";
 
     return css_str;
 
 }
 
+ 
 String get_post_link_string(String text, String name, String value)
 {
-    String post_link_str = "<form method=\"post\" action=\"http://cleverpet.local\" class=\"inline\">"
-                           "<input type=\"hidden\" name=\"" + name + "\" value=\"" + value + "\">"
+    String post_link_str = "<form method=\"post\" action=\"http://cleverpet.local\" class=\"inline\">\n"
+                           "<input type=\"hidden\" name=\"" + name + "\" value=\"" + value + "\">\n"
                            "<button type=\"submit\" name=\"submit_param\" value=\"submit_value\" class=\"link-button\">" + text + ""
-                           "</button>"
-                           "</form>";
+                           "</button>\n"
+                           "</form>\n";
     return post_link_str;
 }
 
@@ -135,9 +228,9 @@ String get_link_for_game(int game_index, String game_index_str, String game_name
         placeholder = "-------";
     }
 
-    String content_str = "<div class=\"event\" id=\"temp-game-status-" + game_index_str + "\">"
-                         "[<b><strong class=\"api-msg\" id=\"game-status-" + game_index_str + "\">" + placeholder + "</strong></b>] " + get_post_link_string(game_name, "game", game_index_str) + "<br />"
-                         "</div>";
+    String content_str = "<div class=\"event\" id=\"temp-game-status-" + game_index_str + "\">\n"
+                         "[<b><strong class=\"api-msg\" id=\"game-status-" + game_index_str + "\">" + placeholder + "</strong></b>] " + get_post_link_string(game_name, "game", game_index_str) + "<br />\n"
+                         "</div>\n";
     // old:
     /*    
     if (current_game == game_index)
@@ -164,7 +257,7 @@ String get_script_html()
 
     String num_games = "12";
     
-    String content_str = "<script>"
+    String content_str = "<script>\n"
                          "function updateAllEvents() { \n"
                          "  var xhttp = new XMLHttpRequest();\n"
                          "  var status_element = document.getElementById(\"api-hub-status\");\n"
@@ -201,16 +294,16 @@ String get_script_html()
                          "}\n"
                          "\n"
                          "setInterval(updateAllEvents, 2000);\n"
-                         "</script>";
+                         "</script>\n";
     return content_str;
 }
 
 String get_async_html()
 {
-    String content_str = "<div class=\"event\" id=\"temp-event\">"
-                         "HUB STATUS:<BR>"
-                         "<strong class=\"api-msg\" id=\"api-hub-status\">init-status</strong><br />"
-                         "</div>";
+    String content_str = "<div class=\"event\" id=\"temp-event\">\n"
+                         "HUB STATUS:<BR>\n"
+                         "<strong class=\"api-msg\" id=\"api-hub-status\">init-status</strong><br />\n"
+                         "</div>\n";
 
     return content_str;
 }
@@ -377,14 +470,14 @@ int mgschwan_serve_webinterface(int current_game, int next_game, String display_
                     //route = route.substring(0, route.indexOf(" "));
 
                     String content = "";
-                    content += "<!DOCTYPE html>";
-                    content += "<html>";
-                    content += "<head><style>";
+                    content += "<!DOCTYPE html>\n";
+                    content += "<html>\n";
+                    content += "<head>\n<style>\n";
                     content += get_css_string();
-                    content += "</style>";
+                    content += "</style>\n";
                     content += get_script_html();
-                    content += "</head>";
-                    content += "<body>";
+                    content += "</head>\n";
+                    content += "<body>\n";
 
                     // enable for debugging full GET request:
                     //content += "<br><br>";
@@ -395,8 +488,8 @@ int mgschwan_serve_webinterface(int current_game, int next_game, String display_
 
                     // print list of games and URL to go to
                     
-                    content += "<br>";
-                    content += "select game:<br><br>";
+                    content += "<br>\n";
+                    content += "select game:<br><br>\n";
 
                     content += get_link_for_game(0, "0", "Eating the Food", current_game, overrideable_next_game);
                     content += get_link_for_game(1, "1", "Exploring the Touchpads", current_game, overrideable_next_game);
@@ -411,19 +504,35 @@ int mgschwan_serve_webinterface(int current_game, int next_game, String display_
                     content += get_link_for_game(10, "10", "Matching Two Colors", current_game, overrideable_next_game);
                     content += get_link_for_game(11, "11", "Matching More Colors", current_game, overrideable_next_game);
 
-                    content += "<br>";
+                    content += "<br>\n";
                     //content += display_error_msg;
                     //content += "<br>";
                     content += get_async_html();
-                    content += "</body>";
-                    content += "</html>";
+                    content += "<br>\n";
+                    content += "before time zone stuff<\n>";
+                    content += "<br>\n";
                     
+                    content += "Apply Daylight Savings: <select><option value=\"1\">Yes</option><option value=\"0\">No</option></select><br>\n";
+                    String time_zone_str = get_time_zone_string();
+                    Log.info("time zone str length: " + int_to_string(time_zone_str.length()));
+
+                    // TODO DEBUG THIS FURTHER:
+                    String content_2 = "";
+
+                    content_2 += "<br>\n";
+                    content_2 += "after time zone stuff<br>\n";
+                    content_2 += "</body>\n";
+                    content_2 += "</html>";
+                    Log.info("content length: " + int_to_string(content.length()));
+                    Log.info("content_2 length: " + int_to_string(content_2.length()));
                     webclient.println("HTTP/1.0 200 OK");
                     webclient.println("Content-type: text/html");
                     webclient.print("Content-length: ");
-                    webclient.println(content.length());
+                    webclient.println(content.length() + time_zone_str.length() + content_2.length());
                     webclient.println("");
                     webclient.print(content);
+                    webclient.print(time_zone_str);
+                    webclient.print(content_2);
                     webclient.println();
                 }
             }
