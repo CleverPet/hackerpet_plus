@@ -509,8 +509,6 @@ int mgschwan_serve_webinterface(int current_game, int next_game, String display_
                     //content += "<br>";
                     content += get_async_html();
                     content += "<br>\n";
-                    content += "before time zone stuff<\n>";
-                    content += "<br>\n";
                     
                     content += "Apply Daylight Savings: <select><option value=\"1\">Yes</option><option value=\"0\">No</option></select><br>\n";
                     String time_zone_str = get_time_zone_string();
@@ -520,7 +518,6 @@ int mgschwan_serve_webinterface(int current_game, int next_game, String display_
                     String content_2 = "";
 
                     content_2 += "<br>\n";
-                    content_2 += "after time zone stuff<br>\n";
                     content_2 += "</body>\n";
                     content_2 += "</html>";
                     Log.info("content length: " + int_to_string(content.length()));
