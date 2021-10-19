@@ -80,6 +80,8 @@ int EVER_STORED_ADDRESS = 10;  // what are valid addresses?
 int GAME_ADDRESS = 20;  // what are valid addresses?
 float TIME_ZONE_OFFSET = 0.0;
 int TIME_ZONE_ADDRESS = 30;
+bool DST_ON = false;
+int DST_ADDRESS = 40;
 
 // setup() runs once, when the device is first turned on.
 void setup() {
@@ -108,6 +110,12 @@ void setup() {
 
         EEPROM.get(TIME_ZONE_ADDRESS, TIME_ZONE_OFFSET);
         Time.zone(TIME_ZONE_OFFSET);
+        
+        EEPROM.get(DST_ADDRESS, DST_ON);
+        if (DST_ON)
+        {
+            Time.beginDST();
+        }
     }
     else
     {
@@ -120,6 +128,7 @@ void setup() {
         EEPROM.put(GAME_ADDRESS, value);
         EEPROM.put(TIME_ZONE_ADDRESS, TIME_ZONE_OFFSET);
         Time.zone(TIME_ZONE_OFFSET);
+        EEPROM.put(DST_ADDRESS, DST_ON);
     }
 
     // TODO upon game switch, need to also write to eeprom!
@@ -173,7 +182,7 @@ void loop() {
             display_error_msg = "<b> Your hub's dome is removed.</b>";
         }
 
-        int new_game_selected = mgschwan_serve_webinterface(GAME_TO_PLAY, NEXT_GAME_TO_PLAY, display_error_msg, TIME_ZONE_OFFSET, TIME_ZONE_ADDRESS);
+        int new_game_selected = mgschwan_serve_webinterface(GAME_TO_PLAY, NEXT_GAME_TO_PLAY, display_error_msg, TIME_ZONE_OFFSET, TIME_ZONE_ADDRESS, DST_ON, DST_ADDRESS);
 
         if (new_game_selected >= 0 && new_game_selected != GAME_TO_PLAY)
         {

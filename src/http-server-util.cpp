@@ -323,7 +323,7 @@ String get_async_html()
     return content_str;
 }
 
-int mgschwan_serve_webinterface(int current_game, int next_game, String display_error_msg, float &time_zone_offset, int time_zone_address) {
+int mgschwan_serve_webinterface(int current_game, int next_game, String display_error_msg, float &time_zone_offset, int time_zone_address, bool & dst_on, int dst_address) {
     int c = 0, last_c = 0, last_last_c = 0;
     int new_game_selected = -1;
     
@@ -410,8 +410,30 @@ int mgschwan_serve_webinterface(int current_game, int next_game, String display_
 
                     int timezone_index = thing.indexOf("select_timezone=");
                     int game_index = thing.indexOf("game=");
+                    int dst_index = thing.indexOf("select_dst=");
 
-                    if (timezone_index > -1)
+                    // TODO handle dst stuff
+                    if (dst_index > -1)
+                    {
+                        Log.info("This is a DST post request.");
+
+                        String tmp_2 = thing.substring(dst_index + 11);
+                        //tmp_2 = tmp_2.substring(0, tmp_2.indexOf("&"));
+                        Log.print(tmp_2 + "\n");
+                        
+                        // TODO NEED TO return TIME_ZONE_OFFSET
+                        dst_on = bool(tmp_2.toInt());
+                        if(dst_on)
+                        {
+                            Time.beginDST();
+                        }
+                        else
+                        {
+                            Time.endDST();
+                        }
+                        EEPROM.put(dst_address, dst_on);
+                    }
+                    else if (timezone_index > -1)
                     {
                         Log.info("This is a TIMEZONE post request.");
 
@@ -549,7 +571,24 @@ int mgschwan_serve_webinterface(int current_game, int next_game, String display_
                     content += get_async_html();
                     content += "<br>\n";
                     
-                    content += "Apply Daylight Savings: <select><option value=\"1\">Yes</option><option value=\"0\">No</option></select><br>\n";
+                    //    "<form method=\"post\" action=\"http://cleverpet.local\">\n"
+                    //"Select Timezone: <select name=\"select_timezone\" onchange=\"this.form.submit()\">\n"
+                    
+                    String dst_option_1_sel = "";
+                    String dst_option_2_sel = "";
+                    if (dst_on)
+                    {
+                        dst_option_1_sel = " selected";
+                    }
+                    else
+                    {
+                        dst_option_2_sel = " selected";
+                    }
+
+                    content += "<form method=\"post\" action=\"http://cleverpet.local\">\n"
+                               "Apply Daylight Savings: <select name=\"select_dst\" onchange=\"this.form.submit()\"><option value=\"1\"" + dst_option_1_sel + ">Yes</option><option value=\"0\"" + dst_option_2_sel + ">No</option></select><br>\n"
+                               "</form>\n";
+
                     String time_zone_str = get_time_zone_string(time_zone_offset);
                     Log.info("time zone str length: " + int_to_string(time_zone_str.length()));
 
