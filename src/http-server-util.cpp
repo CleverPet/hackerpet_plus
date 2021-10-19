@@ -71,95 +71,108 @@ void mgschwan_setupNetwork()
     mgschwan_setupMDNS();
 }
 
+String get_selected_option(float time_zone_offset, float compare)
+{
+    if (time_zone_offset == compare)
+    {
+        return " selected";
+    }
+    else
+    {
+        return "";
+    }
+}
 
-String get_time_zone_string()
+String get_time_zone_string(float time_zone_offset)
 {
 
     String time_zone_string = 
-    "Select Timezone: <select>\n"
-	"<option timeZoneId=\"1\" gmtAdjustment=\"GMT-12:00\" useDaylightTime=\"0\" value=\"-12\">(GMT-12:00) International Date Line West</option>\n"
-	"<option timeZoneId=\"2\" gmtAdjustment=\"GMT-11:00\" useDaylightTime=\"0\" value=\"-11\">(GMT-11:00) Midway Island, Samoa</option>\n"
-	"<option timeZoneId=\"3\" gmtAdjustment=\"GMT-10:00\" useDaylightTime=\"0\" value=\"-10\">(GMT-10:00) Hawaii</option>\n"
-	"<option timeZoneId=\"4\" gmtAdjustment=\"GMT-09:00\" useDaylightTime=\"1\" value=\"-9\">(GMT-09:00) Alaska</option>\n"
-	"<option timeZoneId=\"5\" gmtAdjustment=\"GMT-08:00\" useDaylightTime=\"1\" value=\"-8\">(GMT-08:00) Pacific Time (US & Canada)</option>\n"
-	"<option timeZoneId=\"6\" gmtAdjustment=\"GMT-08:00\" useDaylightTime=\"1\" value=\"-8\">(GMT-08:00) Tijuana, Baja California</option>\n"
-	"<option timeZoneId=\"7\" gmtAdjustment=\"GMT-07:00\" useDaylightTime=\"0\" value=\"-7\">(GMT-07:00) Arizona</option>\n"
-	"<option timeZoneId=\"8\" gmtAdjustment=\"GMT-07:00\" useDaylightTime=\"1\" value=\"-7\">(GMT-07:00) Chihuahua, La Paz, Mazatlan</option>\n"
-	"<option timeZoneId=\"9\" gmtAdjustment=\"GMT-07:00\" useDaylightTime=\"1\" value=\"-7\">(GMT-07:00) Mountain Time (US & Canada)</option>\n"
-	"<option timeZoneId=\"10\" gmtAdjustment=\"GMT-06:00\" useDaylightTime=\"0\" value=\"-6\">(GMT-06:00) Central America</option>\n"
-	"<option timeZoneId=\"11\" gmtAdjustment=\"GMT-06:00\" useDaylightTime=\"1\" value=\"-6\">(GMT-06:00) Central Time (US & Canada)</option>\n"
-	"<option timeZoneId=\"12\" gmtAdjustment=\"GMT-06:00\" useDaylightTime=\"1\" value=\"-6\">(GMT-06:00) Guadalajara, Mexico City, Monterrey</option>\n"
-	"<option timeZoneId=\"13\" gmtAdjustment=\"GMT-06:00\" useDaylightTime=\"0\" value=\"-6\">(GMT-06:00) Saskatchewan</option>\n"
-	"<option timeZoneId=\"14\" gmtAdjustment=\"GMT-05:00\" useDaylightTime=\"0\" value=\"-5\">(GMT-05:00) Bogota, Lima, Quito, Rio Branco</option>\n"
-	"<option timeZoneId=\"15\" gmtAdjustment=\"GMT-05:00\" useDaylightTime=\"1\" value=\"-5\">(GMT-05:00) Eastern Time (US & Canada)</option>\n"
-	"<option timeZoneId=\"16\" gmtAdjustment=\"GMT-05:00\" useDaylightTime=\"1\" value=\"-5\">(GMT-05:00) Indiana (East)</option>\n"
-	"<option timeZoneId=\"17\" gmtAdjustment=\"GMT-04:00\" useDaylightTime=\"1\" value=\"-4\">(GMT-04:00) Atlantic Time (Canada)</option>\n"
-	"<option timeZoneId=\"18\" gmtAdjustment=\"GMT-04:00\" useDaylightTime=\"0\" value=\"-4\">(GMT-04:00) Caracas, La Paz</option>\n"
-	"<option timeZoneId=\"19\" gmtAdjustment=\"GMT-04:00\" useDaylightTime=\"0\" value=\"-4\">(GMT-04:00) Manaus</option>\n"
-	"<option timeZoneId=\"20\" gmtAdjustment=\"GMT-04:00\" useDaylightTime=\"1\" value=\"-4\">(GMT-04:00) Santiago</option>\n"
-	"<option timeZoneId=\"21\" gmtAdjustment=\"GMT-03:30\" useDaylightTime=\"1\" value=\"-3.5\">(GMT-03:30) Newfoundland</option>\n"
-	"<option timeZoneId=\"22\" gmtAdjustment=\"GMT-03:00\" useDaylightTime=\"1\" value=\"-3\">(GMT-03:00) Brasilia</option>\n"
-	"<option timeZoneId=\"23\" gmtAdjustment=\"GMT-03:00\" useDaylightTime=\"0\" value=\"-3\">(GMT-03:00) Buenos Aires, Georgetown</option>\n"
-	"<option timeZoneId=\"24\" gmtAdjustment=\"GMT-03:00\" useDaylightTime=\"1\" value=\"-3\">(GMT-03:00) Greenland</option>\n"
-	"<option timeZoneId=\"25\" gmtAdjustment=\"GMT-03:00\" useDaylightTime=\"1\" value=\"-3\">(GMT-03:00) Montevideo</option>\n"
-	"<option timeZoneId=\"26\" gmtAdjustment=\"GMT-02:00\" useDaylightTime=\"1\" value=\"-2\">(GMT-02:00) Mid-Atlantic</option>\n"
-	"<option timeZoneId=\"27\" gmtAdjustment=\"GMT-01:00\" useDaylightTime=\"0\" value=\"-1\">(GMT-01:00) Cape Verde Is.</option>\n"
-	"<option timeZoneId=\"28\" gmtAdjustment=\"GMT-01:00\" useDaylightTime=\"1\" value=\"-1\">(GMT-01:00) Azores</option>\n"
-	"<option timeZoneId=\"29\" gmtAdjustment=\"GMT+00:00\" useDaylightTime=\"0\" value=\"0\">(GMT+00:00) Casablanca, Monrovia, Reykjavik</option>\n"
-	"<option timeZoneId=\"30\" gmtAdjustment=\"GMT+00:00\" useDaylightTime=\"1\" value=\"0\">(GMT+00:00) Greenwich Mean Time : Dublin, Edinburgh, Lisbon, London</option>\n"
-	"<option timeZoneId=\"31\" gmtAdjustment=\"GMT+01:00\" useDaylightTime=\"1\" value=\"1\">(GMT+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna</option>\n"
-	"<option timeZoneId=\"32\" gmtAdjustment=\"GMT+01:00\" useDaylightTime=\"1\" value=\"1\">(GMT+01:00) Belgrade, Bratislava, Budapest, Ljubljana, Prague</option>\n"
-	"<option timeZoneId=\"33\" gmtAdjustment=\"GMT+01:00\" useDaylightTime=\"1\" value=\"1\">(GMT+01:00) Brussels, Copenhagen, Madrid, Paris</option>\n"
-	"<option timeZoneId=\"34\" gmtAdjustment=\"GMT+01:00\" useDaylightTime=\"1\" value=\"1\">(GMT+01:00) Sarajevo, Skopje, Warsaw, Zagreb</option>\n"
-	"<option timeZoneId=\"35\" gmtAdjustment=\"GMT+01:00\" useDaylightTime=\"1\" value=\"1\">(GMT+01:00) West Central Africa</option>\n"
-	"<option timeZoneId=\"36\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"1\" value=\"2\">(GMT+02:00) Amman</option>\n"
-	"<option timeZoneId=\"37\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"1\" value=\"2\">(GMT+02:00) Athens, Bucharest, Istanbul</option>\n"
-	"<option timeZoneId=\"38\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"1\" value=\"2\">(GMT+02:00) Beirut</option>\n"
-	"<option timeZoneId=\"39\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"1\" value=\"2\">(GMT+02:00) Cairo</option>\n"
-	"<option timeZoneId=\"40\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"0\" value=\"2\">(GMT+02:00) Harare, Pretoria</option>\n"
-	"<option timeZoneId=\"41\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"1\" value=\"2\">(GMT+02:00) Helsinki, Kyiv, Riga, Sofia, Tallinn, Vilnius</option>\n"
-	"<option timeZoneId=\"42\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"1\" value=\"2\">(GMT+02:00) Jerusalem</option>\n"
-	"<option timeZoneId=\"43\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"1\" value=\"2\">(GMT+02:00) Minsk</option>\n"
-	"<option timeZoneId=\"44\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"1\" value=\"2\">(GMT+02:00) Windhoek</option>\n"
-	"<option timeZoneId=\"45\" gmtAdjustment=\"GMT+03:00\" useDaylightTime=\"0\" value=\"3\">(GMT+03:00) Kuwait, Riyadh, Baghdad</option>\n"
-	"<option timeZoneId=\"46\" gmtAdjustment=\"GMT+03:00\" useDaylightTime=\"1\" value=\"3\">(GMT+03:00) Moscow, St. Petersburg, Volgograd</option>\n"
-	"<option timeZoneId=\"47\" gmtAdjustment=\"GMT+03:00\" useDaylightTime=\"0\" value=\"3\">(GMT+03:00) Nairobi</option>\n"
-	"<option timeZoneId=\"48\" gmtAdjustment=\"GMT+03:00\" useDaylightTime=\"0\" value=\"3\">(GMT+03:00) Tbilisi</option>\n"
-	"<option timeZoneId=\"49\" gmtAdjustment=\"GMT+03:30\" useDaylightTime=\"1\" value=\"3.5\">(GMT+03:30) Tehran</option>\n"
-	"<option timeZoneId=\"50\" gmtAdjustment=\"GMT+04:00\" useDaylightTime=\"0\" value=\"4\">(GMT+04:00) Abu Dhabi, Muscat</option>\n"
-	"<option timeZoneId=\"51\" gmtAdjustment=\"GMT+04:00\" useDaylightTime=\"1\" value=\"4\">(GMT+04:00) Baku</option>\n"
-	"<option timeZoneId=\"52\" gmtAdjustment=\"GMT+04:00\" useDaylightTime=\"1\" value=\"4\">(GMT+04:00) Yerevan</option>\n"
-	"<option timeZoneId=\"53\" gmtAdjustment=\"GMT+04:30\" useDaylightTime=\"0\" value=\"4.5\">(GMT+04:30) Kabul</option>\n"
-	"<option timeZoneId=\"54\" gmtAdjustment=\"GMT+05:00\" useDaylightTime=\"1\" value=\"5\">(GMT+05:00) Yekaterinburg</option>\n"
-	"<option timeZoneId=\"55\" gmtAdjustment=\"GMT+05:00\" useDaylightTime=\"0\" value=\"5\">(GMT+05:00) Islamabad, Karachi, Tashkent</option>\n"
-	"<option timeZoneId=\"56\" gmtAdjustment=\"GMT+05:30\" useDaylightTime=\"0\" value=\"5.5\">(GMT+05:30) Sri Jayawardenapura</option>\n"
-	"<option timeZoneId=\"57\" gmtAdjustment=\"GMT+05:30\" useDaylightTime=\"0\" value=\"5.5\">(GMT+05:30) Chennai, Kolkata, Mumbai, New Delhi</option>\n"
-	"<option timeZoneId=\"58\" gmtAdjustment=\"GMT+05:45\" useDaylightTime=\"0\" value=\"5.75\">(GMT+05:45) Kathmandu</option>\n"
-	"<option timeZoneId=\"59\" gmtAdjustment=\"GMT+06:00\" useDaylightTime=\"1\" value=\"6\">(GMT+06:00) Almaty, Novosibirsk</option>\n"
-	"<option timeZoneId=\"60\" gmtAdjustment=\"GMT+06:00\" useDaylightTime=\"0\" value=\"6\">(GMT+06:00) Astana, Dhaka</option>\n"
-	"<option timeZoneId=\"61\" gmtAdjustment=\"GMT+06:30\" useDaylightTime=\"0\" value=\"6.5\">(GMT+06:30) Yangon (Rangoon)</option>\n"
-	"<option timeZoneId=\"62\" gmtAdjustment=\"GMT+07:00\" useDaylightTime=\"0\" value=\"7\">(GMT+07:00) Bangkok, Hanoi, Jakarta</option>\n"
-	"<option timeZoneId=\"63\" gmtAdjustment=\"GMT+07:00\" useDaylightTime=\"1\" value=\"7\">(GMT+07:00) Krasnoyarsk</option>\n"
-	"<option timeZoneId=\"64\" gmtAdjustment=\"GMT+08:00\" useDaylightTime=\"0\" value=\"8\">(GMT+08:00) Beijing, Chongqing, Hong Kong, Urumqi</option>\n"
-	"<option timeZoneId=\"65\" gmtAdjustment=\"GMT+08:00\" useDaylightTime=\"0\" value=\"8\">(GMT+08:00) Kuala Lumpur, Singapore</option>\n"
-	"<option timeZoneId=\"66\" gmtAdjustment=\"GMT+08:00\" useDaylightTime=\"0\" value=\"8\">(GMT+08:00) Irkutsk, Ulaan Bataar</option>\n"
-	"<option timeZoneId=\"67\" gmtAdjustment=\"GMT+08:00\" useDaylightTime=\"0\" value=\"8\">(GMT+08:00) Perth</option>\n"
-	"<option timeZoneId=\"68\" gmtAdjustment=\"GMT+08:00\" useDaylightTime=\"0\" value=\"8\">(GMT+08:00) Taipei</option>\n"
-	"<option timeZoneId=\"69\" gmtAdjustment=\"GMT+09:00\" useDaylightTime=\"0\" value=\"9\">(GMT+09:00) Osaka, Sapporo, Tokyo</option>\n"
-	"<option timeZoneId=\"70\" gmtAdjustment=\"GMT+09:00\" useDaylightTime=\"0\" value=\"9\">(GMT+09:00) Seoul</option>\n"
-	"<option timeZoneId=\"71\" gmtAdjustment=\"GMT+09:00\" useDaylightTime=\"1\" value=\"9\">(GMT+09:00) Yakutsk</option>\n"
-	"<option timeZoneId=\"72\" gmtAdjustment=\"GMT+09:30\" useDaylightTime=\"0\" value=\"9.5\">(GMT+09:30) Adelaide</option>\n"
-	"<option timeZoneId=\"73\" gmtAdjustment=\"GMT+09:30\" useDaylightTime=\"0\" value=\"9.5\">(GMT+09:30) Darwin</option>\n"
-	"<option timeZoneId=\"74\" gmtAdjustment=\"GMT+10:00\" useDaylightTime=\"0\" value=\"10\">(GMT+10:00) Brisbane</option>\n"
-	"<option timeZoneId=\"75\" gmtAdjustment=\"GMT+10:00\" useDaylightTime=\"1\" value=\"10\">(GMT+10:00) Canberra, Melbourne, Sydney</option>\n"
-	"<option timeZoneId=\"76\" gmtAdjustment=\"GMT+10:00\" useDaylightTime=\"1\" value=\"10\">(GMT+10:00) Hobart</option>\n"
-	"<option timeZoneId=\"77\" gmtAdjustment=\"GMT+10:00\" useDaylightTime=\"0\" value=\"10\">(GMT+10:00) Guam, Port Moresby</option>\n"
-	"<option timeZoneId=\"78\" gmtAdjustment=\"GMT+10:00\" useDaylightTime=\"1\" value=\"10\">(GMT+10:00) Vladivostok</option>\n"
-	"<option timeZoneId=\"79\" gmtAdjustment=\"GMT+11:00\" useDaylightTime=\"1\" value=\"11\">(GMT+11:00) Magadan, Solomon Is., New Caledonia</option>\n"
-	"<option timeZoneId=\"80\" gmtAdjustment=\"GMT+12:00\" useDaylightTime=\"1\" value=\"12\">(GMT+12:00) Auckland, Wellington</option>\n"
-	"<option timeZoneId=\"81\" gmtAdjustment=\"GMT+12:00\" useDaylightTime=\"0\" value=\"12\">(GMT+12:00) Fiji, Kamchatka, Marshall Is.</option>\n"
-	"<option timeZoneId=\"82\" gmtAdjustment=\"GMT+13:00\" useDaylightTime=\"0\" value=\"13\">(GMT+13:00) Nuku'alofa</option>\n"
-    "</select><br>\n";				
+    "<form method=\"post\" action=\"http://cleverpet.local\">\n"
+    "Select Timezone: <select name=\"select_timezone\" onchange=\"this.form.submit()\">\n"
+	"<option timeZoneIndex=\"1\" gmtAdjustment=\"GMT-12:00\" useDaylightTime=\"0\" value=\"-12\"" + get_selected_option(time_zone_offset, -12) + ">(GMT-12:00) International Date Line West</option>\n"
+	"<option timeZoneIndex=\"2\" gmtAdjustment=\"GMT-11:00\" useDaylightTime=\"0\" value=\"-11\"" + get_selected_option(time_zone_offset, -11) + ">(GMT-11:00) Midway Island, Samoa</option>\n"
+	"<option timeZoneIndex=\"3\" gmtAdjustment=\"GMT-10:00\" useDaylightTime=\"0\" value=\"-10\"" + get_selected_option(time_zone_offset, -10) + ">(GMT-10:00) Hawaii</option>\n"
+	"<option timeZoneIndex=\"4\" gmtAdjustment=\"GMT-09:00\" useDaylightTime=\"1\" value=\"-9\"" + get_selected_option(time_zone_offset, -9) + ">(GMT-09:00) Alaska</option>\n"
+	"<option timeZoneIndex=\"5\" gmtAdjustment=\"GMT-08:00\" useDaylightTime=\"1\" value=\"-8\"" + get_selected_option(time_zone_offset, -8) + ">(GMT-08:00) Pacific Time (US & Canada)</option>\n"
+	//"<option timeZoneIndex=\"6\" gmtAdjustment=\"GMT-08:00\" useDaylightTime=\"1\" value=\"-8\">(GMT-08:00) Tijuana, Baja California</option>\n"
+	//"<option timeZoneIndex=\"7\" gmtAdjustment=\"GMT-07:00\" useDaylightTime=\"0\" value=\"-7\">(GMT-07:00) Arizona</option>\n"
+	//"<option timeZoneIndex=\"8\" gmtAdjustment=\"GMT-07:00\" useDaylightTime=\"1\" value=\"-7\">(GMT-07:00) Chihuahua, La Paz, Mazatlan</option>\n"
+	"<option timeZoneIndex=\"9\" gmtAdjustment=\"GMT-07:00\" useDaylightTime=\"1\" value=\"-7\"" + get_selected_option(time_zone_offset, -7) + ">(GMT-07:00) Mountain Time (US & Canada)</option>\n"
+	//"<option timeZoneIndex=\"10\" gmtAdjustment=\"GMT-06:00\" useDaylightTime=\"0\" value=\"-6\">(GMT-06:00) Central America</option>\n"
+	"<option timeZoneIndex=\"11\" gmtAdjustment=\"GMT-06:00\" useDaylightTime=\"1\" value=\"-6\"" + get_selected_option(time_zone_offset, -6) + ">(GMT-06:00) Central Time (US & Canada)</option>\n"
+	//"<option timeZoneIndex=\"12\" gmtAdjustment=\"GMT-06:00\" useDaylightTime=\"1\" value=\"-6\">(GMT-06:00) Guadalajara, Mexico City, Monterrey</option>\n"
+	//"<option timeZoneIndex=\"13\" gmtAdjustment=\"GMT-06:00\" useDaylightTime=\"0\" value=\"-6\">(GMT-06:00) Saskatchewan</option>\n"
+	//"<option timeZoneIndex=\"14\" gmtAdjustment=\"GMT-05:00\" useDaylightTime=\"0\" value=\"-5\">(GMT-05:00) Bogota, Lima, Quito, Rio Branco</option>\n"
+	"<option timeZoneIndex=\"15\" gmtAdjustment=\"GMT-05:00\" useDaylightTime=\"1\" value=\"-5\"" + get_selected_option(time_zone_offset, -5) + ">(GMT-05:00) Eastern Time (US & Canada)</option>\n"
+	//"<option timeZoneIndex=\"16\" gmtAdjustment=\"GMT-05:00\" useDaylightTime=\"1\" value=\"-5\">(GMT-05:00) Indiana (East)</option>\n"
+	"<option timeZoneIndex=\"17\" gmtAdjustment=\"GMT-04:00\" useDaylightTime=\"1\" value=\"-4\"" + get_selected_option(time_zone_offset, -4) + ">(GMT-04:00) Atlantic Time (Canada)</option>\n"
+	//"<option timeZoneIndex=\"18\" gmtAdjustment=\"GMT-04:00\" useDaylightTime=\"0\" value=\"-4\">(GMT-04:00) Caracas, La Paz</option>\n"
+	//"<option timeZoneIndex=\"19\" gmtAdjustment=\"GMT-04:00\" useDaylightTime=\"0\" value=\"-4\">(GMT-04:00) Manaus</option>\n"
+	//"<option timeZoneIndex=\"20\" gmtAdjustment=\"GMT-04:00\" useDaylightTime=\"1\" value=\"-4\">(GMT-04:00) Santiago</option>\n"
+	"<option timeZoneIndex=\"21\" gmtAdjustment=\"GMT-03:30\" useDaylightTime=\"1\" value=\"-3.5\"" + get_selected_option(time_zone_offset, -3.5) + ">(GMT-03:30) Newfoundland</option>\n"
+	//"<option timeZoneIndex=\"22\" gmtAdjustment=\"GMT-03:00\" useDaylightTime=\"1\" value=\"-3\">(GMT-03:00) Brasilia</option>\n"
+	"<option timeZoneIndex=\"23\" gmtAdjustment=\"GMT-03:00\" useDaylightTime=\"0\" value=\"-3\"" + get_selected_option(time_zone_offset, -3) + ">(GMT-03:00) Buenos Aires, Georgetown</option>\n"
+	//"<option timeZoneIndex=\"24\" gmtAdjustment=\"GMT-03:00\" useDaylightTime=\"1\" value=\"-3\">(GMT-03:00) Greenland</option>\n"
+	//"<option timeZoneIndex=\"25\" gmtAdjustment=\"GMT-03:00\" useDaylightTime=\"1\" value=\"-3\">(GMT-03:00) Montevideo</option>\n"
+	"<option timeZoneIndex=\"26\" gmtAdjustment=\"GMT-02:00\" useDaylightTime=\"1\" value=\"-2\"" + get_selected_option(time_zone_offset, -2) + ">(GMT-02:00) Mid-Atlantic</option>\n"
+	"<option timeZoneIndex=\"27\" gmtAdjustment=\"GMT-01:00\" useDaylightTime=\"0\" value=\"-1\"" + get_selected_option(time_zone_offset, -1) + ">(GMT-01:00) Cape Verde Is.</option>\n"
+	//"<option timeZoneIndex=\"28\" gmtAdjustment=\"GMT-01:00\" useDaylightTime=\"1\" value=\"-1\">(GMT-01:00) Azores</option>\n"
+	//"<option timeZoneIndex=\"29\" gmtAdjustment=\"GMT+00:00\" useDaylightTime=\"0\" value=\"0\">(GMT+00:00) Casablanca, Monrovia, Reykjavik</option>\n"
+	"<option timeZoneIndex=\"30\" gmtAdjustment=\"GMT+00:00\" useDaylightTime=\"1\" value=\"0\"" + get_selected_option(time_zone_offset, 0) + ">(GMT+00:00) Greenwich Mean Time : Dublin, Edinburgh, Lisbon, London</option>\n"
+	"<option timeZoneIndex=\"31\" gmtAdjustment=\"GMT+01:00\" useDaylightTime=\"1\" value=\"1\"" + get_selected_option(time_zone_offset, 1) + ">(GMT+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna</option>\n"
+	//"<option timeZoneIndex=\"32\" gmtAdjustment=\"GMT+01:00\" useDaylightTime=\"1\" value=\"1\">(GMT+01:00) Belgrade, Bratislava, Budapest, Ljubljana, Prague</option>\n"
+	//"<option timeZoneIndex=\"33\" gmtAdjustment=\"GMT+01:00\" useDaylightTime=\"1\" value=\"1\">(GMT+01:00) Brussels, Copenhagen, Madrid, Paris</option>\n"
+	//"<option timeZoneIndex=\"34\" gmtAdjustment=\"GMT+01:00\" useDaylightTime=\"1\" value=\"1\">(GMT+01:00) Sarajevo, Skopje, Warsaw, Zagreb</option>\n"
+	//"<option timeZoneIndex=\"35\" gmtAdjustment=\"GMT+01:00\" useDaylightTime=\"1\" value=\"1\">(GMT+01:00) West Central Africa</option>\n"
+	//"<option timeZoneIndex=\"36\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"1\" value=\"2\">(GMT+02:00) Amman</option>\n"
+	"<option timeZoneIndex=\"37\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"1\" value=\"2\"" + get_selected_option(time_zone_offset, 2) + ">(GMT+02:00) Athens, Bucharest, Istanbul</option>\n"
+	//"<option timeZoneIndex=\"38\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"1\" value=\"2\">(GMT+02:00) Beirut</option>\n"
+	//"<option timeZoneIndex=\"39\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"1\" value=\"2\">(GMT+02:00) Cairo</option>\n"
+	//"<option timeZoneIndex=\"40\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"0\" value=\"2\">(GMT+02:00) Harare, Pretoria</option>\n"
+	//"<option timeZoneIndex=\"41\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"1\" value=\"2\">(GMT+02:00) Helsinki, Kyiv, Riga, Sofia, Tallinn, Vilnius</option>\n"
+	//"<option timeZoneIndex=\"42\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"1\" value=\"2\">(GMT+02:00) Jerusalem</option>\n"
+	//"<option timeZoneIndex=\"43\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"1\" value=\"2\">(GMT+02:00) Minsk</option>\n"
+	//"<option timeZoneIndex=\"44\" gmtAdjustment=\"GMT+02:00\" useDaylightTime=\"1\" value=\"2\">(GMT+02:00) Windhoek</option>\n"
+	//"<option timeZoneIndex=\"45\" gmtAdjustment=\"GMT+03:00\" useDaylightTime=\"0\" value=\"3\">(GMT+03:00) Kuwait, Riyadh, Baghdad</option>\n"
+	"<option timeZoneIndex=\"46\" gmtAdjustment=\"GMT+03:00\" useDaylightTime=\"1\" value=\"3\"" + get_selected_option(time_zone_offset, 3) + ">(GMT+03:00) Moscow, St. Petersburg, Volgograd</option>\n"
+	//"<option timeZoneIndex=\"47\" gmtAdjustment=\"GMT+03:00\" useDaylightTime=\"0\" value=\"3\">(GMT+03:00) Nairobi</option>\n"
+	//"<option timeZoneIndex=\"48\" gmtAdjustment=\"GMT+03:00\" useDaylightTime=\"0\" value=\"3\">(GMT+03:00) Tbilisi</option>\n"
+	"<option timeZoneIndex=\"49\" gmtAdjustment=\"GMT+03:30\" useDaylightTime=\"1\" value=\"3.5\"" + get_selected_option(time_zone_offset, 3.5) + ">(GMT+03:30) Tehran</option>\n"
+	"<option timeZoneIndex=\"50\" gmtAdjustment=\"GMT+04:00\" useDaylightTime=\"0\" value=\"4\"" + get_selected_option(time_zone_offset, 4) + ">(GMT+04:00) Abu Dhabi, Muscat</option>\n"
+	//"<option timeZoneIndex=\"51\" gmtAdjustment=\"GMT+04:00\" useDaylightTime=\"1\" value=\"4\">(GMT+04:00) Baku</option>\n"
+	//"<option timeZoneIndex=\"52\" gmtAdjustment=\"GMT+04:00\" useDaylightTime=\"1\" value=\"4\">(GMT+04:00) Yerevan</option>\n"
+	"<option timeZoneIndex=\"53\" gmtAdjustment=\"GMT+04:30\" useDaylightTime=\"0\" value=\"4.5\"" + get_selected_option(time_zone_offset, 4.5) + ">(GMT+04:30) Kabul</option>\n"
+	//"<option timeZoneIndex=\"54\" gmtAdjustment=\"GMT+05:00\" useDaylightTime=\"1\" value=\"5\">(GMT+05:00) Yekaterinburg</option>\n"
+	"<option timeZoneIndex=\"55\" gmtAdjustment=\"GMT+05:00\" useDaylightTime=\"0\" value=\"5\"" + get_selected_option(time_zone_offset, 5) + ">(GMT+05:00) Islamabad, Karachi, Tashkent</option>\n"
+	//"<option timeZoneIndex=\"56\" gmtAdjustment=\"GMT+05:30\" useDaylightTime=\"0\" value=\"5.5\">(GMT+05:30) Sri Jayawardenapura</option>\n"
+	"<option timeZoneIndex=\"57\" gmtAdjustment=\"GMT+05:30\" useDaylightTime=\"0\" value=\"5.5\"" + get_selected_option(time_zone_offset, 5.5) + ">(GMT+05:30) Chennai, Kolkata, Mumbai, New Delhi</option>\n"
+	"<option timeZoneIndex=\"58\" gmtAdjustment=\"GMT+05:45\" useDaylightTime=\"0\" value=\"5.75\"" + get_selected_option(time_zone_offset, 5.75) + ">(GMT+05:45) Kathmandu</option>\n"
+	"<option timeZoneIndex=\"59\" gmtAdjustment=\"GMT+06:00\" useDaylightTime=\"1\" value=\"6\"" + get_selected_option(time_zone_offset, 6) + ">(GMT+06:00) Almaty, Novosibirsk</option>\n"
+	//"<option timeZoneIndex=\"60\" gmtAdjustment=\"GMT+06:00\" useDaylightTime=\"0\" value=\"6\">(GMT+06:00) Astana, Dhaka</option>\n"
+	"<option timeZoneIndex=\"61\" gmtAdjustment=\"GMT+06:30\" useDaylightTime=\"0\" value=\"6.5\"" + get_selected_option(time_zone_offset, 6.5) + ">(GMT+06:30) Yangon (Rangoon)</option>\n"
+	"<option timeZoneIndex=\"62\" gmtAdjustment=\"GMT+07:00\" useDaylightTime=\"0\" value=\"7\"" + get_selected_option(time_zone_offset, 7) + ">(GMT+07:00) Bangkok, Hanoi, Jakarta</option>\n"
+	//"<option timeZoneIndex=\"63\" gmtAdjustment=\"GMT+07:00\" useDaylightTime=\"1\" value=\"7\">(GMT+07:00) Krasnoyarsk</option>\n"
+	"<option timeZoneIndex=\"64\" gmtAdjustment=\"GMT+08:00\" useDaylightTime=\"0\" value=\"8\"" + get_selected_option(time_zone_offset, 8) + ">(GMT+08:00) Beijing, Chongqing, Hong Kong, Urumqi</option>\n"
+	//"<option timeZoneIndex=\"65\" gmtAdjustment=\"GMT+08:00\" useDaylightTime=\"0\" value=\"8\">(GMT+08:00) Kuala Lumpur, Singapore</option>\n"
+	//"<option timeZoneIndex=\"66\" gmtAdjustment=\"GMT+08:00\" useDaylightTime=\"0\" value=\"8\">(GMT+08:00) Irkutsk, Ulaan Bataar</option>\n"
+	//"<option timeZoneIndex=\"67\" gmtAdjustment=\"GMT+08:00\" useDaylightTime=\"0\" value=\"8\">(GMT+08:00) Perth</option>\n"
+	//"<option timeZoneIndex=\"68\" gmtAdjustment=\"GMT+08:00\" useDaylightTime=\"0\" value=\"8\">(GMT+08:00) Taipei</option>\n"
+	"<option timeZoneIndex=\"69\" gmtAdjustment=\"GMT+09:00\" useDaylightTime=\"0\" value=\"9\"" + get_selected_option(time_zone_offset, 9) + ">(GMT+09:00) Osaka, Sapporo, Tokyo</option>\n"
+	//"<option timeZoneIndex=\"70\" gmtAdjustment=\"GMT+09:00\" useDaylightTime=\"0\" value=\"9\">(GMT+09:00) Seoul</option>\n"
+	//"<option timeZoneIndex=\"71\" gmtAdjustment=\"GMT+09:00\" useDaylightTime=\"1\" value=\"9\">(GMT+09:00) Yakutsk</option>\n"
+	"<option timeZoneIndex=\"72\" gmtAdjustment=\"GMT+09:30\" useDaylightTime=\"0\" value=\"9.5\"" + get_selected_option(time_zone_offset, 9.5) + ">(GMT+09:30) Adelaide</option>\n"
+	//"<option timeZoneIndex=\"73\" gmtAdjustment=\"GMT+09:30\" useDaylightTime=\"0\" value=\"9.5\">(GMT+09:30) Darwin</option>\n"
+	//"<option timeZoneIndex=\"74\" gmtAdjustment=\"GMT+10:00\" useDaylightTime=\"0\" value=\"10\">(GMT+10:00) Brisbane</option>\n"
+	"<option timeZoneIndex=\"75\" gmtAdjustment=\"GMT+10:00\" useDaylightTime=\"1\" value=\"10\"" + get_selected_option(time_zone_offset, 10) + ">(GMT+10:00) Canberra, Melbourne, Sydney</option>\n"
+	//"<option timeZoneIndex=\"76\" gmtAdjustment=\"GMT+10:00\" useDaylightTime=\"1\" value=\"10\">(GMT+10:00) Hobart</option>\n"
+	//"<option timeZoneIndex=\"77\" gmtAdjustment=\"GMT+10:00\" useDaylightTime=\"0\" value=\"10\">(GMT+10:00) Guam, Port Moresby</option>\n"
+	//"<option timeZoneIndex=\"78\" gmtAdjustment=\"GMT+10:00\" useDaylightTime=\"1\" value=\"10\">(GMT+10:00) Vladivostok</option>\n"
+	"<option timeZoneIndex=\"79\" gmtAdjustment=\"GMT+11:00\" useDaylightTime=\"1\" value=\"11\"" + get_selected_option(time_zone_offset, 11) + ">(GMT+11:00) Magadan, Solomon Is., New Caledonia</option>\n"
+	"<option timeZoneIndex=\"80\" gmtAdjustment=\"GMT+12:00\" useDaylightTime=\"1\" value=\"12\"" + get_selected_option(time_zone_offset, 12) + ">(GMT+12:00) Auckland, Wellington</option>\n"
+	//"<option timeZoneIndex=\"81\" gmtAdjustment=\"GMT+12:00\" useDaylightTime=\"0\" value=\"12\">(GMT+12:00) Fiji, Kamchatka, Marshall Is.</option>\n"
+	"<option timeZoneIndex=\"82\" gmtAdjustment=\"GMT+13:00\" useDaylightTime=\"0\" value=\"13\"" + get_selected_option(time_zone_offset, 13) + ">(GMT+13:00) Nuku'alofa</option>\n"
+    "</select><br>\n"
+    "</form>\n";				
 
     return time_zone_string;
 }
@@ -261,6 +274,7 @@ String get_script_html()
                          "function updateAllEvents() { \n"
                          "  var xhttp = new XMLHttpRequest();\n"
                          "  var status_element = document.getElementById(\"api-hub-status\");\n"
+                         "  var time_element = document.getElementById(\"api-time\");\n"
                          "  xhttp.open(\"GET\", \"http://cleverpet.local/local-api\", true);\n"
                          "  xhttp.send();\n"
                          "  xhttp.onload = function () {\n"
@@ -268,6 +282,7 @@ String get_script_html()
                          "      console.log(xhttp.responseText);\n"
                          "      var data = JSON.parse(xhttp.responseText);\n"
                          "      status_element.innerHTML = data.status;\n"
+                         "      time_element.innerHTML = data.time;\n"
                          "      for(let i=0; i < " + num_games + "; i++)\n"
                          "      {\n"
                          "           console.log(\"game-status-\" + i.toString());\n"
@@ -308,7 +323,7 @@ String get_async_html()
     return content_str;
 }
 
-int mgschwan_serve_webinterface(int current_game, int next_game, String display_error_msg) {
+int mgschwan_serve_webinterface(int current_game, int next_game, String display_error_msg, float &time_zone_offset, int time_zone_address) {
     int c = 0, last_c = 0, last_last_c = 0;
     int new_game_selected = -1;
     
@@ -361,7 +376,8 @@ int mgschwan_serve_webinterface(int current_game, int next_game, String display_
                 String return_str = "{"
                                     "\"status\":\"" + display_error_msg + "\","
                                     "\"game_id_queued\":\"" + next_game_str + "\","
-                                    "\"game_id_playing\":\"" + current_game_str + "\""
+                                    "\"game_id_playing\":\"" + current_game_str + "\","
+                                    "\"time\":\"" + Time.timeStr() + "\""
                                     "}";
                 webclient.println(return_str);  // println?
             }
@@ -388,78 +404,101 @@ int mgschwan_serve_webinterface(int current_game, int next_game, String display_
                     // this is the section where we will set new_game_selected, not below
                     
                     //Log.info("POST request string:");
-                    //Log.print(thing);
-                    
-                    String new_game_str = thing.substring(thing.indexOf("game=") + 5, thing.indexOf("game=") + 6);
-                    String new_game_str_2 = thing.substring(thing.indexOf("game=") + 5, thing.indexOf("game=") + 7);
-                    
-                    if (new_game_str_2.equalsIgnoreCase("10"))
+                    //Log.info("-----------*********************************---------");
+                    //Log.print(thing + "\n");
+                    //Log.info("-----------*********************************---------");
+
+                    int timezone_index = thing.indexOf("select_timezone=");
+                    int game_index = thing.indexOf("game=");
+
+                    if (timezone_index > -1)
                     {
-                        new_game_selected = 10;
-                        Log.info("POST: selected game 10!");
+                        Log.info("This is a TIMEZONE post request.");
+
+                        String tmp_2 = thing.substring(timezone_index + 16);
+                        //tmp_2 = tmp_2.substring(0, tmp_2.indexOf("&"));
+                        Log.print(tmp_2 + "\n");
+                        
+                        // TODO NEED TO return TIME_ZONE_OFFSET
+                        float tz_offset = tmp_2.toFloat();
+                        Time.zone(tz_offset);              
+                        time_zone_offset = tz_offset;
+                        EEPROM.put(time_zone_address, time_zone_offset);
                     }
-                    else if (new_game_str_2.equalsIgnoreCase("11"))
+                    else if (game_index > -1)
                     {
-                        new_game_selected = 11;
-                        Log.info("POST: selected game 11!");
-                    }
-                    else if (new_game_str.equalsIgnoreCase("0"))
-                    {
-                        new_game_selected = 0;
-                        Log.info("POST: selected game 0!");
-                    }
-                    else if (new_game_str.equalsIgnoreCase("1"))
-                    {
-                        new_game_selected = 1;
-                        Log.info("POST: selected game 1!");          
-                    }
-                    else if (new_game_str.equalsIgnoreCase("2"))
-                    {
-                        new_game_selected = 2;
-                        Log.info("POST: selected game 2!");
-                    }
-                    else if (new_game_str.equalsIgnoreCase("3"))
-                    {
-                        new_game_selected = 3;
-                        Log.info("POST: selected game 3!");
-                    }
-                    else if (new_game_str.equalsIgnoreCase("4"))
-                    {
-                        new_game_selected = 4;
-                        Log.info("POST: selected game 4!");
-                    }
-                    else if (new_game_str.equalsIgnoreCase("5"))
-                    {
-                        new_game_selected = 5;
-                        Log.info("POST: selected game 5!");
-                    }
-                    else if (new_game_str.equalsIgnoreCase("6"))
-                    {
-                        new_game_selected = 6;
-                        Log.info("POST: selected game 6!");
-                    }
-                    else if (new_game_str.equalsIgnoreCase("7"))
-                    {
-                        new_game_selected = 7;
-                        Log.info("POST: selected game 7!");
-                    }
-                    else if (new_game_str.equalsIgnoreCase("8"))
-                    {
-                        new_game_selected = 8;
-                        Log.info("POST: selected game 8!");
-                    }
-                    else if (new_game_str.equalsIgnoreCase("9"))
-                    {
-                        new_game_selected = 9;
-                        Log.info("POST: selected game 9!");
-                    }
+                        Log.info("This is a GAME post request.");
+
+                        String new_game_str = thing.substring(game_index + 5, game_index + 6);
+                        String new_game_str_2 = thing.substring(game_index + 5, game_index + 7);
+                        
+                        if (new_game_str_2.equalsIgnoreCase("10"))
+                        {
+                            new_game_selected = 10;
+                            Log.info("POST: selected game 10!");
+                        }
+                        else if (new_game_str_2.equalsIgnoreCase("11"))
+                        {
+                            new_game_selected = 11;
+                            Log.info("POST: selected game 11!");
+                        }
+                        else if (new_game_str.equalsIgnoreCase("0"))
+                        {
+                            new_game_selected = 0;
+                            Log.info("POST: selected game 0!");
+                        }
+                        else if (new_game_str.equalsIgnoreCase("1"))
+                        {
+                            new_game_selected = 1;
+                            Log.info("POST: selected game 1!");          
+                        }
+                        else if (new_game_str.equalsIgnoreCase("2"))
+                        {
+                            new_game_selected = 2;
+                            Log.info("POST: selected game 2!");
+                        }
+                        else if (new_game_str.equalsIgnoreCase("3"))
+                        {
+                            new_game_selected = 3;
+                            Log.info("POST: selected game 3!");
+                        }
+                        else if (new_game_str.equalsIgnoreCase("4"))
+                        {
+                            new_game_selected = 4;
+                            Log.info("POST: selected game 4!");
+                        }
+                        else if (new_game_str.equalsIgnoreCase("5"))
+                        {
+                            new_game_selected = 5;
+                            Log.info("POST: selected game 5!");
+                        }
+                        else if (new_game_str.equalsIgnoreCase("6"))
+                        {
+                            new_game_selected = 6;
+                            Log.info("POST: selected game 6!");
+                        }
+                        else if (new_game_str.equalsIgnoreCase("7"))
+                        {
+                            new_game_selected = 7;
+                            Log.info("POST: selected game 7!");
+                        }
+                        else if (new_game_str.equalsIgnoreCase("8"))
+                        {
+                            new_game_selected = 8;
+                            Log.info("POST: selected game 8!");
+                        }
+                        else if (new_game_str.equalsIgnoreCase("9"))
+                        {
+                            new_game_selected = 9;
+                            Log.info("POST: selected game 9!");
+                        }
 
 
-                    if (new_game_selected >= 0)
-                    {
-                        overrideable_next_game = new_game_selected;
-                    }
-                    
+                        if (new_game_selected >= 0)
+                        {
+                            overrideable_next_game = new_game_selected;
+                        }
+                    }    
                 
                 }
 
@@ -511,11 +550,16 @@ int mgschwan_serve_webinterface(int current_game, int next_game, String display_
                     content += "<br>\n";
                     
                     content += "Apply Daylight Savings: <select><option value=\"1\">Yes</option><option value=\"0\">No</option></select><br>\n";
-                    String time_zone_str = get_time_zone_string();
+                    String time_zone_str = get_time_zone_string(time_zone_offset);
                     Log.info("time zone str length: " + int_to_string(time_zone_str.length()));
 
                     // TODO DEBUG THIS FURTHER:
                     String content_2 = "";
+                    
+                    content_2 += "<br>\n";
+                    
+                    content_2 += "Current Date/Time:<br>\n";
+                    content_2 += "<b><strong class=\"api-msg\" id=\"api-time\">" + Time.timeStr() + "</strong><br />\n" + "</b>";
 
                     content_2 += "<br>\n";
                     content_2 += "</body>\n";

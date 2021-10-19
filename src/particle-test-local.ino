@@ -78,6 +78,8 @@ int GAME_TO_PLAY;
 int NEXT_GAME_TO_PLAY;
 int EVER_STORED_ADDRESS = 10;  // what are valid addresses?
 int GAME_ADDRESS = 20;  // what are valid addresses?
+float TIME_ZONE_OFFSET = 0.0;
+int TIME_ZONE_ADDRESS = 30;
 
 // setup() runs once, when the device is first turned on.
 void setup() {
@@ -103,6 +105,9 @@ void setup() {
         EEPROM.get(GAME_ADDRESS, game_val);
         GAME_TO_PLAY = game_val;
         NEXT_GAME_TO_PLAY = game_val;
+
+        EEPROM.get(TIME_ZONE_ADDRESS, TIME_ZONE_OFFSET);
+        Time.zone(TIME_ZONE_OFFSET);
     }
     else
     {
@@ -113,6 +118,8 @@ void setup() {
         EEPROM.put(EVER_STORED_ADDRESS, value);
         value = GAME_TO_PLAY;
         EEPROM.put(GAME_ADDRESS, value);
+        EEPROM.put(TIME_ZONE_ADDRESS, TIME_ZONE_OFFSET);
+        Time.zone(TIME_ZONE_OFFSET);
     }
 
     // TODO upon game switch, need to also write to eeprom!
@@ -166,7 +173,7 @@ void loop() {
             display_error_msg = "<b> Your hub's dome is removed.</b>";
         }
 
-        int new_game_selected = mgschwan_serve_webinterface(GAME_TO_PLAY, NEXT_GAME_TO_PLAY, display_error_msg);
+        int new_game_selected = mgschwan_serve_webinterface(GAME_TO_PLAY, NEXT_GAME_TO_PLAY, display_error_msg, TIME_ZONE_OFFSET, TIME_ZONE_ADDRESS);
 
         if (new_game_selected >= 0 && new_game_selected != GAME_TO_PLAY)
         {
@@ -185,7 +192,9 @@ void loop() {
     long int millis_step_1 = millis() - millis_start;
     millis_start = millis();
 
+    // ************************************ DISABLE FOR TESTING WITHOUT HUB ************************************
     hub.Run(20);
+    // ************************************ ************************************ ************************************
 
     long int millis_step_2 = millis() - millis_start;
     millis_start = millis();
