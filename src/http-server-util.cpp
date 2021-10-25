@@ -323,7 +323,58 @@ String get_async_html()
     return content_str;
 }
 
-int mgschwan_serve_webinterface(int current_game, int next_game, String display_error_msg, float &time_zone_offset, int time_zone_address, bool & dst_on, int dst_address) {
+String get_scheduler_html(int hub_mode)
+{
+
+
+    /*
+        "<form method=\"post\" action=\"http://cleverpet.local\">\n"
+        "Apply Daylight Savings: <select name=\"select_dst\" onchange=\"this.form.submit()\"><option value=\"1\"" + dst_option_1_sel + ">Yes</option><option value=\"0\"" + dst_option_2_sel + ">No</option></select><br>\n"
+        "</form>\n";
+
+    */
+
+    // TODO javascript that sets min of "to" times to +1 hour past the "from" time
+    // TODO javascript: schedule required if scheduled set? how to handle no scheduled value? or submit stay off / stay on? what if not set and required is set?
+
+    //   <label for="dewey">Dewey</label>
+    // checked instead of selected
+    
+
+    // TODO use hub mode from .h file declarations instead of hardcoded 0, 1, 2 here!
+
+    String checked_str_stay_off = "";
+    String checked_str_stay_on = "";
+    String checked_str_stay_sch = "";
+
+    if (hub_mode == 0)
+    {
+        checked_str_stay_off = "checked";
+    }
+    else if (hub_mode == 1)
+    {
+        checked_str_stay_on = "checked";
+    }
+    else if (hub_mode == 2)
+    {
+        checked_str_stay_sch = "checked";
+    }
+
+    String content_str = "<form method=\"post\" action=\"http://cleverpet.local\">\n"
+                         //"Hub Mode (debug: hub mode is: " + int_to_string(hub_mode) + ")<br>\n"
+                         "<label for=\"0\">Stay Off</label> <input type=\"radio\" id=\"html\" name=\"hub_mode\" value=\"0\" onchange=\"this.form.submit()\"" + checked_str_stay_off + ">\n"
+                         "<label for=\"1\">Stay On</label> <input type=\"radio\" id=\"html\" name=\"hub_mode\" value=\"1\" onchange=\"this.form.submit()\"" + checked_str_stay_on + ">\n"
+                         "<label for=\"2\">Scheduled</label> <input type=\"radio\" id=\"html\" name=\"hub_mode\" value=\"2\" onchange=\"this.form.submit()\"" + checked_str_stay_sch + ">\n"
+                         "<br><br>\n"
+                         "If scheduled:<br>\n"
+                         "<b>    Weekdays</b> | From: <input type=\"time\" id=\"weekday_from\" name=\"weekday_from\"> To: <input type=\"time\" id=\"weekday_to\" name=\"weekday_to\"><br>\n"
+                         "<b>    Weekends</b> | From: <input type=\"time\" id=\"weekend_from\" name=\"weekend_from\"> To: <input type=\"time\" id=\"weekend_to\" name=\"weekend_to\"><br>\n"
+                         "</form>\n";
+
+    return content_str;
+}
+
+int mgschwan_serve_webinterface(int current_game, int next_game, String display_error_msg, float &time_zone_offset, int time_zone_address, bool & dst_on, int dst_address, int & hub_mode, int hub_mode_address) {
     int c = 0, last_c = 0, last_last_c = 0;
     int new_game_selected = -1;
     
@@ -411,6 +462,7 @@ int mgschwan_serve_webinterface(int current_game, int next_game, String display_
                     int timezone_index = thing.indexOf("select_timezone=");
                     int game_index = thing.indexOf("game=");
                     int dst_index = thing.indexOf("select_dst=");
+                    int hub_mode_index = thing.indexOf("hub_mode=");
 
                     // TODO handle dst stuff
                     if (dst_index > -1)
@@ -446,6 +498,18 @@ int mgschwan_serve_webinterface(int current_game, int next_game, String display_
                         Time.zone(tz_offset);              
                         time_zone_offset = tz_offset;
                         EEPROM.put(time_zone_address, time_zone_offset);
+                    }
+                    else if (hub_mode_index > -1)
+                    {
+                        Log.info("This is a HUB MODE / SCHEDULER post request.");
+                        //Log.print("*******\n");
+                        //Log.print(thing + "\n");
+                        //Log.print("*-------------*\n");
+                        String tmp_2 = thing.substring(hub_mode_index + 9);
+                        tmp_2 = tmp_2.substring(0, tmp_2.indexOf("&"));
+                        Log.print(tmp_2 + "\n");
+                        hub_mode = tmp_2.toInt();
+                        EEPROM.put(hub_mode_address, hub_mode);
                     }
                     else if (game_index > -1)
                     {
@@ -601,18 +665,26 @@ int mgschwan_serve_webinterface(int current_game, int next_game, String display_
                     content_2 += "<b><strong class=\"api-msg\" id=\"api-time\">" + Time.timeStr() + "</strong><br />\n" + "</b>";
 
                     content_2 += "<br>\n";
-                    content_2 += "</body>\n";
-                    content_2 += "</html>";
-                    Log.info("content length: " + int_to_string(content.length()));
-                    Log.info("content_2 length: " + int_to_string(content_2.length()));
+                    
+                    String content_3 = "";
+                    
+                    // add scheduler to content_3
+
+                    content_3 += get_scheduler_html(hub_mode);
+
+                    content_3 += "</body>\n";
+                    content_3 += "</html>";
+                    //Log.info("content length: " + int_to_string(content.length()));
+                    //Log.info("content_2 length: " + int_to_string(content_2.length()));
                     webclient.println("HTTP/1.0 200 OK");
                     webclient.println("Content-type: text/html");
                     webclient.print("Content-length: ");
-                    webclient.println(content.length() + time_zone_str.length() + content_2.length());
+                    webclient.println(content.length() + time_zone_str.length() + content_2.length() + content_3.length());
                     webclient.println("");
                     webclient.print(content);
                     webclient.print(time_zone_str);
                     webclient.print(content_2);
+                    webclient.print(content_3);
                     webclient.println();
                 }
             }

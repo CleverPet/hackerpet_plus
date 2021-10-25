@@ -72,6 +72,7 @@ bool system_ready = false;
 IPAddress broadcastAddress;
 // ***************** end http server stuff *****************
 
+// TODO these should go in their own .h file!!!
 
 long last_print = 0;
 int GAME_TO_PLAY;
@@ -82,6 +83,14 @@ float TIME_ZONE_OFFSET = 0.0;
 int TIME_ZONE_ADDRESS = 30;
 bool DST_ON = false;
 int DST_ADDRESS = 40;
+
+const int HUB_MODE_STAY_OFF = 0;
+const int HUB_MODE_STAY_ON = 1;
+const int HUB_MODE_SCHEDULED = 2;
+int HUB_MODE = HUB_MODE_STAY_ON;
+int HUB_MODE_ADDRESS = 50;
+
+const int EVER_STORED_CHECK_VALUE = 12346; // we can change this number to force an eeprom "reset" to defaults; and to avoid undefined state when adding new variables
 
 // setup() runs once, when the device is first turned on.
 void setup() {
@@ -96,7 +105,7 @@ void setup() {
     uint16_t ever_stored_check;
     EEPROM.get(EVER_STORED_ADDRESS, ever_stored_check);
 
-    if (ever_stored_check == 12345)
+    if (ever_stored_check == EVER_STORED_CHECK_VALUE)
     {
         ever_stored = true;
     }
@@ -116,19 +125,22 @@ void setup() {
         {
             Time.beginDST();
         }
+
+        EEPROM.get(HUB_MODE_ADDRESS, HUB_MODE);
     }
     else
     {
         GAME_TO_PLAY = 0;
         NEXT_GAME_TO_PLAY = 0;
 
-        uint16_t value = 12345;
+        uint16_t value = EVER_STORED_CHECK_VALUE;
         EEPROM.put(EVER_STORED_ADDRESS, value);
         value = GAME_TO_PLAY;
         EEPROM.put(GAME_ADDRESS, value);
         EEPROM.put(TIME_ZONE_ADDRESS, TIME_ZONE_OFFSET);
         Time.zone(TIME_ZONE_OFFSET);
         EEPROM.put(DST_ADDRESS, DST_ON);
+        EEPROM.put(HUB_MODE_ADDRESS, HUB_MODE);
     }
 
     // TODO upon game switch, need to also write to eeprom!
@@ -182,7 +194,7 @@ void loop() {
             display_error_msg = "<b> Your hub's dome is removed.</b>";
         }
 
-        int new_game_selected = mgschwan_serve_webinterface(GAME_TO_PLAY, NEXT_GAME_TO_PLAY, display_error_msg, TIME_ZONE_OFFSET, TIME_ZONE_ADDRESS, DST_ON, DST_ADDRESS);
+        int new_game_selected = mgschwan_serve_webinterface(GAME_TO_PLAY, NEXT_GAME_TO_PLAY, display_error_msg, TIME_ZONE_OFFSET, TIME_ZONE_ADDRESS, DST_ON, DST_ADDRESS, HUB_MODE, HUB_MODE_ADDRESS);
 
         if (new_game_selected >= 0 && new_game_selected != GAME_TO_PLAY)
         {
@@ -202,7 +214,7 @@ void loop() {
     millis_start = millis();
 
     // ************************************ DISABLE FOR TESTING WITHOUT HUB ************************************
-    hub.Run(20);
+    // hub.Run(20);
     // ************************************ ************************************ ************************************
 
     long int millis_step_2 = millis() - millis_start;
