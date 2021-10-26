@@ -24,6 +24,9 @@
 #include "g_010_MatchingTwoColors.h"
 #include "g_011_MatchingMoreColors.h"
 
+// globals
+HubInterface hub;
+
 // enables simultaneous execution of application and system thread
 SYSTEM_THREAD(ENABLED);
 
