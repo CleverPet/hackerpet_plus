@@ -1,25 +1,32 @@
+
 /**
-  Matching More Colors
-  ====================
+  Matching Two Colors
+  ===================
 
-    This challenge is similar to Matching Two Colors, but now the pads can also
-    turn white.
+    This is the eleventh challenge from the original CleverPet learning
+    curriculum.  For the first time, the Hub introduces colors (blue and yellow
+    - yes, dogs and cats can see color!) as a meaningful signal. Each time a
+    touchpad is pressed, its color will change. Your player’s job is to make all
+    the touchpads match within a limited number of overall presses.
 
-    By adding another color, the number of possible solutions grows
-    exponentially! Adding a third color means there are over 24 initial
-    combinations to solve, and many different paths to solving a given puzzle.
+    Up until now, there was always one correct answer about which pad to touch.
+    This is the first challenge where each puzzle has more than one correct
+    solution, and it showcases your player’s abilities solve problems creatively
+    and in their own way.
 
-    **Challenge logic:** This interaction has 4 different levels with 4
-    corresponding touches. There are 3 different colors: yellow, white and blue.
+    **Challenge logic:** This challenge has 4 levels. Every level has a
+    corresponding maximum number of touches. The challenge uses two different
+    colors, yellow and blue.
 
-    At the start of the interaction a random combination of colors is chosen for
-    the touchpads (starting state). Every iteration of the main while loop
-    checks if the colors match and advances the color of the touched touchpad to
-    the next one. If the player is about to run out of remaining touches, the
-    'Do' sound is played with every touch as they are close to running out.
-
-    When all touches are used, the interaction becomes a miss, if a match is
-    found, the player gets presented with a foodtreat.
+    At the start of an interaction every pad randomly gets one of the 2 colors.
+    Every touch, the color of the touched touchpad advances to the next color.
+    This all happens in a while loop, and with every iteration the state of the
+    lights gets checked for a match of all 3 pads. If a match is found the while
+    loop is exited and the player gets a foodtreat. Every touch decreases the
+    maximum touches counter, if the touches are about to run out, the 'Do' sound
+    will be played. When the remaining touches become zero, the interaction
+    becomes a miss. On a miss the player's next interaction will be a retry
+    interaction with the same starting state.
 
     If 4 successful games are played within the last 5 games the player will
     level up. On 3 missed games in the last 5 games, the player will level down.
@@ -31,11 +38,12 @@
   Licensed under the AGPL 3.0
 */
 
+#include "games/g_010_MatchingTwoColors.h"
+
 #include <hackerpet.h>
 #include "game_helper_functions.h"
 
-
-namespace MatchingMoreColors
+namespace MatchingTwoColors
 {
     /**
      * Challenge settings
@@ -45,58 +53,52 @@ namespace MatchingMoreColors
      * gameplay
      */
     const int STARTING_LEVEL = 1;
-    const int MAX_LEVEL         =  4;// Maximum number of levels
-    const int HISTORY_LENGTH    =  5;// Number of previous interactions to look
-                                    // at for performance
-    const int ENOUGH_SUCCESSES  =  4; // if num successes >= ENOUGH_SUCCESSES level-up
-    const int TOO_MANY_MISSES   =  3; // if number of misses >= TOO_MANY_MISSES level-down
+    const int MAX_LEVEL =           4;   // Maximum number of levels
+    const int HISTORY_LENGTH =      5;   // Number of previous interactions to look at for performance
+    const int ENOUGH_SUCCESSES =    4;   // if num successes >= ENOUGH_SUCCESSES level-up
+    const int TOO_MANY_MISSES =     3;   // if number of misses >= TOO_MANY_MISSES level-down
+    const int PADS_PRESSED_MAX[MAX_LEVEL] = {100,10,6,4};
     const unsigned long FOODTREAT_DURATION = 6000; // (ms) how long to present foodtreat
     const unsigned long TIMEOUT_MS = 300002; // (ms) how long to wait until restarting the interaction
     const unsigned long WRONG_INTERACTION_DELAY = 6000;
-    const unsigned char TOUCHPADS[3][3][2] = { //[pads][colors][Y,B] //TODO make this easier
-            {{90, 00},{00, 90},{90, 90}}, // Y, B, W
-            {{90, 00},{00, 90},{90, 90}},
-            {{90, 00},{00, 90},{90, 90}},
-            };
-    const unsigned char REPORT_COLORS[3] = {'Y','B','W'};
+    const unsigned char TOUCHPADS[3][2][2] = { //[pad][color][Y,B] //TODO make this easier
+                        {{90, 00},{00, 90}},
+                        {{90, 00},{00, 90}},
+                        {{90, 00},{00, 90}},
+                        };
+    const unsigned char REPORT_COLORS[2] = {'Y','B'};
 
     /**
      * Global variables and constants
      * ------------------------------
      */
-    const unsigned long SOUND_DO_DELAY = 600; // (ms) delay between reward sound and
-                                            // foodtreat
+    const unsigned long SOUND_DO_DELAY = 600; // (ms) delay between reward sound and foodtreat
     const unsigned long SOUND_FOODTREAT_DELAY = 600; // (ms) delay for reward sound
     const unsigned long SOUND_TOUCHPAD_DELAY = 300; // (ms) delay for touchpad sound
-    // level 1 is 2 colors, so 3 presses
-    // level 2 and 3 is 2 or 3 colors so 35 and 10 presses
-    // level 4 is 3 colors with 6 presses
-    // make sure you understand the challenge logic before changing
-    const unsigned char PADS_PRESSED_MAX[MAX_LEVEL] = {3,35,10,6};
 
     bool performance[HISTORY_LENGTH] = {0}; // store the progress in this challenge
     unsigned char perfPos = 0; // to keep our position in the performance array
-    unsigned char perfDepth = 0;  // to keep the size of the number of perf numbers
-                                // to consider
-    int numberOfColors = 2; // this is chosen at random between 2 or 3
+    unsigned char perfDepth = 0; // to keep the size of the number of perf numbers to consider
     unsigned char touchpadsColor[3] = {};
 }
 
 
-/// The actual MatchingMoreColors challenge. This function needs to be called in a loop.
-bool playMatchingMoreColors(){
-    using namespace MatchingMoreColors;
+
+
+
+/// The actual MatchingTwoColors challenge. This function needs to be called in a loop.
+bool playMatchingTwoColors(HubInterface * hub){
+    using namespace MatchingTwoColors;
     yield_begin();
 
-    static unsigned long timestampBefore, gameStartTime, timestampTouchpad, activityDuration = 0;
+    static unsigned long timestampBefore, timestampTouchpad, gameStartTime, activityDuration = 0;
     static unsigned char foodtreatState = 99;
     static unsigned char touchpadsColorStart[3] = {};
     static unsigned char pressed = 0;
-    static int currentLevel = STARTING_LEVEL; // starting level
-    static int PADS_PRESSED_MAX_override = 0;
-    static int padsPressed = 0;
+    static int currentLevel = STARTING_LEVEL;
+    static int pads_pressed = 0;
     static bool match = false;
-    static bool retryGame = false; // should not be re-initialized
+    static bool retryGame = false;  // should not be re-initialized
     static bool accurate = false;
     static bool timeout = false;
     static bool foodtreatWasEaten = false; // store if foodtreat was eaten in last interaction
@@ -107,70 +109,47 @@ bool playMatchingMoreColors(){
     // on subsequent calls
     timestampBefore = 0;
     gameStartTime = 0;
-    timestampTouchpad = 0;
     activityDuration = 0;
     foodtreatState = 99;
-    PADS_PRESSED_MAX_override = 0;
-    padsPressed = 0;
-    pressed = 0;
     match = false;
-    retryGame = false; // should not be re-initialized
+    pads_pressed = 0;
+    fill(touchpadsColorStart, touchpadsColorStart+3, 0);
     accurate = false;
     timeout = false;
     foodtreatWasEaten = false; // store if foodtreat was eaten in last interaction
-    fill(touchpadsColorStart, touchpadsColorStart+3, 0);
+    pressed = 0;
+    timestampTouchpad = 0;
     pressedSeq = "";
 
     Log.info("-------------------------------------------");
-    // Log.info("Starting new \"Matching More Colors\" challenge");
+    // Log.info("Starting new \"Matching Two Colors\" challenge");
     // Log.info("Current level: %u, successes: %u, number of misses: %u",
         // currentLevel, countSuccesses(), countMisses());
+
+    gameStartTime = Time.now();
 
     // before starting interaction, wait until:
     //  1. device layer is ready (in a good state)
     //  2. foodmachine is "idle", meaning it is not spinning or dispensing
     //      and tray is retracted (see FOODMACHINE_... constants)
     //  3. no touchpad is currently pressed
-    yield_wait_for((hub.IsReady()
-                    && hub.FoodmachineState() == hub.FOODMACHINE_IDLE
-                    && not hub.AnyButtonPressed()), false);
+    yield_wait_for((hub->IsReady()
+                    && hub->FoodmachineState() == hub->FOODMACHINE_IDLE
+                    && not hub->AnyButtonPressed()), false);
 
     // DI reset occurs if, for example, device  layer detects that touchpads need re-calibration
-    hub.SetDIResetLock(true);
-
-    gameStartTime = Time.now();
-
-    // establish number of colors for interaction
-    if(!retryGame){
-        numberOfColors = random(2,4); // 2 or 3 colors
-    }
-
-    // overrides like the original interactions
-    if(currentLevel == 1){
-        numberOfColors = 2;
-    } else if(currentLevel == 4){
-        numberOfColors = 3;
-    }
-
-    // override for levels 2 and 3 with 2 colors
-    if (numberOfColors == 2){
-        PADS_PRESSED_MAX_override = 3;
-    } else {
-        PADS_PRESSED_MAX_override = PADS_PRESSED_MAX[currentLevel-1];
-    }
+    hub->SetDIResetLock(true);
 
     // Rndomly pick start state, except on retry interaction
     if (!retryGame){
         do{
-            touchpadsColor[0] = random(0,numberOfColors);
-            touchpadsColor[1] = random(0,numberOfColors);
-            touchpadsColor[2] = random(0,numberOfColors);
+            touchpadsColor[0] = random(0,2);
+            touchpadsColor[1] = random(0,2);
+            touchpadsColor[2] = random(0,2);
         } while (checkMatch(touchpadsColor));
     } else {
         Log.info("Doing a retry interaction");
     }
-
-    Log.info("Number of colors: %u", numberOfColors);
 
     // save start state for report
     copy(begin(touchpadsColor), end(touchpadsColor), begin(touchpadsColorStart));
@@ -179,9 +158,9 @@ bool playMatchingMoreColors(){
                                     REPORT_COLORS[touchpadsColor[1]],
                                     REPORT_COLORS[touchpadsColor[2]]);
 
-    updateTouchpadLights(TOUCHPADS, touchpadsColor);
+    updateTouchpadLights(TOUCHPADS, touchpadsColor, hub);
 
-    hub.SetButtonAudioEnabled(true);
+    hub->SetButtonAudioEnabled(true);
 
     // Record start timestamp for performance logging
     timestampBefore = millis();
@@ -193,22 +172,22 @@ bool playMatchingMoreColors(){
         {
             yield(false); // use yields statements any time the hub is pausing or waiting
             // detect any touchpads currently pressed
-            pressed = hub.AnyButtonPressed();
+            pressed = hub->AnyButtonPressed();
         }
         while (!(pressed != 0) //0 if any touchpad is touched
                 && millis()  < timestampTouchpad + TIMEOUT_MS); //0 if timed out
 
         activityDuration = millis() - timestampBefore;
 
-        if (pressed == hub.BUTTON_LEFT){
+        if (pressed == hub->BUTTON_LEFT){
             Log.info("Left touchpad pressed");
-            advanceTouchpad_MatchingMoreColors(0, touchpadsColor, numberOfColors);
-        } else if (pressed == hub.BUTTON_MIDDLE){
+            advanceTouchpad_MatchingTwoColors(0, touchpadsColor);
+        } else if (pressed == hub->BUTTON_MIDDLE){
             Log.info("Middle touchpad pressed");
-            advanceTouchpad_MatchingMoreColors(1, touchpadsColor, numberOfColors);
-        } else if (pressed == hub.BUTTON_RIGHT){
+            advanceTouchpad_MatchingTwoColors(1, touchpadsColor);
+        } else if (pressed == hub->BUTTON_RIGHT){
             Log.info("Right touchpad pressed");
-            advanceTouchpad_MatchingMoreColors(2, touchpadsColor, numberOfColors);
+            advanceTouchpad_MatchingTwoColors(2, touchpadsColor);
         } else if (pressed == 0) {
             timeout = true;
             accurate = false;
@@ -217,13 +196,14 @@ bool playMatchingMoreColors(){
         }
 
         // add our press to the reporting sequence
-        pressedSeq += convertBitfieldToLetter_ColorMatch(pressed);
+        pressedSeq += convertBitfieldToLetter_ColorMatch(pressed, hub);
 
         // update lights
-        updateTouchpadLights(TOUCHPADS, touchpadsColor);
+        updateTouchpadLights(TOUCHPADS, touchpadsColor, hub);
+
         // increase pressed counter
-        padsPressed++;
-        Log.info("Remaining presses: %u", PADS_PRESSED_MAX_override-padsPressed);
+        pads_pressed++;
+        Log.info("Remaining presses: %u", PADS_PRESSED_MAX[currentLevel-1]-pads_pressed);
         // check for timeout
         if (activityDuration > TIMEOUT_MS ){
             Log.info("Timeout");
@@ -237,22 +217,22 @@ bool playMatchingMoreColors(){
             break;
         }
         // check for last tries
-        if (padsPressed >= PADS_PRESSED_MAX_override-2){
+        if (pads_pressed >= PADS_PRESSED_MAX[currentLevel-1]-2){
             // Log.info("almost out");
             // give the Hub a moment to finish playing the touchpad sound
             yield_sleep_ms(SOUND_TOUCHPAD_DELAY, false);
-            hub.PlayAudio(hub.AUDIO_DO, 60);
+            hub->PlayAudio(hub->AUDIO_DO, 60);
             // give the Hub a moment to finish playing the sound
             yield_sleep_ms(SOUND_DO_DELAY, false);
         }
         //check for max tries
-        if (padsPressed == PADS_PRESSED_MAX_override){
+        if (pads_pressed == PADS_PRESSED_MAX[currentLevel-1]){
             Log.info("Max presses");
             break;
         }
 
         // wait until: no touchpad is currently pressed
-        yield_wait_for((!hub.AnyButtonPressed()), false);
+        yield_wait_for((!hub->AnyButtonPressed()), false);
     }
 
     // check if we have a match on all touchpads
@@ -264,17 +244,17 @@ bool playMatchingMoreColors(){
         Log.info("Match, dispensing foodtreat");
         // give the Hub a moment to finish playing the touchpad sound
         yield_sleep_ms(SOUND_TOUCHPAD_DELAY, false);
-        hub.PlayAudio(hub.AUDIO_POSITIVE, 80);
+        hub->PlayAudio(hub->AUDIO_POSITIVE, 80);
         // give the Hub a moment to finish playing the reward sound
         yield_sleep_ms(SOUND_FOODTREAT_DELAY, false);
         do {
-            foodtreatState=hub.PresentAndCheckFoodtreat(FOODTREAT_DURATION);
+            foodtreatState=hub->PresentAndCheckFoodtreat(FOODTREAT_DURATION);
             yield(false);
-        } while (foodtreatState!=hub.PACT_RESPONSE_FOODTREAT_NOT_TAKEN &&
-             foodtreatState!=hub.PACT_RESPONSE_FOODTREAT_TAKEN);
+        } while (foodtreatState!=hub->PACT_RESPONSE_FOODTREAT_NOT_TAKEN &&
+             foodtreatState!=hub->PACT_RESPONSE_FOODTREAT_TAKEN);
 
         // Check if foodtreat was eaten
-        if (foodtreatState == hub.PACT_RESPONSE_FOODTREAT_TAKEN){
+        if (foodtreatState == hub->PACT_RESPONSE_FOODTREAT_TAKEN){
             Log.info("Foodtreat was eaten");
             foodtreatWasEaten = true;
         } else {
@@ -286,17 +266,17 @@ bool playMatchingMoreColors(){
         if (!timeout){
             // give the Hub a moment to finish playing the touchpad sound
             yield_sleep_ms(SOUND_TOUCHPAD_DELAY, false);
-            hub.PlayAudio(hub.AUDIO_NEGATIVE, 80);
+            hub->PlayAudio(hub->AUDIO_NEGATIVE, 80);
             // give the Hub a moment to finish playing the reward sound
             yield_sleep_ms(SOUND_FOODTREAT_DELAY, false);
             // turn off touchpads sound and light during time-out
-            hub.SetLights(hub.LIGHT_BTNS, 0, 0, 0);
-            hub.SetButtonAudioEnabled(false);
+            hub->SetLights(hub->LIGHT_BTNS, 0, 0, 0);
+            hub->SetButtonAudioEnabled(false);
             yield_sleep_ms(WRONG_INTERACTION_DELAY, false);
         }
     }
 
-    hub.SetLights(hub.LIGHT_BTNS, 0, 0, 0); // turn off all touchpad lights
+    hub->SetLights(hub->LIGHT_BTNS, 0, 0, 0); // turn off all touchpad lights
 
     // keep track of performance
     if (!timeout){
@@ -308,7 +288,6 @@ bool playMatchingMoreColors(){
         if (countSuccesses(performance, perfDepth) >= ENOUGH_SUCCESSES){
             Log.info("At MAX level! %u", currentLevel);
             challengeComplete = true;
-            retryGame = false;
             resetPerformanceHistory(performance, perfDepth, perfPos, HISTORY_LENGTH);
         }
     }
@@ -336,43 +315,43 @@ bool playMatchingMoreColors(){
         Log.info("Sending report");
 
         String extra = String::format(
-            "{\"start_state\":\"%c%c%c\",\"pressedSeq\":\"%s\",\"presses\":%u,"
-            "\"num_colors\":%u,\"retryGame\":%c",
+            "{\"startState\":\"%c%c%c\",\"pressedSeq\":\"%s\",\"presses\":%u,"
+            "\"retryGame\":%c",
             REPORT_COLORS[touchpadsColorStart[0]],
             REPORT_COLORS[touchpadsColorStart[1]],
             REPORT_COLORS[touchpadsColorStart[2]], pressedSeq.c_str(),
-            padsPressed, numberOfColors,
+            pads_pressed,
             retryGame ? '1' : '0');  // TODO this is the new value
         if (challengeComplete) {extra += ",\"challengeComplete\":1";}
         extra += "}";
 
         // Log.info(extra);
 
-        hub.Report( Time.format(gameStartTime, TIME_FORMAT_ISO8601_FULL), // play_start_time
-                    PlayerName,            // player
-                    currentLevel,          // level
-                    String(accurate),       // result
-                    activityDuration,      // duration
-                    accurate,               // foodtreat_presented
-                    foodtreatWasEaten,    // foodtreatWasEaten
-                    extra                   // extra field
-                    );
-
+        hub->Report(Time.format(gameStartTime,
+                               TIME_FORMAT_ISO8601_FULL),  // play_start_time
+                   PlayerName,                             // player
+                   currentLevel,                           // level
+                   String(accurate),                       // result
+                   activityDuration,                       // duration
+                   accurate,           // foodtreat_presented
+                   foodtreatWasEaten,  // foodtreatWasEaten
+                   extra               // extra field
+        );
     }
 
     // printPerformanceArray();
 
-    hub.SetDIResetLock(false);  // allow DI board to reset if needed between interactions
+    hub->SetDIResetLock(false);  // allow DI board to reset if needed between interactions
     yield_finish();
     return true;
 }
 
 
-bool MatchingMoreColors_Loop()
+bool MatchingTwoColors_Loop(HubInterface * hub)
 {
-  using namespace MatchingMoreColors;
+  using namespace MatchingTwoColors;
   bool gameIsComplete = false;
-  gameIsComplete = playMatchingMoreColors();// Returns true if level is done
+  gameIsComplete = playMatchingTwoColors(hub);// Returns true if level is done
   return gameIsComplete;
 }
 
@@ -382,7 +361,7 @@ bool MatchingMoreColors_Loop()
 //  */
 // void setup() {
 //   // Initializes the hub and passes the current filename as ID for reporting
-//   hub.Initialize(__FILE__);
+//   hub->Initialize(__FILE__);
 // }
 
 // /**
@@ -395,10 +374,10 @@ bool MatchingMoreColors_Loop()
 
 //     // Advance the device layer state machine, but with 20 ms max time
 //     // spent per loop cycle.
-//     hub.Run(20);
+//     hub->Run(20);
 
-//     // Play 1 interaction of the Matching More Colors challenge
-//     gameIsComplete = playMatchingMoreColors();
+//     // Play 1 interaction of the Matching Two Colors challenge
+//     gameIsComplete = playMatchingTwoColors(); // Returns true if level is done
 
 //     if(gameIsComplete){
 //         // Interaction end
