@@ -1,5 +1,3 @@
-#ifndef G_ENGAGINGCONSISTENTLY_H
-#define G_ENGAGINGCONSISTENTLY_H
 
 /**
   Engaging Consistently
@@ -38,6 +36,8 @@
 
 #include <hackerpet.h>
 #include "game_helper_functions.h"
+
+#include "games/g_002_EngagingConsistently.h"
 
 
 namespace EngagingConsistently
@@ -84,7 +84,7 @@ namespace EngagingConsistently
 }
 
 /// The actual EngagingConsistently challenge. This function needs to be called in a loop.
-bool playEngagingConsistently() {
+bool playEngagingConsistently(HubInterface * hub) {
   using namespace EngagingConsistently;
   yield_begin();
 
@@ -121,34 +121,34 @@ bool playEngagingConsistently() {
   //  2. foodmachine is "idle", meaning it is not spinning or dispensing
   //      and tray is retracted (see FOODMACHINE_... constants)
   //  3. no touchpad is currently pressed
-  yield_wait_for((hub.IsReady() &&
-                  hub.FoodmachineState() == hub.FOODMACHINE_IDLE &&
-                  not hub.AnyButtonPressed()),
+  yield_wait_for((hub->IsReady() &&
+                  hub->FoodmachineState() == hub->FOODMACHINE_IDLE &&
+                  not hub->AnyButtonPressed()),
                  false);
 
   // DI reset occurs if, for example, device layer detects that touchpads
   // need re-calibration
-  hub.SetDIResetLock(true);
+  hub->SetDIResetLock(true);
 
   // Record start timestamp for performance logging
   timestampBefore = millis();
 
   // Turn on touchpad lights
-  hub.SetRandomButtonLights(3, YELLOW, BLUE, FLASHING, FLASHING_DUTY_CYCLE);
+  hub->SetRandomButtonLights(3, YELLOW, BLUE, FLASHING, FLASHING_DUTY_CYCLE);
 
   // Wait here until a touchpad is pressed or until we have a timeout
   do {
-    pressed = hub.AnyButtonPressed();
+    pressed = hub->AnyButtonPressed();
     yield(false);
-  } while ((pressed != hub.BUTTON_LEFT && pressed != hub.BUTTON_MIDDLE &&
-            pressed != hub.BUTTON_RIGHT) &&
+  } while ((pressed != hub->BUTTON_LEFT && pressed != hub->BUTTON_MIDDLE &&
+            pressed != hub->BUTTON_RIGHT) &&
            millis() < (timestampBefore + timeout_duration));
 
   // Record time period for performance logging
   reactionTime = millis() - timestampBefore;
 
   // Turn off lights
-  hub.SetLights(hub.LIGHT_BTNS, 0, 0, 0);
+  hub->SetLights(hub->LIGHT_BTNS, 0, 0, 0);
 
   // Check result
   if (pressed == 0) {
@@ -162,19 +162,19 @@ bool playEngagingConsistently() {
     // give the Hub a moment to finish playing the touchpad sound
     yield_sleep_ms(SOUND_TOUCHPAD_DELAY, false);
     // Play "reward" sound
-    hub.PlayAudio(hub.AUDIO_POSITIVE, 20);
+    hub->PlayAudio(hub->AUDIO_POSITIVE, 20);
     // give the Hub a moment to finish playing the reward sound
     yield_sleep_ms(SOUND_FOODTREAT_DELAY, false);
 
     // Dispense a foodtreat and wait until the tray is closed again
     do {
-      foodtreatState = hub.PresentAndCheckFoodtreat(tray_duration);
+      foodtreatState = hub->PresentAndCheckFoodtreat(tray_duration);
       yield(false);
-    } while (foodtreatState != hub.PACT_RESPONSE_FOODTREAT_NOT_TAKEN &&
-             foodtreatState != hub.PACT_RESPONSE_FOODTREAT_TAKEN);
+    } while (foodtreatState != hub->PACT_RESPONSE_FOODTREAT_NOT_TAKEN &&
+             foodtreatState != hub->PACT_RESPONSE_FOODTREAT_TAKEN);
 
     // Check if foodtreat was eaten
-    if (foodtreatState == hub.PACT_RESPONSE_FOODTREAT_TAKEN) {
+    if (foodtreatState == hub->PACT_RESPONSE_FOODTREAT_TAKEN) {
       Log.info("Foodtreat was eaten");
       foodtreatWasEaten = true;
     } else {
@@ -191,7 +191,7 @@ bool playEngagingConsistently() {
     if (challengeComplete) {extra += ",\"challengeComplete\":1";}
     extra += "}";
 
-    hub.Report(
+    hub->Report(
         Time.format(gameStartTime, TIME_FORMAT_ISO8601_FULL), // play_start_time
         playerName,                                           // player
         currentLevel,                                         // level
@@ -235,14 +235,14 @@ bool playEngagingConsistently() {
 
   // printPerformanceArray();
 
-  hub.SetDIResetLock(false); // allow DI board to reset if needed between interactions
+  hub->SetDIResetLock(false); // allow DI board to reset if needed between interactions
   yield_finish();
   return true;
 }
 
 
-// new loop to call; same as original loop() below, but without hub.Run(20)
-bool EngagingConsistently_Loop()
+// new loop to call; same as original loop() below, but without hub->Run(20)
+bool EngagingConsistently_Loop(HubInterface * hub)
 {
   using namespace EngagingConsistently;
   bool gameIsComplete = false;
@@ -260,7 +260,7 @@ bool EngagingConsistently_Loop()
   if (millis() <= (challenge_timer_before + challenge_timer_length)) {
     // Play 1 level of the EngagingConsistently challenge
     // Will return true if level is done
-    gameIsComplete = playEngagingConsistently();
+    gameIsComplete = playEngagingConsistently(hub);
   } else {
     // Log.info("Timer expired");
     reset_challenge_timer = true;
@@ -276,7 +276,7 @@ bool EngagingConsistently_Loop()
 //  */
 // void setup() {
 //   // Initializes the hub and passes the current filename as ID for reporting
-//   hub.Initialize(__FILE__);
+//   hub->Initialize(__FILE__);
 // }
 
 // /**
@@ -288,7 +288,7 @@ bool EngagingConsistently_Loop()
 
 //   // Advance the device layer state machine, but with 20 ms max time
 //   // spent per loop cycle.
-//   hub.Run(20);
+//   hub->Run(20);
 
 //   // if the challenge timer expired we need to reset it
 //   if (reset_challenge_timer) {
@@ -313,5 +313,3 @@ bool EngagingConsistently_Loop()
 //     return;
 //   }
 // }
-
-#endif

@@ -1,3 +1,5 @@
+
+
 /**
   Responding Quickly
   ====================
@@ -31,6 +33,8 @@
   Copyright 2019
   Licensed under the AGPL 3.0
 */
+
+#include "games/g_006_RespondingQuickly.h"
 
 #include <hackerpet.h>
 #include "game_helper_functions.h"
@@ -75,15 +79,15 @@ namespace RespondingQuickly
 
 
 /// The actual RespondingQuickly challenge. This function needs to be called in a loop.
-bool playRespondingQuickly() {
+bool playRespondingQuickly(HubInterface * hub) {
   using namespace RespondingQuickly;
   yield_begin();
 
   static unsigned long gameStartTime, timestampTouchpad, timestampBefore, activityDuration = 0;
   static unsigned char foodtreatState = 99;
-  static unsigned char touchpads[3] = { hub.BUTTON_LEFT,  // should not be re-initialized
-                                        hub.BUTTON_MIDDLE,
-                                        hub.BUTTON_RIGHT};
+  static unsigned char touchpads[3] = { hub->BUTTON_LEFT,  // should not be re-initialized
+                                        hub->BUTTON_MIDDLE,
+                                        hub->BUTTON_RIGHT};
   static bool retryTarget = false; // should not be re-initialized
   static bool accurate = false;
   static bool timeout = false;
@@ -116,14 +120,14 @@ bool playRespondingQuickly() {
   //  2. foodmachine is "idle", meaning it is not spinning or dispensing
   //      and tray is retracted (see FOODMACHINE_... constants)
   //  3. no touchpad is currently pressed
-  yield_wait_for((hub.IsReady() &&
-                  hub.FoodmachineState() == hub.FOODMACHINE_IDLE &&
-                  not hub.AnyButtonPressed()),
+  yield_wait_for((hub->IsReady() &&
+                  hub->FoodmachineState() == hub->FOODMACHINE_IDLE &&
+                  not hub->AnyButtonPressed()),
                  false);
 
   // DI reset occurs if, for example, device  layer detects that touchpads need
   // re-calibration
-  hub.SetDIResetLock(true);
+  hub->SetDIResetLock(true);
 
   // Record start timestamp for performance logging
   timestampBefore = millis();
@@ -135,23 +139,23 @@ bool playRespondingQuickly() {
     random_shuffle(&touchpads[0], &touchpads[3]);
   }
 
-  hub.SetLights(touchpads[0], YELLOW, BLUE, SLEW);
+  hub->SetLights(touchpads[0], YELLOW, BLUE, SLEW);
 
   // progress to next state
   timestampTouchpad = millis();
 
   do {
     // detect any touchpads currently pressed
-    pressed[0] = hub.AnyButtonPressed();
+    pressed[0] = hub->AnyButtonPressed();
     yield(false);
     // Ignore non-target touches
   } while (!(pressed[0] & touchpads[0]) // 0 if any pressed touchpad match
            && millis() < timestampTouchpad + TIMEOUT_MS); // 0 if timed out
 
-  hub.SetLights(hub.LIGHT_BTNS, 0, 0, 0); // turn off lights
+  hub->SetLights(hub->LIGHT_BTNS, 0, 0, 0); // turn off lights
 
   // wait until: no touchpad is currently pressed
-  yield_wait_for((!hub.AnyButtonPressed()), false);
+  yield_wait_for((!hub->AnyButtonPressed()), false);
 
   // Check touchpads and accuracy
   if (pressed[0] == 0) {
@@ -161,7 +165,7 @@ bool playRespondingQuickly() {
   } else {
     Log.info("First interaction: correct touchpad pressed");
     timeout = false;
-    hub.SetLights(touchpads[1], YELLOW, BLUE, SLEW);
+    hub->SetLights(touchpads[1], YELLOW, BLUE, SLEW);
     // make sure the player has seen the touchpad
     yield_sleep_ms(VIEW_WINDOW, false);
 
@@ -170,7 +174,7 @@ bool playRespondingQuickly() {
 
     do {
       // detect any touchpads currently pressed
-      pressed[1] = hub.AnyButtonPressed();
+      pressed[1] = hub->AnyButtonPressed();
       yield(false); // use yields statements any time the hub is pausing or
                     // waiting
     } while (       // 0 if any touchpad except interaction1 pad is touched
@@ -178,7 +182,7 @@ bool playRespondingQuickly() {
         // 0 if timed out
         millis() < timestampTouchpad + MAX_REACTION_TIME[currentLevel - 1]);
 
-    hub.SetLights(hub.LIGHT_BTNS, 0, 0, 0); // turn off lights
+    hub->SetLights(hub->LIGHT_BTNS, 0, 0, 0); // turn off lights
 
     if (pressed[1] == 0) {
       Log.info("No touchpad pressed, second interaction timeout");
@@ -192,19 +196,19 @@ bool playRespondingQuickly() {
         Log.info("Second interaction: correct touchpad pressed, dispensing foodtreat");
         // give the Hub a moment to finish playing the touchpad sound
         yield_sleep_ms(SOUND_TOUCHPAD_DELAY, false);
-        hub.PlayAudio(hub.AUDIO_POSITIVE, 20);
+        hub->PlayAudio(hub->AUDIO_POSITIVE, 20);
         // give the Hub a moment to finish playing the reward sound
         yield_sleep_ms(SOUND_FOODTREAT_DELAY, false);
         // if successful interaction, present foodtreat using
         // PresentAndCheckFoodtreat state machine
         do {
-          foodtreatState = hub.PresentAndCheckFoodtreat(FOODTREAT_DURATION);
+          foodtreatState = hub->PresentAndCheckFoodtreat(FOODTREAT_DURATION);
           yield(false);
-        } while (foodtreatState != hub.PACT_RESPONSE_FOODTREAT_NOT_TAKEN &&
-                 foodtreatState != hub.PACT_RESPONSE_FOODTREAT_TAKEN);
+        } while (foodtreatState != hub->PACT_RESPONSE_FOODTREAT_NOT_TAKEN &&
+                 foodtreatState != hub->PACT_RESPONSE_FOODTREAT_TAKEN);
 
         // Check if foodtreat was eaten
-        if (foodtreatState == hub.PACT_RESPONSE_FOODTREAT_TAKEN) {
+        if (foodtreatState == hub->PACT_RESPONSE_FOODTREAT_TAKEN) {
           Log.info("Foodtreat was eaten");
           foodtreatWasEaten = true;
         } else {
@@ -217,7 +221,7 @@ bool playRespondingQuickly() {
         foodtreatWasEaten = false;
         // give the Hub a moment to finish playing the touchpad sound
         yield_sleep_ms(SOUND_TOUCHPAD_DELAY, false);
-        hub.PlayAudio(hub.AUDIO_NEGATIVE, 5);
+        hub->PlayAudio(hub->AUDIO_NEGATIVE, 5);
         // give the Hub a moment to finish playing the sound
         yield_sleep_ms(SOUND_FOODTREAT_DELAY, false);
       }
@@ -261,18 +265,18 @@ bool playRespondingQuickly() {
     // Send report
     Log.info("Sending report");
     String extra = "{\"targetSeq\":\"";
-    extra += convertBitfieldToLetter(touchpads[0]);
-    extra += convertBitfieldToLetter(touchpads[1]);
+    extra += convertBitfieldToLetter(touchpads[0], hub);
+    extra += convertBitfieldToLetter(touchpads[1], hub);
     extra += "\",\"pressedSeq\":\"";
     // Multiple touches possible, but irrelevant for reporting
-    extra += convertBitfieldToLetter(touchpads[0]);
+    extra += convertBitfieldToLetter(touchpads[0], hub);
     // multiple touches possible, only report a single wrong one if a miss
-    extra += convertBitfieldToSingleLetter(touchpads[1],pressed[1]);
+    extra += convertBitfieldToSingleLetter(touchpads[1],pressed[1], hub);
     extra += String::format("\",\"retryGame\":\"%c\"", retryTarget ? '1' : '0');
     if (challengeComplete) {extra += ",\"challengeComplete\":1";}
     extra += "}";
 
-    hub.Report(Time.format(gameStartTime,
+    hub->Report(Time.format(gameStartTime,
                            TIME_FORMAT_ISO8601_FULL),  // play_start_time
                PlayerName,                             // player
                currentLevel,                           // level
@@ -301,17 +305,17 @@ bool playRespondingQuickly() {
     yield_sleep_ms(INTER_GAME_DELAY, false);
   }
 
-  hub.SetDIResetLock(false); // allow DI board to reset if needed between interactions
+  hub->SetDIResetLock(false); // allow DI board to reset if needed between interactions
   yield_finish();
   return true;
 }
 
 
-bool RespondingQuickly_Loop()
+bool RespondingQuickly_Loop(HubInterface * hub)
 {
   using namespace RespondingQuickly;
   bool gameIsComplete = false;
-  gameIsComplete = playRespondingQuickly();// Returns true if level is done
+  gameIsComplete = playRespondingQuickly(hub);// Returns true if level is done
   return gameIsComplete;
 }
 
@@ -322,7 +326,7 @@ bool RespondingQuickly_Loop()
 //  */
 // void setup() {
 //   // Initializes the hub and passes the current filename as ID for reporting
-//   hub.Initialize(__FILE__);
+//   hub->Initialize(__FILE__);
 // }
 
 // /**
@@ -334,7 +338,7 @@ bool RespondingQuickly_Loop()
 
 //   // Advance the device layer state machine, but with 20 ms max time
 //   // spent per loop cycle.
-//   hub.Run(20);
+//   hub->Run(20);
 
 //   // Play 1 interaction of the Responding Quickly challenge
 //   gameIsComplete = playRespondingQuickly(); // Will return true if level is done
@@ -344,3 +348,4 @@ bool RespondingQuickly_Loop()
 //     return;
 //   }
 // }
+

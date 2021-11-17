@@ -1,5 +1,4 @@
-#ifndef G_EATINGTHEFOOD_H
-#define G_EATINGTHEFOOD_H
+
 
 /**
   Eating The Food
@@ -26,11 +25,10 @@
   Licensed under the AGPL 3.0
  */
 
+#include "games/g_000_EatingTheFood.h"
+
 #include <hackerpet.h>
 #include "game_helper_functions.h"
-
-
-HubInterface hub;
 
 
 namespace EatingTheFood
@@ -75,7 +73,7 @@ namespace EatingTheFood
  */
 
 /// The actual Eating The Food challenge. Function must be be called in a loop.
-bool playEatingTheFood() {
+bool playEatingTheFood(HubInterface * hub) {
   using namespace EatingTheFood;
   yield_begin();
 
@@ -100,13 +98,13 @@ bool playEatingTheFood() {
   //  tray is retracted (see FOODMACHINE_... constants)
   //  3. no button is currently pressed
   yield_wait_for(
-      (hub.IsReady() && hub.FoodmachineState() == hub.FOODMACHINE_IDLE &&
-       not hub.AnyButtonPressed()),
+      (hub->IsReady() && hub->FoodmachineState() == hub->FOODMACHINE_IDLE &&
+       not hub->AnyButtonPressed()),
       false);
 
   // DI reset occurs if, for example, device  layer detects that touchpads need
   // re-calibration
-  hub.SetDIResetLock(true);
+  hub->SetDIResetLock(true);
 
   Log.info("At level %u", currentLevel);
   Log.info("Presenting foodtreat for %lu ms",
@@ -116,24 +114,24 @@ bool playEatingTheFood() {
   timestampBefore = millis();
 
   // play "reward" sound
-  hub.PlayAudio(hub.AUDIO_POSITIVE, 20);
+  hub->PlayAudio(hub->AUDIO_POSITIVE, 20);
   // give the Hub a moment to finish playing the reward sound
   yield_sleep_ms(SOUND_FOODTREAT_DELAY, false);
 
   // dispense a foodtreat and wait until the tray is closed again
   do {
     foodtreatState =
-        hub.PresentAndCheckFoodtreat(FOODTREAT_DURATIONS[currentLevel - 1]);
+        hub->PresentAndCheckFoodtreat(FOODTREAT_DURATIONS[currentLevel - 1]);
     yield(false);
-  } while (foodtreatState != hub.PACT_RESPONSE_FOODTREAT_NOT_TAKEN &&
-           foodtreatState != hub.PACT_RESPONSE_FOODTREAT_TAKEN);
+  } while (foodtreatState != hub->PACT_RESPONSE_FOODTREAT_NOT_TAKEN &&
+           foodtreatState != hub->PACT_RESPONSE_FOODTREAT_TAKEN);
 
   // record time period for performance logging
   // (activity duration will always be interaction time + tray movement)
   activityDuration = millis() - timestampBefore;
 
   // check if foodtreat was eaten
-  if (foodtreatState == hub.PACT_RESPONSE_FOODTREAT_TAKEN) {
+  if (foodtreatState == hub->PACT_RESPONSE_FOODTREAT_TAKEN) {
     Log.info("Foodtreat was eaten, reaction time: %lu", activityDuration);
     foodtreatWasEaten = true;
   } else {
@@ -148,7 +146,7 @@ bool playEatingTheFood() {
   if (challengeComplete) {extra += ",\"challengeComplete\":1";}
   extra += "}";
 
-  hub.Report(
+  hub->Report(
       Time.format(gameStartTime, TIME_FORMAT_ISO8601_FULL),  // play_start_time
       playerName,                                            // player
       currentLevel,               // level -> lower level is better
@@ -175,15 +173,15 @@ bool playEatingTheFood() {
                        // time.
     }
   }
-  hub.SetDIResetLock(false);  // allow DI board to reset if needed between
+  hub->SetDIResetLock(false);  // allow DI board to reset if needed between
                               // interactions
   yield_finish();
   return true;
 }
 
 
-// new loop to call; same as original loop() below, but without hub.Run(20)
-bool EatingTheFood_Loop()
+// new loop to call; same as original loop() below, but without hub->Run(20)
+bool EatingTheFood_Loop(HubInterface * hub)
 {
   using namespace EatingTheFood;
   unsigned int perf_total = 0;  // sum of performance of the
@@ -191,7 +189,7 @@ bool EatingTheFood_Loop()
   bool gameIsComplete = false;
 
   // Play 1 level of the Eating The Food challenge
-  gameIsComplete = playEatingTheFood();  // Will return true if level is done
+  gameIsComplete = playEatingTheFood(hub);  // Will return true if level is done
 
   // Store level result in performance array
   if (gameIsComplete) {
@@ -227,9 +225,9 @@ bool EatingTheFood_Loop()
 //  */
 // void setup() {
 //   // Initializes the hub and passes the current filename as ID for reporting
-//   hub.Initialize(__FILE__);
+//   hub->Initialize(__FILE__);
 //   // You can also pass your own ID like so
-//   // hub.Initialize("MyAwesomeGame");
+//   // hub->Initialize("MyAwesomeGame");
 // }
 
 // /**
@@ -243,7 +241,7 @@ bool EatingTheFood_Loop()
 
 //   // Advance the device layer state machine, but with 20 ms max time
 //   // spent per loop cycle.
-//   hub.Run(20);
+//   hub->Run(20);
 
 //   // Play 1 level of the Eating The Food challenge
 //   gameIsComplete = playEatingTheFood();  // Will return true if level is done
@@ -271,4 +269,3 @@ bool EatingTheFood_Loop()
 //   }
 // }
 
-#endif

@@ -1,5 +1,4 @@
-#ifndef G_EXPLORINGTHETOUCHPADS_H
-#define G_EXPLORINGTHETOUCHPADS_H
+
 
 /**
 
@@ -36,6 +35,8 @@ BUT, LEAVING OUT setup() and loop() functions!
   Copyright 2019
   Licensed under the AGPL 3.0
 */
+
+#include "games/g_001_ExploringTheTouchpads.h"
 
 #include <hackerpet.h>
 #include "game_helper_functions.h"
@@ -78,7 +79,7 @@ namespace ExploringTheTouchpads
 }
 
 //// The actual ExploringTheTouchpads function. This function needs to be called in a loop.
-bool playExploringTheTouchpads() {
+bool playExploringTheTouchpads(HubInterface * hub) {
   using namespace ExploringTheTouchpads;
   yield_begin();
 
@@ -115,27 +116,27 @@ bool playExploringTheTouchpads() {
   //  2. foodmachine is "idle", meaning it is not spinning or dispensing
   //      and tray is retracted (see FOODMACHINE_... constants)
   //  3. no touchpad is currently pressed
-  yield_wait_for((hub.IsReady() &&
-                  hub.FoodmachineState() == hub.FOODMACHINE_IDLE &&
-                  !hub.AnyButtonPressed()),
+  yield_wait_for((hub->IsReady() &&
+                  hub->FoodmachineState() == hub->FOODMACHINE_IDLE &&
+                  !hub->AnyButtonPressed()),
                  false);
 
   // DI reset occurs if, for example, device layer detects that touchpads
   // need re-calibration
-  hub.SetDIResetLock(true);
+  hub->SetDIResetLock(true);
 
   // Record start timestamp for performance logging
   timestampBefore = millis();
 
   // Turn on touchpad lights
-  hub.SetRandomButtonLights(3, YELLOW, BLUE, FLASHING, FLASHING_DUTY_CYCLE);
+  hub->SetRandomButtonLights(3, YELLOW, BLUE, FLASHING, FLASHING_DUTY_CYCLE);
 
   // Wait here until a touchpad is pressed or until we have a timeout
   do {
-    pressed = hub.AnyButtonPressed();
+    pressed = hub->AnyButtonPressed();
     yield(false);
-  } while ((pressed != hub.BUTTON_LEFT && pressed != hub.BUTTON_MIDDLE &&
-            pressed != hub.BUTTON_RIGHT) &&
+  } while ((pressed != hub->BUTTON_LEFT && pressed != hub->BUTTON_MIDDLE &&
+            pressed != hub->BUTTON_RIGHT) &&
            millis() <
                 (timestampBefore + TIMEOUT_DURATIONS[currentLevel - 1]));
 
@@ -143,7 +144,7 @@ bool playExploringTheTouchpads() {
   reactionTime = millis() - timestampBefore;
 
   // Turn off lights
-  hub.SetLights(hub.LIGHT_BTNS, 0, 0, 0);
+  hub->SetLights(hub->LIGHT_BTNS, 0, 0, 0);
 
   // Check result
   if (pressed == 0) {
@@ -157,20 +158,20 @@ bool playExploringTheTouchpads() {
   // give the Hub a moment to finish playing the touchpad sound
   yield_sleep_ms(SOUND_TOUCHPAD_DELAY, false);
   // Play "reward" sound
-  hub.PlayAudio(hub.AUDIO_POSITIVE, 20);
+  hub->PlayAudio(hub->AUDIO_POSITIVE, 20);
   // give the Hub a moment to finish playing the reward sound
   yield_sleep_ms(SOUND_FOODTREAT_DELAY, false);
 
   // Dispense a foodtreat and wait until the tray is closed again
   do {
     foodtreatState =
-        hub.PresentAndCheckFoodtreat(TRAY_PRESENT_DURATION[currentLevel - 1]);
+        hub->PresentAndCheckFoodtreat(TRAY_PRESENT_DURATION[currentLevel - 1]);
     yield(false);
-  } while (foodtreatState != hub.PACT_RESPONSE_FOODTREAT_NOT_TAKEN &&
-           foodtreatState != hub.PACT_RESPONSE_FOODTREAT_TAKEN);
+  } while (foodtreatState != hub->PACT_RESPONSE_FOODTREAT_NOT_TAKEN &&
+           foodtreatState != hub->PACT_RESPONSE_FOODTREAT_TAKEN);
 
   // Check if foodtreat was eaten
-  if (foodtreatState == hub.PACT_RESPONSE_FOODTREAT_TAKEN) {
+  if (foodtreatState == hub->PACT_RESPONSE_FOODTREAT_TAKEN) {
     Log.info("Treat was eaten");
     foodtreatWasEaten = true;
   } else {
@@ -187,7 +188,7 @@ bool playExploringTheTouchpads() {
     if (challengeComplete) {extra += ",\"challengeComplete\":1";} //TODO this comes one game too late
     extra += "}";
 
-    hub.Report(
+    hub->Report(
         Time.format(gameStartTime,
                     TIME_FORMAT_ISO8601_FULL), // play_start_time
         playerName,                           // player
@@ -231,21 +232,21 @@ bool playExploringTheTouchpads() {
 
   // printPerformanceArray(performance, HISTORY_LENGTH);
 
-  hub.SetDIResetLock(false); // allow DI board to reset if needed between interactions
+  hub->SetDIResetLock(false); // allow DI board to reset if needed between interactions
   yield_finish();
   return true;
 }
 
 
-// new loop to call; same as original loop() below, but without hub.Run(20)
-bool ExploringTheTouchpads_Loop()
+// new loop to call; same as original loop() below, but without hub->Run(20)
+bool ExploringTheTouchpads_Loop(HubInterface * hub)
 {
   using namespace ExploringTheTouchpads;
 
   bool gameIsComplete = false;
 
   // Play 1 level of the ExploringTheTouchpads challenge
-  gameIsComplete = playExploringTheTouchpads(); // Will return true if level is done
+  gameIsComplete = playExploringTheTouchpads(hub); // Will return true if level is done
 
   return gameIsComplete;
 }
@@ -260,7 +261,7 @@ bool ExploringTheTouchpads_Loop()
 //  */
 // void setup() {
 //   // Initializes the hub and passes the current filename as ID for reporting
-//   hub.Initialize(__FILE__);
+//   hub->Initialize(__FILE__);
 //   Log.info("Starting new \"Exploring The Touchpads\" challenge");
 // }
 
@@ -273,7 +274,7 @@ bool ExploringTheTouchpads_Loop()
 
 //   // Advance the device layer state machine, but with 20 ms max time
 //   // spent per loop cycle.
-//   hub.Run(20);
+//   hub->Run(20);
 
 //   // Play 1 level of the ExploringTheTouchpads challenge
 //   gameIsComplete = playExploringTheTouchpads(); // Will return true if level is done
@@ -283,4 +284,3 @@ bool ExploringTheTouchpads_Loop()
 //   }
 // }
 
-#endif

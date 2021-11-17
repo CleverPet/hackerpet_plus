@@ -1,3 +1,4 @@
+
 /**
   Learning Double Sequences
   =========================
@@ -32,6 +33,8 @@
   Copyright 2019
   Licensed under the AGPL 3.0
 */
+
+#include "games/g_008_LearningDoubleSequences.h"
 
 #include <hackerpet.h>
 #include "game_helper_functions.h"
@@ -71,15 +74,15 @@ namespace LearningDoubleSequences
 
 
 /// The actual LearningDoubleSequences challenge. This function needs to be called in a loop.
-bool playLearningDoubleSequences(){
+bool playLearningDoubleSequences(HubInterface * hub){
     using namespace LearningDoubleSequences;
     yield_begin();
 
     static unsigned long gameStartTime, timestampTouchpad, timestampBefore, activityDuration = 0;
     static unsigned char foodtreatState = 99;
-    static unsigned char touchpads[3]={hub.BUTTON_LEFT,
-                                     hub.BUTTON_MIDDLE,
-                                     hub.BUTTON_RIGHT};
+    static unsigned char touchpads[3]={hub->BUTTON_LEFT,
+                                     hub->BUTTON_MIDDLE,
+                                     hub->BUTTON_RIGHT};
     static unsigned char sequence_pos = 0;
     static unsigned char touchpad_sequence[SEQUENCE_LENGTH]={};
     static unsigned char pressed[SEQUENCE_LENGTH+1] = {};
@@ -96,9 +99,9 @@ bool playLearningDoubleSequences(){
     activityDuration = 0;
     foodtreatState = 99;
     sequence_pos = 0;
-    touchpads[0]=hub.BUTTON_LEFT;
-    touchpads[1]=hub.BUTTON_MIDDLE;
-    touchpads[2]=hub.BUTTON_RIGHT;
+    touchpads[0]=hub->BUTTON_LEFT;
+    touchpads[1]=hub->BUTTON_MIDDLE;
+    touchpads[2]=hub->BUTTON_RIGHT;
     fill(touchpad_sequence, touchpad_sequence+SEQUENCE_LENGTH, 0);
     fill(pressed, pressed+SEQUENCE_LENGTH+1, 0);
     accurate = false;
@@ -117,12 +120,12 @@ bool playLearningDoubleSequences(){
     //  2. foodmachine is "idle", meaning it is not spinning or dispensing
     //      and tray is retracted (see FOODMACHINE_... constants)
     //  3. no touchpad is currently pressed
-    yield_wait_for((hub.IsReady()
-                    && hub.FoodmachineState() == hub.FOODMACHINE_IDLE
-                    && not hub.AnyButtonPressed()), false);
+    yield_wait_for((hub->IsReady()
+                    && hub->FoodmachineState() == hub->FOODMACHINE_IDLE
+                    && not hub->AnyButtonPressed()), false);
 
     // DI reset occurs if, for example, device  layer detects that touchpads need re-calibration
-    hub.SetDIResetLock(true);
+    hub->SetDIResetLock(true);
 
     // fill touchpad_sequence
     for (int i = 0; i < SEQUENCE_LENGTH; ++i)
@@ -132,7 +135,7 @@ bool playLearningDoubleSequences(){
     }
 
     // turn on all touchpads
-    hub.SetLights(hub.LIGHT_BTNS,TARGET_INTENSITY,TARGET_INTENSITY,SLEW);
+    hub->SetLights(hub->LIGHT_BTNS,TARGET_INTENSITY,TARGET_INTENSITY,SLEW);
 
     // progress to next state
     timestampTouchpad = millis();
@@ -140,16 +143,16 @@ bool playLearningDoubleSequences(){
     do
     {
         // detect any touchpads currently pressed
-        pressed[0] = hub.AnyButtonPressed();
+        pressed[0] = hub->AnyButtonPressed();
         yield(false); // use yields statements any time the hub is pausing or waiting
     }
     while (!(pressed[0] != 0) //0 if any touchpad is touched
             && millis()  < timestampTouchpad + TIMEOUT_MS); //0 if timed out
 
-    hub.SetLights(hub.LIGHT_BTNS, 0, 0, 0); // turn off all touchpad lights
+    hub->SetLights(hub->LIGHT_BTNS, 0, 0, 0); // turn off all touchpad lights
 
     // wait until: no touchpad is currently pressed
-    yield_wait_for((!hub.AnyButtonPressed()), false);
+    yield_wait_for((!hub->AnyButtonPressed()), false);
 
     if (pressed[0] != 0)
     {
@@ -170,19 +173,19 @@ bool playLearningDoubleSequences(){
     // Start main interactions loop
     while (sequence_pos < SEQUENCE_LENGTH) {
         Log.info("Interaction %d. Target touchpad: %c%c%c", (sequence_pos+1),
-            (touchpad_sequence[sequence_pos]&hub.BUTTON_LEFT)?'1':'0',
-            (touchpad_sequence[sequence_pos]&hub.BUTTON_MIDDLE)?'1':'0',
-            (touchpad_sequence[sequence_pos]&hub.BUTTON_RIGHT)?'1':'0');
+            (touchpad_sequence[sequence_pos]&hub->BUTTON_LEFT)?'1':'0',
+            (touchpad_sequence[sequence_pos]&hub->BUTTON_MIDDLE)?'1':'0',
+            (touchpad_sequence[sequence_pos]&hub->BUTTON_RIGHT)?'1':'0');
 
         // wait until: no touchpad is currently pressed
-        yield_wait_for((!hub.AnyButtonPressed()), false);
+        yield_wait_for((!hub->AnyButtonPressed()), false);
         // TODO fix slobber
 
         // set next touchpad and this touchpad
         if (sequence_pos < SEQUENCE_LENGTH-1)
-          hub.SetLights(touchpad_sequence[sequence_pos + 1],
+          hub->SetLights(touchpad_sequence[sequence_pos + 1],
                         NEXT_TARGET_INTENSITY, NEXT_TARGET_INTENSITY, SLEW);
-        hub.SetLights(touchpad_sequence[sequence_pos],TARGET_INTENSITY,TARGET_INTENSITY,SLEW);
+        hub->SetLights(touchpad_sequence[sequence_pos],TARGET_INTENSITY,TARGET_INTENSITY,SLEW);
 
         // progress to next state
         timestampTouchpad = millis();
@@ -190,7 +193,7 @@ bool playLearningDoubleSequences(){
         do
         {
             // detect any touchpads currently pressed
-            pressed[sequence_pos+1] = hub.AnyButtonPressed();
+            pressed[sequence_pos+1] = hub->AnyButtonPressed();
             yield(false); // use yields statements any time the hub is pausing or waiting
         }
         while (!(pressed[sequence_pos+1] != 0) //0 if any touchpad is touched
@@ -205,7 +208,7 @@ bool playLearningDoubleSequences(){
         } else if (pressed[sequence_pos+1] == touchpad_sequence[sequence_pos]) {
              Log.info("Correct touchpad pressed");
             // turn off lights on last touchpad
-            hub.SetLights(touchpad_sequence[sequence_pos],0,0,0);
+            hub->SetLights(touchpad_sequence[sequence_pos],0,0,0);
             sequence_pos++;
             accurate = true;
             timeout = false;
@@ -220,24 +223,24 @@ bool playLearningDoubleSequences(){
     // record time period for performance logging
     activityDuration = millis() - timestampBefore;
 
-    hub.SetLights(hub.LIGHT_BTNS, 0, 0, 0); // turn off all touchpad lights
+    hub->SetLights(hub->LIGHT_BTNS, 0, 0, 0); // turn off all touchpad lights
 
 
     if (accurate) {
         Log.info("All interactions passed, dispensing foodtreat");
         // give the Hub a moment to finish playing the touchpad sound
         yield_sleep_ms(SOUND_TOUCHPAD_DELAY, false);
-        hub.PlayAudio(hub.AUDIO_POSITIVE, 60);
+        hub->PlayAudio(hub->AUDIO_POSITIVE, 60);
         // give the Hub a moment to finish playing the reward sound
         yield_sleep_ms(SOUND_FOODTREAT_DELAY, false);
         do {
-            foodtreatState=hub.PresentAndCheckFoodtreat(FOODTREAT_DURATION);
+            foodtreatState=hub->PresentAndCheckFoodtreat(FOODTREAT_DURATION);
             yield(false);
-        } while (foodtreatState!=hub.PACT_RESPONSE_FOODTREAT_NOT_TAKEN &&
-             foodtreatState!=hub.PACT_RESPONSE_FOODTREAT_TAKEN);
+        } while (foodtreatState!=hub->PACT_RESPONSE_FOODTREAT_NOT_TAKEN &&
+             foodtreatState!=hub->PACT_RESPONSE_FOODTREAT_TAKEN);
 
         // Check if foodtreat was eaten
-        if (foodtreatState == hub.PACT_RESPONSE_FOODTREAT_TAKEN){
+        if (foodtreatState == hub->PACT_RESPONSE_FOODTREAT_TAKEN){
             Log.info("Foodtreat was eaten");
             foodtreatWasEaten = true;
         } else {
@@ -248,7 +251,7 @@ bool playLearningDoubleSequences(){
         if (!timeout) {
             // give the Hub a moment to finish playing the touchpad sound
             yield_sleep_ms(SOUND_TOUCHPAD_DELAY, false);
-            hub.PlayAudio(hub.AUDIO_NEGATIVE, 60);
+            hub->PlayAudio(hub->AUDIO_NEGATIVE, 60);
             // give the Hub a moment to finish playing the sound
             yield_sleep_ms(SOUND_FOODTREAT_DELAY, false);
             foodtreatWasEaten = false;
@@ -276,11 +279,11 @@ bool playLearningDoubleSequences(){
         String extra ="{";
         extra += "\"targetSeq\":\"";
         for (int i = 0; i < SEQUENCE_LENGTH; ++i){
-            extra += convertBitfieldToLetter(touchpad_sequence[i]);
+            extra += convertBitfieldToLetter(touchpad_sequence[i], hub);
         }
         extra += "\",\"pressedSeq\":\"";
         for (int i = 0; i < SEQUENCE_LENGTH; ++i){
-            extra += convertBitfieldToSingleLetter(touchpad_sequence[i],pressed[i+1]);
+            extra += convertBitfieldToSingleLetter(touchpad_sequence[i],pressed[i+1], hub);
         }
         extra += "\"";
         if (challengeComplete) {extra += ",\"challengeComplete\":1";}
@@ -288,7 +291,7 @@ bool playLearningDoubleSequences(){
 
         // Log.info(extra);
 
-        hub.Report(Time.format(gameStartTime,
+        hub->Report(Time.format(gameStartTime,
                                TIME_FORMAT_ISO8601_FULL),  // play_start_time
                    PlayerName,                             // player
                    currentLevel,                           // level
@@ -307,18 +310,18 @@ bool playLearningDoubleSequences(){
           yield_sleep_ms(INTER_GAME_DELAY, false);
     }
 
-    hub.SetDIResetLock(false);  // allow DI board to reset if needed between interactions
+    hub->SetDIResetLock(false);  // allow DI board to reset if needed between interactions
     yield_finish();
     return true;
 }
 
 
 
-bool LearningDoubleSequences_Loop()
+bool LearningDoubleSequences_Loop(HubInterface * hub)
 {
   using namespace LearningDoubleSequences;
   bool gameIsComplete = false;
-  gameIsComplete = playLearningDoubleSequences();// Returns true if level is done
+  gameIsComplete = playLearningDoubleSequences(hub);// Returns true if level is done
   return gameIsComplete;
 }
 
@@ -328,7 +331,7 @@ bool LearningDoubleSequences_Loop()
 //  */
 // void setup() {
 //   // Initializes the hub and passes the current filename as ID for reporting
-//   hub.Initialize(__FILE__);
+//   hub->Initialize(__FILE__);
 // }
 
 // /**
@@ -341,7 +344,7 @@ bool LearningDoubleSequences_Loop()
 
 //     // Advance the device layer state machine, but with 20 ms max time
 //     // spent per loop cycle.
-//     hub.Run(20);
+//     hub->Run(20);
 
 //     // Play 1 interaction of the Learning Double Sequences challenge
 //     // Will return true if level is done

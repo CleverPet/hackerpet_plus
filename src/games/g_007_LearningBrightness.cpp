@@ -1,3 +1,5 @@
+
+
 /**
   Learning Brightness
   ===================
@@ -40,6 +42,8 @@
   Copyright 2019
   Licensed under the AGPL 3.0
 */
+
+#include "games/g_007_LearningBrightness.h"
 
 #include <hackerpet.h>
 #include "game_helper_functions.h"
@@ -85,7 +89,7 @@ namespace LearningBrightness
 
 
 /// The actual LearningBrightness challenge. This function needs to be called in a loop.
-bool playLearningBrightness(){
+bool playLearningBrightness(HubInterface * hub){
     using namespace LearningBrightness;
     yield_begin();
 
@@ -95,9 +99,9 @@ bool playLearningBrightness(){
     static unsigned long timestampTouchpad = 0;
     static unsigned char pressed[2] = {0,0};
     static unsigned char foodtreatState = 99;
-    static unsigned char touchpads[3]={hub.BUTTON_LEFT,  // should not be re-initialized
-                                     hub.BUTTON_MIDDLE,
-                                     hub.BUTTON_RIGHT};
+    static unsigned char touchpads[3]={hub->BUTTON_LEFT,  // should not be re-initialized
+                                     hub->BUTTON_MIDDLE,
+                                     hub->BUTTON_RIGHT};
     static unsigned char distractor_intensity = 0; // should not be re-initialized
     static bool probe_game = false;
     static bool retryTarget = false; // should not be re-initialized
@@ -132,12 +136,12 @@ bool playLearningBrightness(){
     //  2. foodmachine is "idle", meaning it is not spinning or dispensing
     //      and tray is retracted (see FOODMACHINE_... constants)
     //  3. no touchpad is currently pressed
-    yield_wait_for((hub.IsReady()
-                    && hub.FoodmachineState() == hub.FOODMACHINE_IDLE
-                    && not hub.AnyButtonPressed()), false);
+    yield_wait_for((hub->IsReady()
+                    && hub->FoodmachineState() == hub->FOODMACHINE_IDLE
+                    && not hub->AnyButtonPressed()), false);
 
     // DI reset occurs if, for example, device  layer detects that touchpads need re-calibration
-    hub.SetDIResetLock(true);
+    hub->SetDIResetLock(true);
 
     // Record start timestamp for performance logging
     timestampBefore = millis();
@@ -165,23 +169,23 @@ bool playLearningBrightness(){
     Log.info("Distractor intensity: %d",distractor_intensity);
 
     // set first target
-    hub.SetLights(touchpads[0],TARGET_INTENSITY,TARGET_INTENSITY,SLEW);
+    hub->SetLights(touchpads[0],TARGET_INTENSITY,TARGET_INTENSITY,SLEW);
 
     // progress to next state
     timestampTouchpad = millis();
     do
     {
         // detect any touchpads currently pressed
-        pressed[0] = hub.AnyButtonPressed();
+        pressed[0] = hub->AnyButtonPressed();
         yield(false); // use yields statements any time the hub is pausing or waiting
     } // Ignore non-target touches
     while (!(pressed[0] == touchpads[0]) //0 if only pressed touchpad match
             && millis()  < timestampTouchpad + TIMEOUT_MS); //0 if timed out
 
-    hub.SetLights(hub.LIGHT_BTNS, 0, 0, 0); // turn off all touchpad lights
+    hub->SetLights(hub->LIGHT_BTNS, 0, 0, 0); // turn off all touchpad lights
 
     // wait until: no touchpad is currently pressed
-    yield_wait_for((!hub.AnyButtonPressed()), false);
+    yield_wait_for((!hub->AnyButtonPressed()), false);
 
     // Check touchpads and accuracy for first interaction
     if (pressed[0] == touchpads[0]){
@@ -189,8 +193,8 @@ bool playLearningBrightness(){
         timeout = false;
 
         // set up second interaction
-        hub.SetLights(touchpads[1],TARGET_INTENSITY,TARGET_INTENSITY,SLEW);   // target
-        hub.SetLights(touchpads[2],distractor_intensity,distractor_intensity,SLEW); // distractor
+        hub->SetLights(touchpads[1],TARGET_INTENSITY,TARGET_INTENSITY,SLEW);   // target
+        hub->SetLights(touchpads[2],distractor_intensity,distractor_intensity,SLEW); // distractor
 
         yield_sleep_ms(VIEW_WINDOW, false); // make sure the player has seen the touchpad
 
@@ -199,13 +203,13 @@ bool playLearningBrightness(){
         do
         {
             // detect any touchpads currently pressed
-            pressed[1] = hub.AnyButtonPressed();
+            pressed[1] = hub->AnyButtonPressed();
             yield(false); // use yields statements any time the hub is pausing or waiting
         }
         while (!(pressed[1] != 0) //0 if any touchpad is touched
                 && millis()  < timestampTouchpad + MAX_REACTION_TIME); //0 if timed out
 
-        hub.SetLights(hub.LIGHT_BTNS, 0, 0, 0); // turn off all touchpad lights
+        hub->SetLights(hub->LIGHT_BTNS, 0, 0, 0); // turn off all touchpad lights
 
         // record time period for performance logging
         activityDuration = millis() - timestampBefore;
@@ -233,17 +237,17 @@ bool playLearningBrightness(){
         Log.info("Second interaction: correct touchpad pressed, dispensing foodtreat");
         // give the Hub a moment to finish playing the touchpad sound
         yield_sleep_ms(SOUND_TOUCHPAD_DELAY, false);
-        hub.PlayAudio(hub.AUDIO_POSITIVE, 20);
+        hub->PlayAudio(hub->AUDIO_POSITIVE, 20);
         // give the Hub a moment to finish playing the reward sound
         yield_sleep_ms(SOUND_FOODTREAT_DELAY, false);
         do {
-            foodtreatState=hub.PresentAndCheckFoodtreat(FOODTREAT_DURATION);
+            foodtreatState=hub->PresentAndCheckFoodtreat(FOODTREAT_DURATION);
             yield(false);
-        } while (foodtreatState!=hub.PACT_RESPONSE_FOODTREAT_NOT_TAKEN &&
-             foodtreatState!=hub.PACT_RESPONSE_FOODTREAT_TAKEN);
+        } while (foodtreatState!=hub->PACT_RESPONSE_FOODTREAT_NOT_TAKEN &&
+             foodtreatState!=hub->PACT_RESPONSE_FOODTREAT_TAKEN);
 
         // Check if foodtreat was eaten
-        if (foodtreatState == hub.PACT_RESPONSE_FOODTREAT_TAKEN){
+        if (foodtreatState == hub->PACT_RESPONSE_FOODTREAT_TAKEN){
             Log.info("Foodtreat was eaten");
             foodtreatWasEaten = true;
         } else {
@@ -255,7 +259,7 @@ bool playLearningBrightness(){
             Log.info("Second interaction: wrong touchpad pressed");
             // give the Hub a moment to finish playing the touchpad sound
             yield_sleep_ms(SOUND_TOUCHPAD_DELAY, false);
-            hub.PlayAudio(hub.AUDIO_NEGATIVE, 5);
+            hub->PlayAudio(hub->AUDIO_NEGATIVE, 5);
             // give the Hub a moment to finish playing the sound
             yield_sleep_ms(SOUND_FOODTREAT_DELAY, false);
             foodtreatWasEaten = false;
@@ -298,20 +302,20 @@ discarding performance.");
         Log.info("Sending report");
 
         String extra = "{\"targetSeq\":\"";
-        extra += convertBitfieldToLetter(touchpads[0]);
-        extra += convertBitfieldToLetter(touchpads[1]);
+        extra += convertBitfieldToLetter(touchpads[0], hub);
+        extra += convertBitfieldToLetter(touchpads[1], hub);
         extra += "\",\"pressedSeq\":\"";
         // Multiple touches possible, but irrelevant for reporting
-        extra += convertBitfieldToLetter(touchpads[0]);
+        extra += convertBitfieldToLetter(touchpads[0], hub);
         // multiple touches possible, only report the wrong one if a miss
-        extra += convertBitfieldToSingleLetter(touchpads[1],pressed[1]);
+        extra += convertBitfieldToSingleLetter(touchpads[1],pressed[1], hub);
         extra += String::format(
             "\",\"distractor_intensity\":%d,\"retryGame\":\"%c\"",
             distractor_intensity, retryTarget ? '1' : '0');
         if (challengeComplete) {extra += ",\"challengeComplete\":1";}
         extra += "}";
 
-        hub.Report(Time.format(gameStartTime,
+        hub->Report(Time.format(gameStartTime,
                                TIME_FORMAT_ISO8601_FULL),  // play_start_time
                    PlayerName,                             // player
                    currentLevel,                           // level
@@ -339,16 +343,16 @@ discarding performance.");
         yield_sleep_ms(INTER_GAME_DELAY, false);
     }
 
-    hub.SetDIResetLock(false);  // allow DI board to reset if needed between interactions
+    hub->SetDIResetLock(false);  // allow DI board to reset if needed between interactions
     yield_finish();
     return true;
 }
 
-bool LearningBrightness_Loop()
+bool LearningBrightness_Loop(HubInterface * hub)
 {
     using namespace LearningBrightness;
     bool gameIsComplete = false;
-    gameIsComplete = playLearningBrightness(); // Returns true if level is done
+    gameIsComplete = playLearningBrightness(hub); // Returns true if level is done
     return gameIsComplete;
 }
 
@@ -358,7 +362,7 @@ bool LearningBrightness_Loop()
 //  */
 // void setup() {
 //   // Initializes the hub and passes the current filename as ID for reporting
-//   hub.Initialize(__FILE__);
+//   hub->Initialize(__FILE__);
 // }
 
 // /**
@@ -371,7 +375,7 @@ bool LearningBrightness_Loop()
 
 //     // Advance the device layer state machine, but with 20 ms max time
 //     // spent per loop cycle.
-//     hub.Run(20);
+//     hub->Run(20);
 
 //     // Play 1 interaction of the Learning Brightness challenge
 //     gameIsComplete = playLearningBrightness(); // Returns true if level is done
