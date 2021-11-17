@@ -4,7 +4,7 @@
 
 GameManager::GameManager(HubInterface * hub)
 {
-    
+    _hub = hub;
 }
 
 bool GameManager::Initialize(int init_game)
