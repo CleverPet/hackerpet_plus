@@ -220,15 +220,36 @@ String HtmlManager::get_scheduler_html(int hub_mode)
         checked_str_stay_sch = "checked";
     }
 
+    // sending data:
+    // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/send
+    
     String content_str = "<form method=\"post\" action=\"http://cleverpet.local\">\n"
                          //"Hub Mode (debug: hub mode is: " + int_to_string(hub_mode) + ")<br>\n"
                          "<label for=\"0\">Stay Off</label> <input type=\"radio\" id=\"html\" name=\"hub_mode\" value=\"0\" onchange=\"this.form.submit()\"" + checked_str_stay_off + ">\n"
                          "<label for=\"1\">Stay On</label> <input type=\"radio\" id=\"html\" name=\"hub_mode\" value=\"1\" onchange=\"this.form.submit()\"" + checked_str_stay_on + ">\n"
                          "<label for=\"2\">Scheduled</label> <input type=\"radio\" id=\"html\" name=\"hub_mode\" value=\"2\" onchange=\"this.form.submit()\"" + checked_str_stay_sch + ">\n"
                          "<br><br>\n"
+                         "<script>\n"
+                         "function sch_change() { \n"
+                         "      var xhttp = new XMLHttpRequest();\n"
+                         "      xhttp.open(\"POST\", \"http://cleverpet.local/local-api/scheduler\", true);\n"
+                         "      xhttp.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded\");\n"
+                         "      var weekday_from = document.getElementById(\"weekday_from\");\n"
+                         "      var weekday_to = document.getElementById(\"weekday_to\");\n"
+                         "      var weekend_from = document.getElementById(\"weekend_from\");\n"
+                         "      var weekend_to = document.getElementById(\"weekend_to\");\n"
+                         "      xhttp.send(\"weekday_from=\"+weekday_from.value+\"&weekday_to=\"+weekday_to.value+\"&weekend_from=\"+weekend_from.value+\"&weekend_to=\"+weekend_to.value);\n"
+                         
+                         "      xhttp.onload = function () {\n"
+                         "           console.log(xhttp.responseText);\n"
+                         // TODO set values?
+                         "      };\n"
+                         "      \n"
+                         "}\n"
+                         "</script>\n"
                          "If scheduled:<br>\n"
-                         "<b>    Weekdays</b> | From: <input type=\"time\" id=\"weekday_from\" name=\"weekday_from\"> To: <input type=\"time\" id=\"weekday_to\" name=\"weekday_to\"><br>\n"
-                         "<b>    Weekends</b> | From: <input type=\"time\" id=\"weekend_from\" name=\"weekend_from\"> To: <input type=\"time\" id=\"weekend_to\" name=\"weekend_to\"><br>\n"
+                         "<b>    Weekdays</b> | From: <input type=\"time\" id=\"weekday_from\" name=\"weekday_from\" onchange=\"sch_change()\"> To: <input type=\"time\" id=\"weekday_to\" name=\"weekday_to\" onchange=\"sch_change()\"><br>\n"
+                         "<b>    Weekends</b> | From: <input type=\"time\" id=\"weekend_from\" name=\"weekend_from\" onchange=\"sch_change()\"> To: <input type=\"time\" id=\"weekend_to\" name=\"weekend_to\" onchange=\"sch_change()\"><br>\n"
                          "</form>\n";
 
     return content_str;

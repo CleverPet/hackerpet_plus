@@ -49,6 +49,11 @@ bool ConfigManager::Initialize()
         }
 
         EEPROM.get(_HUB_MODE_EEP_ADDRESS, _hub_mode);
+
+        EEPROM.get(_SCHED_WEEKDAY_FROM_ADDRESS, _weekday_from);
+        EEPROM.get(_SCHED_WEEKDAY_TO_ADDRESS, _weekday_to);
+        EEPROM.get(_SCHED_WEEKEND_FROM_ADDRESS, _weekend_from);
+        EEPROM.get(_SCHED_WEEKEND_TO_ADDRESS, _weekend_to);
     }
     else
     {
@@ -72,6 +77,17 @@ bool ConfigManager::Initialize()
         EEPROM.put(_HUB_MODE_EEP_ADDRESS, _hub_mode);
 
         EEPROM.put(_EVER_STORED_EEP_ADDRESS, _EVER_STORED_CHECK_VALUE);
+
+        _weekday_from = "09:00";
+        _weekday_to = "16:00";
+
+        _weekend_from = "11:00";
+        _weekend_to = "15:00";
+
+        EEPROM.put(_SCHED_WEEKDAY_FROM_ADDRESS, _weekday_from);
+        EEPROM.put(_SCHED_WEEKDAY_TO_ADDRESS, _weekday_to);
+        EEPROM.put(_SCHED_WEEKEND_FROM_ADDRESS, _weekend_from);
+        EEPROM.put(_SCHED_WEEKEND_TO_ADDRESS, _weekend_to);
     }
 
     return true;
@@ -104,8 +120,6 @@ bool ConfigManager::Run()
     {
         mgschwan_MDNS_loop();
 
-        // TODO: move this to a function when cleaning up
-        
         _display_error_msg = "<b> Your hub is functioning normally.</b>";
         if (_hub->IsHubOutOfFood())
         {
@@ -129,11 +143,6 @@ bool ConfigManager::Run()
         _new_game_selected = _game_to_play;
 
         _serve_webinterface();
-
-        // TODO clean up this function!!!
-        //int new_game_selected = mgschwan_serve_webinterface(_game_to_play, _next_game_to_play, display_error_msg,
-        //                                                    _time_zone_offset, _TIME_ZONE_EEP_ADDRESS, _dst_on, _DST_EEP_ADDRESS, 
-        //                                                    _hub_mode, _HUB_MODE_EEP_ADDRESS);
 
         if (_new_game_selected >= 0 && _new_game_selected != _game_to_play)
         {
@@ -210,11 +219,6 @@ bool ConfigManager::_process_request(String req_str)
     if (req_str.indexOf("local-api") > -1)
     {
         _process_api_req(req_str);
-        
-        // !!!!!!!!!!!!!!
-        // TODO must also do the webclient.print part!!
-        // !!!!!!!!!!!!!!
-
     }
     else
     {
@@ -236,10 +240,6 @@ bool ConfigManager::_process_request(String req_str)
             Log.error("!!! SERVER IS SERVING UNKNOWN REQUEST !!!");
         }
 
-        // !!!!!!!!!!!!!!
-        // TODO must also do the webclient.print part!!
-        // !!!!!!!!!!!!!!
-        
         _write_response_html();
 
     }
@@ -249,20 +249,55 @@ bool ConfigManager::_process_request(String req_str)
 bool ConfigManager::_process_api_req(String req_str)
 {
     // this is an API request (asynchronous webpage update)
-    Log.info("!!! SERVER IS SERVING API REQUEST !!!");
-    Log.info("API request string:");
-    Log.print(req_str);
 
-    String next_game_str = int_to_string(_next_game_to_play);
-    String current_game_str = int_to_string(_game_to_play);
+    bool req_get = req_str.substring(0, 3).equalsIgnoreCase("GET");
+    bool req_post = req_str.substring(0, 4).equalsIgnoreCase("POST");
+    
+    if (req_get)
+    {
+        Log.info("--- SERVER IS SERVING API GET REQUEST ---");
+        //Log.info("API request string:");
+        //Log.print(req_str);
+        
+        String next_game_str = int_to_string(_next_game_to_play);
+        String current_game_str = int_to_string(_game_to_play);
 
-    String return_str = "{"
-                        "\"status\":\"" + _display_error_msg + "\","
-                        "\"game_id_queued\":\"" + next_game_str + "\","
-                        "\"game_id_playing\":\"" + current_game_str + "\","
-                        "\"time\":\"" + Time.timeStr() + "\""
-                        "}";
-    _webclient.println(return_str);  // println?
+        String return_str = "{"
+                            "\"status\":\"" + _display_error_msg + "\","
+                            "\"game_id_queued\":\"" + next_game_str + "\","
+                            "\"game_id_playing\":\"" + current_game_str + "\","
+                            "\"time\":\"" + Time.timeStr() + "\""
+                            "}";
+        _webclient.println(return_str);
+    }
+    else if (req_post)
+    {
+        Log.info("!!! SERVER IS SERVING API POST REQUEST !!!");
+        Log.info("API request string:");
+        Log.print(req_str);
+        
+        // weekday_from=14:22&weekday_to=14:24&weekend_from=14:23&weekend_to=06:21
+        _weekday_from = req_str.substring(req_str.indexOf("weekday_from=") + 13).substring(0, 5);
+        _weekday_to = req_str.substring(req_str.indexOf("weekday_to=") + 11).substring(0, 5);
+        _weekend_from = req_str.substring(req_str.indexOf("weekend_from=") + 13).substring(0, 5);
+        _weekend_to = req_str.substring(req_str.indexOf("weekend_to=") + 11).substring(0, 5);
+
+        EEPROM.put(_SCHED_WEEKDAY_FROM_ADDRESS, _weekday_from);
+        EEPROM.put(_SCHED_WEEKDAY_TO_ADDRESS, _weekday_to);
+        EEPROM.put(_SCHED_WEEKEND_FROM_ADDRESS, _weekend_from);
+        EEPROM.put(_SCHED_WEEKEND_TO_ADDRESS, _weekend_to);
+
+        // TODO also, in html, need to set to current value by default!
+
+        String return_str = "{}";
+        _webclient.println(return_str);
+    }
+    else
+    {
+ 
+        Log.error("!!! SERVER IS SERVING UNKNOWN **API** REQUEST !!!");
+    }
+
     return true;
 }
 
@@ -311,7 +346,6 @@ bool ConfigManager::_process_dst_req(String req_str, int dst_html_index)
     //tmp_2 = tmp_2.substring(0, tmp_2.indexOf("&"));
     Log.print(tmp_2 + "\n");
     
-    // TODO NEED TO return TIME_ZONE_OFFSET
     _dst_on = bool(tmp_2.toInt());
     if(_dst_on)
     {
@@ -333,7 +367,6 @@ bool ConfigManager::_process_timezone_req(String req_str, int timezone_html_inde
     //tmp_2 = tmp_2.substring(0, tmp_2.indexOf("&"));
     Log.print(tmp_2 + "\n");
     
-    // TODO NEED TO return TIME_ZONE_OFFSET
     float tz_offset = tmp_2.toFloat();
     Time.zone(tz_offset);              
     _time_zone_offset = tz_offset;
@@ -361,9 +394,9 @@ bool ConfigManager::_process_hub_mode_req(String req_str, int hub_mode_html_inde
 
 bool ConfigManager::_process_game_select_req(String req_str, int game_html_index)
 {
-        // !!!!!
-        // TODO make if statements more efficient than in http-server-util.cpp
-        // !!!!!
+    // !!!!!
+    // TODO make if statements more efficient
+    // !!!!!
 
     Log.info("This is a GAME post request.");
 
@@ -510,7 +543,6 @@ bool ConfigManager::_write_response_html()
     String time_zone_str = _htmlMan->get_time_zone_string(_time_zone_offset);
     Log.info("time zone str length: " + int_to_string(time_zone_str.length()));
 
-    // TODO DEBUG THIS FURTHER:
     String content_2 = "";
     
     content_2 += "<br>\n";

@@ -53,11 +53,15 @@ class ConfigManager
         const int _TIME_ZONE_EEP_ADDRESS = 30;  // TIME_ZONE_ADDRESS = 30;
         const int _DST_EEP_ADDRESS = 40;  // DST_ADDRESS = 40;
         const int _HUB_MODE_EEP_ADDRESS = 50;  // HUB_MODE_ADDRESS = 50;
+        const int _SCHED_WEEKDAY_FROM_ADDRESS = 60;
+        const int _SCHED_WEEKDAY_TO_ADDRESS = 70;
+        const int _SCHED_WEEKEND_FROM_ADDRESS = 80;
+        const int _SCHED_WEEKEND_TO_ADDRESS = 90;
         
         // ***************** const other *****************
 
         // we can change this number to force an eeprom "reset" to defaults; and to avoid undefined state when adding new variables
-        const int _EVER_STORED_CHECK_VALUE = 12347;  // EVER_STORED_CHECK_VALUE = 12346; 
+        const int _EVER_STORED_CHECK_VALUE = 12348;  // EVER_STORED_CHECK_VALUE = 12346; 
         
         const int _HUB_MODE_STAY_OFF = 0;
         const int _HUB_MODE_STAY_ON = 1;
@@ -73,6 +77,11 @@ class ConfigManager
         bool _dst_on;  // DST_ON = false;
         
         int _hub_mode;  // HUB_MODE = HUB_MODE_STAY_ON;
+
+        String _weekday_from;
+        String _weekday_to;
+        String _weekend_from;
+        String _weekend_to;
 
         String _display_error_msg;
 
