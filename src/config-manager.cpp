@@ -19,6 +19,23 @@ ConfigManager::ConfigManager(HubInterface * hub, GameManager * gameMan)
     _htmlMan = new HtmlManager();
 }
 
+bool ConfigManager::_sched_char_to_string(char * char_tmp, String & str)
+{
+            
+    String str2(char_tmp);
+    str = str2;
+    return true;
+}
+
+bool ConfigManager::_sched_string_to_char(char * char_tmp, String & str)
+{
+    for (int k = 0; k < 5; k++)
+    {
+        char_tmp[k] = str[k];
+    }
+    return true;
+}
+
 bool ConfigManager::Initialize()
 {
     _system_ready = false;
@@ -50,10 +67,28 @@ bool ConfigManager::Initialize()
 
         EEPROM.get(_HUB_MODE_EEP_ADDRESS, _hub_mode);
 
-        EEPROM.get(_SCHED_WEEKDAY_FROM_ADDRESS, _weekday_from);
-        EEPROM.get(_SCHED_WEEKDAY_TO_ADDRESS, _weekday_to);
-        EEPROM.get(_SCHED_WEEKEND_FROM_ADDRESS, _weekend_from);
-        EEPROM.get(_SCHED_WEEKEND_TO_ADDRESS, _weekend_to);
+        char char_tmp[6];
+
+        EEPROM.get(_SCHED_WEEKDAY_FROM_ADDRESS, char_tmp);
+        Log.info("char_tmp 0:");
+        Log.info(char_tmp);
+        _sched_char_to_string(char_tmp, _weekday_from);
+
+        EEPROM.get(_SCHED_WEEKDAY_TO_ADDRESS, char_tmp);
+        Log.info("char_tmp 1:");
+        Log.info(char_tmp);
+        _sched_char_to_string(char_tmp, _weekday_to);
+
+        EEPROM.get(_SCHED_WEEKEND_FROM_ADDRESS, char_tmp);
+        Log.info("char_tmp 2:");
+        Log.info(char_tmp);
+        _sched_char_to_string(char_tmp, _weekend_from);
+
+        EEPROM.get(_SCHED_WEEKEND_TO_ADDRESS, char_tmp);
+        Log.info("char_tmp 3:");
+        Log.info(char_tmp);
+        _sched_char_to_string(char_tmp, _weekend_to);
+
     }
     else
     {
@@ -84,16 +119,25 @@ bool ConfigManager::Initialize()
         _weekend_from = "11:00";
         _weekend_to = "15:00";
 
-        EEPROM.put(_SCHED_WEEKDAY_FROM_ADDRESS, _weekday_from);
-        EEPROM.put(_SCHED_WEEKDAY_TO_ADDRESS, _weekday_to);
-        EEPROM.put(_SCHED_WEEKEND_FROM_ADDRESS, _weekend_from);
-        EEPROM.put(_SCHED_WEEKEND_TO_ADDRESS, _weekend_to);
+        char char_tmp[6];
+        char_tmp[5] = 0;
+
+        _sched_string_to_char(char_tmp, _weekday_from);
+        EEPROM.put(_SCHED_WEEKDAY_FROM_ADDRESS, char_tmp);
+        
+        _sched_string_to_char(char_tmp, _weekday_to);
+        EEPROM.put(_SCHED_WEEKDAY_TO_ADDRESS, char_tmp);
+
+        _sched_string_to_char(char_tmp, _weekend_from);
+        EEPROM.put(_SCHED_WEEKEND_FROM_ADDRESS, char_tmp);
+
+        _sched_string_to_char(char_tmp, _weekend_to);
+        EEPROM.put(_SCHED_WEEKEND_TO_ADDRESS, char_tmp);
     }
 
     return true;
 
 }
-
 
 bool ConfigManager::Run()
 {
@@ -282,12 +326,20 @@ bool ConfigManager::_process_api_req(String req_str)
         _weekend_from = req_str.substring(req_str.indexOf("weekend_from=") + 13).substring(0, 5);
         _weekend_to = req_str.substring(req_str.indexOf("weekend_to=") + 11).substring(0, 5);
 
-        EEPROM.put(_SCHED_WEEKDAY_FROM_ADDRESS, _weekday_from);
-        EEPROM.put(_SCHED_WEEKDAY_TO_ADDRESS, _weekday_to);
-        EEPROM.put(_SCHED_WEEKEND_FROM_ADDRESS, _weekend_from);
-        EEPROM.put(_SCHED_WEEKEND_TO_ADDRESS, _weekend_to);
+        char char_tmp[6];
+        char_tmp[5] = 0;
 
-        // TODO also, in html, need to set to current value by default!
+        _sched_string_to_char(char_tmp, _weekday_from);
+        EEPROM.put(_SCHED_WEEKDAY_FROM_ADDRESS, char_tmp);
+        
+        _sched_string_to_char(char_tmp, _weekday_to);
+        EEPROM.put(_SCHED_WEEKDAY_TO_ADDRESS, char_tmp);
+
+        _sched_string_to_char(char_tmp, _weekend_from);
+        EEPROM.put(_SCHED_WEEKEND_FROM_ADDRESS, char_tmp);
+
+        _sched_string_to_char(char_tmp, _weekend_to);
+        EEPROM.put(_SCHED_WEEKEND_TO_ADDRESS, char_tmp);
 
         String return_str = "{}";
         _webclient.println(return_str);
@@ -556,7 +608,12 @@ bool ConfigManager::_write_response_html()
     
     // add scheduler to content_3
 
-    content_3 += _htmlMan->get_scheduler_html(_hub_mode);
+    Log.info("_weekday_from: <" + _weekday_from + ">");
+    Log.info("_weekday_to: <" + _weekday_to + ">");
+    Log.info("_weekend_from: <" + _weekend_from + ">");
+    Log.info("_weekend_to: <" + _weekend_to + ">");
+
+    content_3 += _htmlMan->get_scheduler_html(_hub_mode, _weekday_from, _weekday_to, _weekend_from, _weekend_to);
 
     content_3 += "</body>\n";
     content_3 += "</html>";

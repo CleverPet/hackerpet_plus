@@ -184,7 +184,7 @@ String HtmlManager::get_time_zone_string(float time_zone_offset)
     return time_zone_string;
 }
 
-String HtmlManager::get_scheduler_html(int hub_mode)
+String HtmlManager::get_scheduler_html(int hub_mode, String weekday_from, String weekday_to, String weekend_from, String weekend_to)
 {
 
     /*
@@ -242,14 +242,14 @@ String HtmlManager::get_scheduler_html(int hub_mode)
                          
                          "      xhttp.onload = function () {\n"
                          "           console.log(xhttp.responseText);\n"
-                         // TODO set values?
+                         // TODO ! set values?
                          "      };\n"
                          "      \n"
                          "}\n"
                          "</script>\n"
                          "If scheduled:<br>\n"
-                         "<b>    Weekdays</b> | From: <input type=\"time\" id=\"weekday_from\" name=\"weekday_from\" onchange=\"sch_change()\"> To: <input type=\"time\" id=\"weekday_to\" name=\"weekday_to\" onchange=\"sch_change()\"><br>\n"
-                         "<b>    Weekends</b> | From: <input type=\"time\" id=\"weekend_from\" name=\"weekend_from\" onchange=\"sch_change()\"> To: <input type=\"time\" id=\"weekend_to\" name=\"weekend_to\" onchange=\"sch_change()\"><br>\n"
+                         "<b>    Weekdays</b> | From: <input type=\"time\" id=\"weekday_from\" name=\"weekday_from\" onchange=\"sch_change()\" value=\"" + weekday_from + "\"> To: <input type=\"time\" id=\"weekday_to\" name=\"weekday_to\" onchange=\"sch_change()\" value=\"" + weekday_to + "\"><br>\n"
+                         "<b>    Weekends</b> | From: <input type=\"time\" id=\"weekend_from\" name=\"weekend_from\" onchange=\"sch_change()\" value=\"" + weekend_from + "\"> To: <input type=\"time\" id=\"weekend_to\" name=\"weekend_to\" onchange=\"sch_change()\" value=\"" + weekend_to + "\"><br>\n"
                          "</form>\n";
 
     return content_str;

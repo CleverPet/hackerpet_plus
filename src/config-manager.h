@@ -20,6 +20,8 @@ class ConfigManager
         bool Initialize();
         bool Run();
     private:
+        bool _sched_char_to_string(char * char_tmp, String & str);
+        bool _sched_string_to_char(char * char_tmp, String & str);
         bool _serve_webinterface();
         bool _read_from_client(bool & request_finished, String & response_str);
         bool _process_request(String req_str);
@@ -54,14 +56,14 @@ class ConfigManager
         const int _DST_EEP_ADDRESS = 40;  // DST_ADDRESS = 40;
         const int _HUB_MODE_EEP_ADDRESS = 50;  // HUB_MODE_ADDRESS = 50;
         const int _SCHED_WEEKDAY_FROM_ADDRESS = 60;
-        const int _SCHED_WEEKDAY_TO_ADDRESS = 70;
-        const int _SCHED_WEEKEND_FROM_ADDRESS = 80;
-        const int _SCHED_WEEKEND_TO_ADDRESS = 90;
+        const int _SCHED_WEEKDAY_TO_ADDRESS = 160;
+        const int _SCHED_WEEKEND_FROM_ADDRESS = 260;
+        const int _SCHED_WEEKEND_TO_ADDRESS = 360;
         
         // ***************** const other *****************
 
         // we can change this number to force an eeprom "reset" to defaults; and to avoid undefined state when adding new variables
-        const int _EVER_STORED_CHECK_VALUE = 12348;  // EVER_STORED_CHECK_VALUE = 12346; 
+        const int _EVER_STORED_CHECK_VALUE = 12354;  // EVER_STORED_CHECK_VALUE = 12346; 
         
         const int _HUB_MODE_STAY_OFF = 0;
         const int _HUB_MODE_STAY_ON = 1;
