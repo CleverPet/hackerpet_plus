@@ -45,7 +45,7 @@
 
 #include "games/g_007_LearningBrightness.h"
 
-#include "hackerpet/hackerpet.h"
+#include "hackerpet.h"
 #include "game_helper_functions.h"
 
 namespace LearningBrightness

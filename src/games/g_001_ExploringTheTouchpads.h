@@ -37,7 +37,7 @@ BUT, LEAVING OUT setup() and loop() functions!
   Licensed under the AGPL 3.0
 */
 
-#include "hackerpet/hackerpet.h"
+#include "hackerpet.h"
 #include "game_helper_functions.h"
 
 

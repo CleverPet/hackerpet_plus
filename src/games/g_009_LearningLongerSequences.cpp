@@ -36,7 +36,7 @@
 
 #include "games/g_009_LearningLongerSequences.h"
 
-#include "hackerpet/hackerpet.h"
+#include "hackerpet.h"
 #include "game_helper_functions.h"
 
 namespace LearningLongerSequences

@@ -38,7 +38,7 @@ BUT, LEAVING OUT setup() and loop() functions!
 
 #include "games/g_001_ExploringTheTouchpads.h"
 
-#include "hackerpet/hackerpet.h"
+#include "hackerpet.h"
 #include "game_helper_functions.h"
 
 namespace ExploringTheTouchpads

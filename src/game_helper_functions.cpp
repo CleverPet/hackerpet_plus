@@ -1,6 +1,6 @@
 #include "game_helper_functions.h"
 
-#include "hackerpet/hackerpet.h"
+#include "hackerpet.h"
 #include <algorithm>  // random_shuffle
 
 

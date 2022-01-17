@@ -34,7 +34,7 @@
 
 #include "games/g_011_MatchingMoreColors.h"
 
-#include "hackerpet/hackerpet.h"
+#include "hackerpet.h"
 #include "game_helper_functions.h"
 
 

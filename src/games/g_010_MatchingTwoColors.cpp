@@ -40,7 +40,7 @@
 
 #include "games/g_010_MatchingTwoColors.h"
 
-#include "hackerpet/hackerpet.h"
+#include "hackerpet.h"
 #include "game_helper_functions.h"
 
 namespace MatchingTwoColors
