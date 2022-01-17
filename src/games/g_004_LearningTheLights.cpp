@@ -28,7 +28,7 @@
 
 #include "games/g_004_LearningTheLights.h"
 
-#include <hackerpet.h>
+#include "hackerpet/hackerpet.h"
 #include "game_helper_functions.h"
 
 namespace LearningTheLights

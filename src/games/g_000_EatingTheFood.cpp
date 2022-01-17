@@ -27,7 +27,7 @@
 
 #include "games/g_000_EatingTheFood.h"
 
-#include <hackerpet.h>
+#include "hackerpet/hackerpet.h"
 #include "game_helper_functions.h"
 
 

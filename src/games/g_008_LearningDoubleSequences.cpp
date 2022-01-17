@@ -36,7 +36,7 @@
 
 #include "games/g_008_LearningDoubleSequences.h"
 
-#include <hackerpet.h>
+#include "hackerpet/hackerpet.h"
 #include "game_helper_functions.h"
 
 namespace LearningDoubleSequences

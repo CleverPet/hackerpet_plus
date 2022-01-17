@@ -35,7 +35,7 @@
 
 #include "games/g_003_AvoidingUnlitTouchpads.h"
 
-#include <hackerpet.h>
+#include "hackerpet/hackerpet.h"
 #include "game_helper_functions.h"
 
 namespace AvoidingUnlitTouchpads

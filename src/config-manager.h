@@ -3,7 +3,7 @@
 
 #include "Particle.h"
 #include "http-server-util.h"
-#include <hackerpet.h>
+#include "hackerpet/hackerpet.h"
 #include "game-manager.h"
 #include "html-manager.h"
 
