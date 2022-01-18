@@ -3,7 +3,7 @@
  * Description:
  * Author:
  * Date:
- * VERSION: 0.1.6
+ * VERSION: 0.1.14
  */
 
 
@@ -12,6 +12,7 @@
 #include "hotspot-http-server.h"
 
 // new
+
 #include "config-manager.h"
 #include "game-manager.h"
 
