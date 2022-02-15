@@ -231,7 +231,7 @@ bool ConfigManager::_process_hub_mode()
 
     // determine hub state: active vs. standby, based on mode (and schedule, if mode is scheduler)
     
-    int new_hub_state = -1
+    int new_hub_state = -1;
 
     if (_hub_mode == _HUB_MODE_STAY_ON)
     {
@@ -261,7 +261,7 @@ bool ConfigManager::_process_hub_mode()
         String from_hour = "  ";
         String from_minute = "  ";
         String to_hour = "  ";
-        string to_minute = "  ";
+        String to_minute = "  ";
 
         if (weekday_now == 1 || weekday_now == 7)  // it is a weekend
         {
@@ -397,7 +397,7 @@ bool ConfigManager::_process_hub_mode()
         }
         else
         {
-            Log.info("ERROR invalid hub state!")
+            Log.info("ERROR invalid hub state!");
         }
 
 
