@@ -44,7 +44,7 @@
   Licensed under the AGPL 3.0
 */
 
-#include <hackerpet.h>
+#include "hackerpet.h"
 #include "game_helper_functions.h"
 
 

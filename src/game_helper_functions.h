@@ -1,7 +1,7 @@
 #ifndef GAME_HELPER_FUNCTIONS_H
 #define GAME_HELPER_FUNCTIONS_H
 
-#include <hackerpet.h>
+#include "hackerpet.h"
 #include <algorithm>  // random_shuffle
 
 // Set this to the name of your player (dog, cat, etc.)

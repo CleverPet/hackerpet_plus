@@ -36,7 +36,7 @@
   Licensed under the AGPL 3.0
 */
 
-#include <hackerpet.h>
+#include "hackerpet.h"
 #include "game_helper_functions.h"
 
 /// The actual LearningDoubleSequences challenge. This function needs to be called in a loop.
