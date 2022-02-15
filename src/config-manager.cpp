@@ -359,10 +359,16 @@ bool ConfigManager::_process_hub_mode()
 
             // this just set _active_mode flag in old firmware and that's all...
             // _dli->SetActiveMode(true);
-
+            
             _hub->SetButtonAudioEnabled(true);
             _hub->SetLightEnabled(true);
             _hub->UpdateButtonAudioEnabled();
+
+            // inform game manager of hub state
+            // technically, only need to do this if it changed.
+            // should we just have it skip the game loop?
+            _gameMan->set_game_enabled(true);
+
         }
         else if (_hub_state == _HUB_STATE_STANDBY)
         {
@@ -385,6 +391,8 @@ bool ConfigManager::_process_hub_mode()
             _hub->SetButtonAudioEnabled(false);
             _hub->SetLightEnabled(false);
             _hub->UpdateButtonAudioEnabled();
+
+            _gameMan->set_game_enabled(false);
             
         }
         else
@@ -392,10 +400,6 @@ bool ConfigManager::_process_hub_mode()
             Log.info("ERROR invalid hub state!")
         }
 
-
-        // inform game manager of hub state
-        // technically, only need to do this if it changed.
-        _gameMan->set_hub_state(_hub_state);
 
     }
 

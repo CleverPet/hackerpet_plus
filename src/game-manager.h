@@ -25,10 +25,12 @@ class GameManager
         bool Run();
         int get_current_game();
         bool set_next_game(int next_game);  // TODO should also set _current_game at init ! i.e. if it is not set yet!
+        bool set_game_enabled(bool enable_game);
     private:
         HubInterface * _hub;
         int _current_game;
         int _next_game;
+        bool _game_enabled;
 };
 
 
