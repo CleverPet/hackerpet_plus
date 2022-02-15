@@ -36,6 +36,8 @@ class ConfigManager
 
         bool _write_response_html();
 
+        bool _process_hub_mode();
+
         HubInterface * _hub;
         GameManager * _gameMan;
         HtmlManager * _htmlMan;
@@ -69,8 +71,17 @@ class ConfigManager
         const int _HUB_MODE_STAY_ON = 1;
         const int _HUB_MODE_SCHEDULED = 2;
         
+        const int _HUB_STATE_STANDBY = 0;
+        const int _HUB_STATE_ACTIVE = 1;
+
         // ***************** config vars *****************
         
+        int _hub_mode;  // _HUB_MODE_STAY_OFF, _HUB_MODE_STAY_ON, _HUB_MODE_SCHEDULED
+        int _last_hub_mode;
+
+        int _hub_state; // _HUB_STATE_STANDBY, _HUB_STATE_ACTIVE
+
+
         int _game_to_play;  // GAME_TO_PLAY;
         int _next_game_to_play;  // NEXT_GAME_TO_PLAY;
         int _new_game_selected; // selected (clicked) via web interface
@@ -78,8 +89,6 @@ class ConfigManager
         float _time_zone_offset;  // TIME_ZONE_OFFSET = 0.0;
         bool _dst_on;  // DST_ON = false;
         
-        int _hub_mode;  // HUB_MODE = HUB_MODE_STAY_ON;
-
         String _weekday_from;
         String _weekday_to;
         String _weekend_from;

@@ -89,6 +89,8 @@ bool ConfigManager::Initialize()
         Log.info(char_tmp);
         _sched_char_to_string(char_tmp, _weekend_to);
 
+        _last_hub_mode = _hub_mode;
+
     }
     else
     {
@@ -133,6 +135,8 @@ bool ConfigManager::Initialize()
 
         _sched_string_to_char(char_tmp, _weekend_to);
         EEPROM.put(_SCHED_WEEKEND_TO_ADDRESS, char_tmp);
+
+        _last_hub_mode = _hub_mode;
     }
 
     return true;
@@ -199,13 +203,207 @@ bool ConfigManager::Run()
             _gameMan->set_next_game(_next_game_to_play);
 
         }
+        
 
     }
+
+    // TODO should _process_hub_mode be outside system_ready? things should function in general even if not on wifi???
+    // also set to active by default?
+    // TODO it already is by default but should set back to HUB STAY ON mode if can't connect to wifi??? or at least not in HUB STAY OFF mode???
+    // also... we might need to put this in its own class at some point
+
+    _process_hub_mode();
 
     return true;
 
 }
 
+
+bool ConfigManager::_process_hub_mode()
+{
+        
+    // compare _hub_mode vs _last_hub_mode (set at the end of this function)
+
+    if (_hub_mode != _last_hub_mode)
+    {
+        // there may not be anything to set here ...
+    }
+
+    // determine hub state: active vs. standby, based on mode (and schedule, if mode is scheduler)
+    
+    int new_hub_state = -1
+
+    if (_hub_mode == _HUB_MODE_STAY_ON)
+    {
+        new_hub_state = _HUB_STATE_ACTIVE;
+    }
+    else if (_hub_mode == _HUB_MODE_STAY_OFF)
+    {
+        new_hub_state = _HUB_STATE_STANDBY;
+    }
+    else if (_hub_mode == _HUB_MODE_SCHEDULED)
+    {
+        // use:
+
+        // _weekday_from: 06:30
+        // _weekday_to
+        // _weekend_from
+        // _weekend_to
+
+        // get:
+        //  current time
+        //  current day of the week -> weekday or weekend
+        
+        int hour_now = Time.hour();
+        int minute_now = Time.minute();
+        int weekday_now = Time.weekday();
+
+        String from_hour = "  ";
+        String from_minute = "  ";
+        String to_hour = "  ";
+        string to_minute = "  ";
+
+        if (weekday_now == 1 || weekday_now == 7)  // it is a weekend
+        {
+            from_hour[0] = _weekend_from[0];
+            from_hour[1] = _weekend_from[1];
+
+            from_minute[0] = _weekend_from[3];
+            from_minute[1] = _weekend_from[4];
+
+            to_hour[0] = _weekend_to[0];
+            to_hour[1] = _weekend_to[1];
+
+            to_minute[0] = _weekend_to[3];
+            to_minute[1] = _weekend_to[4];
+        }
+        else  // it is a weekday
+        {
+            from_hour[0] = _weekday_from[0];
+            from_hour[1] = _weekday_from[1];
+
+            from_minute[0] = _weekday_from[3];
+            from_minute[1] = _weekday_from[4];
+
+            to_hour[0] = _weekday_to[0];
+            to_hour[1] = _weekday_to[1];
+
+            to_minute[0] = _weekday_to[3];
+            to_minute[1] = _weekday_to[4];
+        }
+
+
+        int day_minutes_now = hour_now * 60 + minute_now;
+
+        int day_minutes_from = from_hour.toInt() * 60 + from_minute.toInt();
+        int day_minutes_to = to_hour.toInt() * 60 + to_minute.toInt();
+
+        // figure out hub state based on time and schedule
+
+        if (day_minutes_to > day_minutes_from)
+        {
+            if (day_minutes_from < day_minutes_now && day_minutes_now < day_minutes_to)
+            {
+                // hub on
+                new_hub_state = _HUB_STATE_ACTIVE;
+            }
+            else
+            {
+                // hub off
+                new_hub_state = _HUB_STATE_STANDBY;
+            }
+        }
+        else if (day_minutes_from > day_minutes_to)
+        {
+            if (day_minutes_from < day_minutes_now && day_minutes_now < day_minutes_to)
+            {
+                // hub off
+                new_hub_state = _HUB_STATE_STANDBY;
+            }
+            else
+            {
+                // hub on
+                new_hub_state = _HUB_STATE_ACTIVE;
+            }
+        }
+        else
+        {
+            // from and to are equal, keep hub off!
+            new_hub_state = _HUB_STATE_STANDBY;
+        }
+
+    }
+    else
+    {
+        // invalid hub mode!
+        Log.info("ERROR: Invalid hub mode! Keeping hub on!");
+        _hub_mode = _HUB_MODE_STAY_ON;
+        new_hub_state = _HUB_STATE_ACTIVE;
+    }
+
+    if (new_hub_state != _hub_state)
+    {
+        // hub state has changed!
+
+        _hub_state = new_hub_state;
+
+
+        if (_hub_state == _HUB_STATE_ACTIVE)
+        {   
+
+            // for now, we are going to ignore the indicator light
+                
+            //     _logger->Log("SI::OnDesiredStatus: setting _activity_state = ACTIVITY_STATE_ACTIVE", Logger::LOG_LEVEL_LIGHT_CONTEXT);
+            //     IndicatorState = IL_SI_ACTIVE;
+
+
+            // this just set _active_mode flag in old firmware and that's all...
+            // _dli->SetActiveMode(true);
+
+            _hub->SetButtonAudioEnabled(true);
+            _hub->SetLightEnabled(true);
+            _hub->UpdateButtonAudioEnabled();
+        }
+        else if (_hub_state == _HUB_STATE_STANDBY)
+        {
+            // for now, we are going to ignore the indicator light
+
+        //        _logger->Log("SI::OnDesiredStatus: setting _activity_state = ACTIVITY_STATE_STANDBY", Logger::LOG_LEVEL_LIGHT_CONTEXT);
+         //        if (_max_kibbles_light_on)
+        //        {
+        //            IndicatorState = IL_SI_MAX_KIBBLES_DEPLETED;
+        //        }
+        //        else
+        //        {
+        //            IndicatorState = IL_SI_STANDBY;   
+        //        }
+            // 
+            
+            // this just set _active_mode flag in old firmware and that's all...
+            // _dli->SetActiveMode(false);
+            
+            _hub->SetButtonAudioEnabled(false);
+            _hub->SetLightEnabled(false);
+            _hub->UpdateButtonAudioEnabled();
+            
+        }
+        else
+        {
+            Log.info("ERROR invalid hub state!")
+        }
+
+
+        // inform game manager of hub state
+        // technically, only need to do this if it changed.
+        _gameMan->set_hub_state(_hub_state);
+
+    }
+
+    _last_hub_mode = _hub_mode;
+
+    return true;
+
+}
 
 bool ConfigManager::_serve_webinterface()
 {
