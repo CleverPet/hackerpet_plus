@@ -817,19 +817,40 @@ bool ConfigManager::_write_response_html()
 
     content_3 += _htmlMan->get_scheduler_html(_hub_mode, _weekday_from, _weekday_to, _weekend_from, _weekend_to);
 
-    content_3 += "</body>\n";
-    content_3 += "</html>";
+
+    String content_4 = "";
+
+    content_4 += "<br>\n";
+    
+    if (_hub_state == _HUB_STATE_ACTIVE)
+    {
+        content_4 += "Hub state: <b>Active</b>\n";
+    }
+    else if (_hub_state == _HUB_STATE_STANDBY)
+    {
+        content_4 += "Hub state: <b>Standby</b>\n";
+    }
+    else
+    {
+        content_4 += "Hub state: <b>! Invalid !</b>\n";
+    }
+
+    content_4 += "<br>\n";
+
+    content_4 += "</body>\n";
+    content_4 += "</html>";
     //Log.info("content length: " + int_to_string(content.length()));
     //Log.info("content_2 length: " + int_to_string(content_2.length()));
     _webclient.println("HTTP/1.0 200 OK");
     _webclient.println("Content-type: text/html");
     _webclient.print("Content-length: ");
-    _webclient.println(content.length() + time_zone_str.length() + content_2.length() + content_3.length());
+    _webclient.println(content.length() + time_zone_str.length() + content_2.length() + content_3.length() + content_4.length());
     _webclient.println("");
     _webclient.print(content);
     _webclient.print(time_zone_str);
     _webclient.print(content_2);
     _webclient.print(content_3);
+    _webclient.print(content_4);
     _webclient.println();
 
     return true;
