@@ -508,10 +508,27 @@ bool ConfigManager::_process_api_req(String req_str)
         String next_game_str = int_to_string(_next_game_to_play);
         String current_game_str = int_to_string(_game_to_play);
 
+        // TODO return also the "hub status" here !!!
+
+        String hub_state_str = "";
+        if (_hub_state == _HUB_STATE_ACTIVE)
+        {
+            hub_state_str += "Active";
+        }
+        else if (_hub_state == _HUB_STATE_STANDBY)
+        {
+            hub_state_str += "Standby";
+        }
+        else
+        {
+            hub_state_str += "Invalid";
+        }
+
         String return_str = "{"
                             "\"status\":\"" + _display_error_msg + "\","
                             "\"game_id_queued\":\"" + next_game_str + "\","
                             "\"game_id_playing\":\"" + current_game_str + "\","
+                            "\"hub_state\":\"" + hub_state_str + "\","
                             "\"time\":\"" + Time.timeStr() + "\""
                             "}";
         _webclient.println(return_str);
@@ -822,20 +839,25 @@ bool ConfigManager::_write_response_html()
 
     content_4 += "<br>\n";
     
+    content_4 += "Hub state: <b><strong class=\"api-hub-state\" id=\"api-hub-state\">";
+
+    // this sets on init load
+    
     if (_hub_state == _HUB_STATE_ACTIVE)
     {
-        content_4 += "Hub state: <b>Active</b>\n";
+        content_4 += "Active";
     }
     else if (_hub_state == _HUB_STATE_STANDBY)
     {
-        content_4 += "Hub state: <b>Standby</b>\n";
+        content_4 += "Standby";
     }
     else
     {
-        content_4 += "Hub state: <b>! Invalid !</b>\n";
+        content_4 += "Invalid";
     }
 
-    content_4 += "<br>\n";
+    content_4 += "</strong><br />\n";
+    content_4 += "</b>\n";
 
     content_4 += "</body>\n";
     content_4 += "</html>";
