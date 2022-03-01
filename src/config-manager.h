@@ -61,11 +61,12 @@ class ConfigManager
         const int _SCHED_WEEKDAY_TO_ADDRESS = 160;
         const int _SCHED_WEEKEND_FROM_ADDRESS = 260;
         const int _SCHED_WEEKEND_TO_ADDRESS = 360;
+        const int _KIBBLES_LIMIT_ADDRESS = 460;
         
         // ***************** const other *****************
 
         // we can change this number to force an eeprom "reset" to defaults; and to avoid undefined state when adding new variables
-        const int _EVER_STORED_CHECK_VALUE = 12354;  // EVER_STORED_CHECK_VALUE = 12346; 
+        const int _EVER_STORED_CHECK_VALUE = 12355;  // EVER_STORED_CHECK_VALUE = 12346; 
         
         const int _HUB_MODE_STAY_OFF = 0;
         const int _HUB_MODE_STAY_ON = 1;
@@ -95,6 +96,9 @@ class ConfigManager
         String _weekend_to;
 
         String _display_error_msg;
+
+        int _kibbles_limit;
+        int _kibbles_eaten_today;
 
 };
 

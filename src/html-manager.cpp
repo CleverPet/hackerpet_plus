@@ -278,3 +278,38 @@ String HtmlManager::_get_post_link_string(String text, String name, String value
                            "</form>\n";
     return post_link_str;
 }
+
+String HtmlManager::get_kibbles_html(int kibbles_limit, int kibbles_eaten_today)
+{
+
+    String kibbles_str = "";
+    
+    // TODO make a small form that can submit just this field
+    // on submit a change, also update the field?
+    // should just submit the change when number is changed in the form
+    // if not a number: set to 0 (unlimited)
+
+    // as part of onload: set the new, cleaned value. i.e. server will do all the checks for proper value etc. and return the new int. 0 if wrong values.
+
+    String content_str = "<form method=\"post\" action=\"http://cleverpet.local\">\n"
+                         "<script>\n"
+                         "function kibbles_change() { \n"
+                         "      var xhttp = new XMLHttpRequest();\n"
+                         "      xhttp.open(\"POST\", \"http://cleverpet.local/local-api/kibbles_set\", true);\n"
+                         "      xhttp.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded\");\n"
+                         "      var kibbles_elem = document.getElementById(\"kibbles_set\");\n"
+                         "      xhttp.send(\"max_kibbles=\"+kibbles_elem.value);\n"
+                         "      xhttp.onload = function () {\n"
+                         "           console.log(xhttp.responseText);\n"
+                         "           var data = JSON.parse(xhttp.responseText);\n"
+                         "           kibbles_elem.innerHTML = data.kibbles_returned;\n"
+                         "      };\n"
+                         "      \n"
+                         "}\n"
+                         "</script>\n"
+                         "<label for=\"kibbles_set\">max kibbles per day (0 for unlimited):</label>\n"
+                         "<input type=\"text\" id=\"kibbles_set\" name=\"kibbles_set\" value=\"\"><br><br>\n"
+                         "</form>\n";
+
+    return kibbles_str;
+}

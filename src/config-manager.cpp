@@ -88,6 +88,8 @@ bool ConfigManager::Initialize()
         Log.info("char_tmp 3:");
         Log.info(char_tmp);
         _sched_char_to_string(char_tmp, _weekend_to);
+        
+        EEPROM.get(_KIBBLES_LIMIT_ADDRESS, _kibbles_limit);
 
         _last_hub_mode = _hub_mode;
 
@@ -137,6 +139,10 @@ bool ConfigManager::Initialize()
         EEPROM.put(_SCHED_WEEKEND_TO_ADDRESS, char_tmp);
 
         _last_hub_mode = _hub_mode;
+
+        _kibbles_limit = 0;
+        EEPROM.put(_kibbles_limit);
+
     }
 
     return true;
@@ -341,6 +347,12 @@ bool ConfigManager::_process_hub_mode()
         new_hub_state = _HUB_STATE_ACTIVE;
     }
 
+    // if kibbles are above limit, override new_hub_state to standby
+    if (_kibbles_limit > 0 && _kibbles_eaten_today >= _kibbles_limit)
+    {
+        new_hub_state = _HUB_STATE_STANDBY;
+    }
+
     if (new_hub_state != _hub_state)
     {
         // hub state has changed!
@@ -539,29 +551,62 @@ bool ConfigManager::_process_api_req(String req_str)
         Log.info("API request string:");
         Log.print(req_str);
         
-        // weekday_from=14:22&weekday_to=14:24&weekend_from=14:23&weekend_to=06:21
-        _weekday_from = req_str.substring(req_str.indexOf("weekday_from=") + 13).substring(0, 5);
-        _weekday_to = req_str.substring(req_str.indexOf("weekday_to=") + 11).substring(0, 5);
-        _weekend_from = req_str.substring(req_str.indexOf("weekend_from=") + 13).substring(0, 5);
-        _weekend_to = req_str.substring(req_str.indexOf("weekend_to=") + 11).substring(0, 5);
+        // TODO TAKE THIS OUT!!!!!
+        return true;
 
-        char char_tmp[6];
-        char_tmp[5] = 0;
+        if (req_str.indexOf("kibbles_set") > -1)
+        {
+            // max kibbles request
 
-        _sched_string_to_char(char_tmp, _weekday_from);
-        EEPROM.put(_SCHED_WEEKDAY_FROM_ADDRESS, char_tmp);
-        
-        _sched_string_to_char(char_tmp, _weekday_to);
-        EEPROM.put(_SCHED_WEEKDAY_TO_ADDRESS, char_tmp);
+            // TODO have to look at the request string and get correct numbers! int might be length 1 to ()...!
+            // TODO not a set length!!!
+            // TODO
+            String max_kibbles_str = req_str.substring(req_str.indexOf("max_kibbles=") + 13).substring(0, 5);
+            int max_kibbles = asd.toInt();
+            // check if int
+            // toInt will return zero if invalid
+                        
+            if (max_kibbles < 0)
+            {
+                max_kibbles = 0
+            }
 
-        _sched_string_to_char(char_tmp, _weekend_from);
-        EEPROM.put(_SCHED_WEEKEND_FROM_ADDRESS, char_tmp);
+            // return dict with string
+            // int_to_string()
 
-        _sched_string_to_char(char_tmp, _weekend_to);
-        EEPROM.put(_SCHED_WEEKEND_TO_ADDRESS, char_tmp);
+            String return_str = "{"
+                    "\"kibbles_returned\":\"" + int_to_string(max_kibbles) + "\""
+                    "}";
+            _webclient.println(return_str);
+        }
+        else
+        {
+            //scheduler request
 
-        String return_str = "{}";
-        _webclient.println(return_str);
+            // weekday_from=14:22&weekday_to=14:24&weekend_from=14:23&weekend_to=06:21
+            _weekday_from = req_str.substring(req_str.indexOf("weekday_from=") + 13).substring(0, 5);
+            _weekday_to = req_str.substring(req_str.indexOf("weekday_to=") + 11).substring(0, 5);
+            _weekend_from = req_str.substring(req_str.indexOf("weekend_from=") + 13).substring(0, 5);
+            _weekend_to = req_str.substring(req_str.indexOf("weekend_to=") + 11).substring(0, 5);
+
+            char char_tmp[6];
+            char_tmp[5] = 0;
+
+            _sched_string_to_char(char_tmp, _weekday_from);
+            EEPROM.put(_SCHED_WEEKDAY_FROM_ADDRESS, char_tmp);
+            
+            _sched_string_to_char(char_tmp, _weekday_to);
+            EEPROM.put(_SCHED_WEEKDAY_TO_ADDRESS, char_tmp);
+
+            _sched_string_to_char(char_tmp, _weekend_from);
+            EEPROM.put(_SCHED_WEEKEND_FROM_ADDRESS, char_tmp);
+
+            _sched_string_to_char(char_tmp, _weekend_to);
+            EEPROM.put(_SCHED_WEEKEND_TO_ADDRESS, char_tmp);
+
+            String return_str = "{}";
+            _webclient.println(return_str);
+        }
     }
     else
     {
@@ -858,21 +903,25 @@ bool ConfigManager::_write_response_html()
 
     content_4 += "</strong><br />\n";
     content_4 += "</b>\n";
+    
+    String content_5 = "";
+    content_5 += _htmlMan->get_kibbles_html(_kibbles_limit, _kibbles_eaten_today);
 
-    content_4 += "</body>\n";
-    content_4 += "</html>";
+    content_5 += "</body>\n";
+    content_5 += "</html>";
     //Log.info("content length: " + int_to_string(content.length()));
     //Log.info("content_2 length: " + int_to_string(content_2.length()));
     _webclient.println("HTTP/1.0 200 OK");
     _webclient.println("Content-type: text/html");
     _webclient.print("Content-length: ");
-    _webclient.println(content.length() + time_zone_str.length() + content_2.length() + content_3.length() + content_4.length());
+    _webclient.println(content.length() + time_zone_str.length() + content_2.length() + content_3.length() + content_4.length() + content_5.length());
     _webclient.println("");
     _webclient.print(content);
     _webclient.print(time_zone_str);
     _webclient.print(content_2);
     _webclient.print(content_3);
     _webclient.print(content_4);
+    _webclient.print(content_5);
     _webclient.println();
 
     return true;
