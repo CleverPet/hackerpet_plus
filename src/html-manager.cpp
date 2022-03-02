@@ -44,12 +44,14 @@ String HtmlManager::get_script_html()
                          "  var status_element = document.getElementById(\"api-hub-status\");\n"
                          "  var time_element = document.getElementById(\"api-time\");\n"
                          "  var hub_state_element = document.getElementById(\"api-hub-state\");\n"
+                        "   var kibbles_elem = document.getElementById(\"kibbles_set\");\n"
                          "  xhttp.open(\"GET\", \"http://cleverpet.local/local-api\", true);\n"
                          "  xhttp.send();\n"
                          "  xhttp.onload = function () {\n"
                          "      console.log('DONE', xhttp.readyState);\n" // readyState will be 4
                          "      console.log(xhttp.responseText);\n"
                          "      var data = JSON.parse(xhttp.responseText);\n"
+                         "      kibbles_elem.value = data.max_kibbles;\n"
                          "      status_element.innerHTML = data.status;\n"
                          "      time_element.innerHTML = data.time;\n"
                          "      hub_state_element.innerHTML = data.hub_state;\n"
@@ -282,8 +284,6 @@ String HtmlManager::_get_post_link_string(String text, String name, String value
 String HtmlManager::get_kibbles_html(int kibbles_limit, int kibbles_eaten_today)
 {
 
-    String kibbles_str = "";
-    
     // TODO make a small form that can submit just this field
     // on submit a change, also update the field?
     // should just submit the change when number is changed in the form
@@ -291,7 +291,7 @@ String HtmlManager::get_kibbles_html(int kibbles_limit, int kibbles_eaten_today)
 
     // as part of onload: set the new, cleaned value. i.e. server will do all the checks for proper value etc. and return the new int. 0 if wrong values.
 
-    String content_str = "<form method=\"post\" action=\"http://cleverpet.local\">\n"
+    String content_str = //"<form method=\"post\" action=\"http://cleverpet.local\">\n"
                          "<script>\n"
                          "function kibbles_change() { \n"
                          "      var xhttp = new XMLHttpRequest();\n"
@@ -302,14 +302,15 @@ String HtmlManager::get_kibbles_html(int kibbles_limit, int kibbles_eaten_today)
                          "      xhttp.onload = function () {\n"
                          "           console.log(xhttp.responseText);\n"
                          "           var data = JSON.parse(xhttp.responseText);\n"
-                         "           kibbles_elem.innerHTML = data.kibbles_returned;\n"
+                         "           kibbles_elem.value = data.max_kibbles;\n"
                          "      };\n"
                          "      \n"
                          "}\n"
                          "</script>\n"
                          "<label for=\"kibbles_set\">max kibbles per day (0 for unlimited):</label>\n"
-                         "<input type=\"text\" id=\"kibbles_set\" name=\"kibbles_set\" value=\"\"><br><br>\n"
-                         "</form>\n";
+                         "<input type=\"text\" id=\"kibbles_set\" name=\"kibbles_set\" onchange=\"kibbles_change()\" value=\"" + int_to_string(kibbles_limit) + "\"><br><br>\n"
+                         "<b>Kibbles eaten: </b>"+ int_to_string(kibbles_eaten_today) + "<br>\n";
+                         //"</form>\n";
 
-    return kibbles_str;
+    return content_str;
 }

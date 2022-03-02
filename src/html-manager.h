@@ -2,6 +2,7 @@
 #define HTML_MANAGER_H
 
 #include "Particle.h"
+#include "http-server-util.h"
 
 
 class HtmlManager

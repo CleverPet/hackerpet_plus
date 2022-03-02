@@ -1,3 +1,6 @@
+#ifndef HTTP_SERVER_UTIL_H
+#define HTTP_SERVER_UTIL_H
+
 #include <Particle.h>
 
 using namespace std;
@@ -14,3 +17,5 @@ int mgschwan_serve_webinterface(int current_game, int next_game, String display_
 void mgschwan_MDNS_loop();
 
 String int_to_string(int the_int);
+
+#endif

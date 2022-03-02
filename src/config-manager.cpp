@@ -141,7 +141,7 @@ bool ConfigManager::Initialize()
         _last_hub_mode = _hub_mode;
 
         _kibbles_limit = 0;
-        EEPROM.put(_kibbles_limit);
+        EEPROM.put(_KIBBLES_LIMIT_ADDRESS, _kibbles_limit);
 
     }
 
@@ -346,7 +346,7 @@ bool ConfigManager::_process_hub_mode()
         _hub_mode = _HUB_MODE_STAY_ON;
         new_hub_state = _HUB_STATE_ACTIVE;
     }
-
+    
     // if kibbles are above limit, override new_hub_state to standby
     if (_kibbles_limit > 0 && _kibbles_eaten_today >= _kibbles_limit)
     {
@@ -472,6 +472,9 @@ bool ConfigManager::_read_from_client(bool & request_finished, String & response
 bool ConfigManager::_process_request(String req_str)
 {
 
+    Log.info("request string:");
+    Log.print(req_str);
+
     // different types of requests
     
     if (req_str.indexOf("local-api") > -1)
@@ -541,7 +544,8 @@ bool ConfigManager::_process_api_req(String req_str)
                             "\"game_id_queued\":\"" + next_game_str + "\","
                             "\"game_id_playing\":\"" + current_game_str + "\","
                             "\"hub_state\":\"" + hub_state_str + "\","
-                            "\"time\":\"" + Time.timeStr() + "\""
+                            "\"time\":\"" + Time.timeStr() + "\","
+                            "\"max_kibbles\":\"" + int_to_string(_kibbles_limit) + "\""
                             "}";
         _webclient.println(return_str);
     }
@@ -558,26 +562,26 @@ bool ConfigManager::_process_api_req(String req_str)
         {
             // max kibbles request
 
-            // TODO have to look at the request string and get correct numbers! int might be length 1 to ()...!
-            // TODO not a set length!!!
-            // TODO
-            // this might already work if it takes the first set of valid characters
-            String max_kibbles_str = req_str.substring(req_str.indexOf("max_kibbles=") + 13).substring(0, 5);
-            int max_kibbles = asd.toInt();
+            String max_kibbles_str = req_str.substring(req_str.indexOf("max_kibbles=") + 12).substring(0, 5);
+            int max_kibbles = max_kibbles_str.toInt();
             // check if int
             // toInt will return zero if invalid
                         
             if (max_kibbles < 0)
             {
-                max_kibbles = 0
+                max_kibbles = 0;
             }
-
-            // return dict with string
-            // int_to_string()
+            
+            EEPROM.put(_KIBBLES_LIMIT_ADDRESS, max_kibbles);
+            _kibbles_limit = max_kibbles;
 
             String return_str = "{"
-                    "\"kibbles_returned\":\"" + int_to_string(max_kibbles) + "\""
+                    "\"max_kibbles\":\"" + int_to_string(max_kibbles) + "\""
                     "}";
+            
+            Log.info("kibbles set request, sending back: string:");
+            Log.print(return_str);
+
             _webclient.println(return_str);
         }
         else
