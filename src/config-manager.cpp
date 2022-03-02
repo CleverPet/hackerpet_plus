@@ -552,7 +552,7 @@ bool ConfigManager::_process_api_req(String req_str)
         Log.print(req_str);
         
         // TODO TAKE THIS OUT!!!!!
-        return true;
+        //return true;
 
         if (req_str.indexOf("kibbles_set") > -1)
         {
@@ -561,6 +561,7 @@ bool ConfigManager::_process_api_req(String req_str)
             // TODO have to look at the request string and get correct numbers! int might be length 1 to ()...!
             // TODO not a set length!!!
             // TODO
+            // this might already work if it takes the first set of valid characters
             String max_kibbles_str = req_str.substring(req_str.indexOf("max_kibbles=") + 13).substring(0, 5);
             int max_kibbles = asd.toInt();
             // check if int
