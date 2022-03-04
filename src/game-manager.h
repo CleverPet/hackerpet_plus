@@ -34,6 +34,7 @@ class GameManager
         int _next_game;
         bool _game_enabled;
         int _kibbles_eaten;
+        trial_info *_trial_info;
 };
 
 

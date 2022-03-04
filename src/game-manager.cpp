@@ -22,6 +22,9 @@ bool GameManager::Initialize(int init_game)
     
     _kibbles_eaten = 0;
 
+    _trial_info = new trial_info;
+    _trial_info->food_eaten = false;
+
     return true;
 }
 
@@ -62,8 +65,6 @@ bool GameManager::Run()
         // TODO simplify this / move to a function when cleaning up
 
         // NOTE: only info set AFTER any yield, i.e. from latest return, will be returned!
-        trial_info *_trial_info = new trial_info;
-        _trial_info->food_eaten = false;
 
         if (_current_game == 0)
         {
@@ -117,13 +118,14 @@ bool GameManager::Run()
         {
             Log.error("Invalid game selected!");
         }
-
+        
         if (trial_done)
         {
-            if(_trial_info->food_eaten)
-            {
-                _kibbles_eaten++;
-            }
+           if(_trial_info->food_eaten)
+           {
+               _kibbles_eaten++;
+           }
+           _trial_info->food_eaten = false;
         }
 
         if (trial_done && (_next_game != _current_game))
