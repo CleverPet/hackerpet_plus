@@ -3,7 +3,7 @@
  * Description:
  * Author:
  * Date:
- * VERSION: 0.1.39
+ * VERSION: 0.1.40
  */
 
 
@@ -43,7 +43,8 @@ void loop() {
     
     // ************************************ DISABLE FOR TESTING WITHOUT HUB ************************************
     // run the hub
-    hub.Run(20);
+    // RE ENABLE THIS
+    // hub.Run(20);
     // ************************************ ************************************ ************************************
 
     // run the loop for the current active game

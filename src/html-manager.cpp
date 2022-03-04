@@ -51,7 +51,7 @@ String HtmlManager::get_script_html()
                          "      console.log('DONE', xhttp.readyState);\n" // readyState will be 4
                          "      console.log(xhttp.responseText);\n"
                          "      var data = JSON.parse(xhttp.responseText);\n"
-                         "      kibbles_elem.value = data.max_kibbles;\n"
+                         //"      kibbles_elem.value = data.max_kibbles;\n"  // This overwrites as user types!
                          "      status_element.innerHTML = data.status;\n"
                          "      time_element.innerHTML = data.time;\n"
                          "      hub_state_element.innerHTML = data.hub_state;\n"

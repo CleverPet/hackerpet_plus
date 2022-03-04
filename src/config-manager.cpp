@@ -17,6 +17,7 @@ ConfigManager::ConfigManager(HubInterface * hub, GameManager * gameMan)
     _hub = hub;
     _gameMan = gameMan;
     _htmlMan = new HtmlManager();
+    _last_day = 0;
 }
 
 bool ConfigManager::_sched_char_to_string(char * char_tmp, String & str)
@@ -347,10 +348,32 @@ bool ConfigManager::_process_hub_mode()
         new_hub_state = _HUB_STATE_ACTIVE;
     }
     
+    // TODO have to count _kibbles_eaten_today !!
+    _kibbles_eaten_today = _gameMan.get_kibbles_eaten();
+
     // if kibbles are above limit, override new_hub_state to standby
     if (_kibbles_limit > 0 && _kibbles_eaten_today >= _kibbles_limit)
     {
         new_hub_state = _HUB_STATE_STANDBY;
+    }
+
+    // TODO reset kibbles eaten when needed! (when it is after midnight and previous time was before)
+    // based on: Time.day, Time.last_day ? - this is day of the month! check not equals
+    // Time.day()
+    int day_now = Time.day();
+
+    bool reset_kibbles = false;
+    if (day_now != _last_day)
+    {
+        reset_kibbles = true;
+    }
+
+    _last_day = day_now;
+
+    if (reset_kibbles)
+    {
+        _kibbles_eaten_today = 0;
+        _gameMan.reset_kibbles_eaten();
     }
 
     if (new_hub_state != _hub_state)
@@ -472,8 +495,8 @@ bool ConfigManager::_read_from_client(bool & request_finished, String & response
 bool ConfigManager::_process_request(String req_str)
 {
 
-    Log.info("request string:");
-    Log.print(req_str);
+    //Log.info("request string:");
+    //Log.print(req_str);
 
     // different types of requests
     

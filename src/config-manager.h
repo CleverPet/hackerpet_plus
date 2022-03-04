@@ -100,6 +100,7 @@ class ConfigManager
         int _kibbles_limit;
         int _kibbles_eaten_today;
 
+        int _last_day;
 };
 
 
