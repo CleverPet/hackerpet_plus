@@ -74,7 +74,7 @@ namespace AvoidingUnlitTouchpads
 
 
 /// The actual AvoidingUnlitTouchpads challenge. This function needs to be called in a loop.
-bool playAvoidingUnlitTouchpads(HubInterface * hub) {
+bool playAvoidingUnlitTouchpads(HubInterface * hub, trial_info *_trial_info) {
   using namespace AvoidingUnlitTouchpads;
   yield_begin();
 
@@ -213,6 +213,8 @@ bool playAvoidingUnlitTouchpads(HubInterface * hub) {
     }
   }
 
+  _trial_info->food_eaten = foodtreatWasEaten;
+
   // Check if we're ready for next challenge
   if (currentLevel == MAX_LEVEL) {
     addResultToPerformanceHistory(accurate, performance, perfDepth, perfPos, HISTORY_LENGTH);
@@ -277,11 +279,11 @@ bool playAvoidingUnlitTouchpads(HubInterface * hub) {
 }
 
 
-bool AvoidingUnlitTouchpads_Loop(HubInterface * hub)
+bool AvoidingUnlitTouchpads_Loop(HubInterface * hub, trial_info *_trial_info)
 {
   using namespace AvoidingUnlitTouchpads;
   bool gameIsComplete = false;
-  gameIsComplete = playAvoidingUnlitTouchpads(hub);// Returns true if level is done
+  gameIsComplete = playAvoidingUnlitTouchpads(hub, _trial_info);// Returns true if level is done
   return gameIsComplete;
 }
 

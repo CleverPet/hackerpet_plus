@@ -84,7 +84,7 @@ namespace EngagingConsistently
 }
 
 /// The actual EngagingConsistently challenge. This function needs to be called in a loop.
-bool playEngagingConsistently(HubInterface * hub) {
+bool playEngagingConsistently(HubInterface * hub, trial_info *_trial_info) {
   using namespace EngagingConsistently;
   yield_begin();
 
@@ -183,6 +183,8 @@ bool playEngagingConsistently(HubInterface * hub) {
     }
   }
 
+_trial_info->food_eaten = foodtreatWasEaten;
+
   if (!timeout) {
     // Send report
     Log.info("Sending report");
@@ -242,7 +244,7 @@ bool playEngagingConsistently(HubInterface * hub) {
 
 
 // new loop to call; same as original loop() below, but without hub->Run(20)
-bool EngagingConsistently_Loop(HubInterface * hub)
+bool EngagingConsistently_Loop(HubInterface * hub, trial_info *_trial_info)
 {
   using namespace EngagingConsistently;
   bool gameIsComplete = false;
@@ -260,7 +262,7 @@ bool EngagingConsistently_Loop(HubInterface * hub)
   if (millis() <= (challenge_timer_before + challenge_timer_length)) {
     // Play 1 level of the EngagingConsistently challenge
     // Will return true if level is done
-    gameIsComplete = playEngagingConsistently(hub);
+    gameIsComplete = playEngagingConsistently(hub, _trial_info);
   } else {
     // Log.info("Timer expired");
     reset_challenge_timer = true;

@@ -349,7 +349,7 @@ bool ConfigManager::_process_hub_mode()
     }
     
     // TODO have to count _kibbles_eaten_today !!
-    _kibbles_eaten_today = _gameMan.get_kibbles_eaten();
+    _kibbles_eaten_today = _gameMan->get_kibbles_eaten();
 
     // if kibbles are above limit, override new_hub_state to standby
     if (_kibbles_limit > 0 && _kibbles_eaten_today >= _kibbles_limit)
@@ -373,7 +373,7 @@ bool ConfigManager::_process_hub_mode()
     if (reset_kibbles)
     {
         _kibbles_eaten_today = 0;
-        _gameMan.reset_kibbles_eaten();
+        _gameMan->reset_kibbles_eaten();
     }
 
     if (new_hub_state != _hub_state)

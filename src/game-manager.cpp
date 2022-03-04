@@ -83,35 +83,35 @@ bool GameManager::Run()
         }
         else if (_current_game == 4)
         {
-            trial_done = LearningTheLights_Loop(_hub, _trial_info);
+            trial_done = LearningTheLights_Loop(_hub); //, _trial_info);
         }
         else if (_current_game == 5)
         {
-            trial_done = MasteringTheLights_Loop(_hub, _trial_info);
+            trial_done = MasteringTheLights_Loop(_hub); //, _trial_info);
         }
         else if (_current_game == 6)
         {
-            trial_done = RespondingQuickly_Loop(_hub, _trial_info);
+            trial_done = RespondingQuickly_Loop(_hub); //, _trial_info);
         }
         else if (_current_game == 7)
         {
-            trial_done = LearningBrightness_Loop(_hub, _trial_info);
+            trial_done = LearningBrightness_Loop(_hub); //, _trial_info);
         }
         else if (_current_game == 8)
         {
-            trial_done = LearningDoubleSequences_Loop(_hub, _trial_info);
+            trial_done = LearningDoubleSequences_Loop(_hub); //, _trial_info);
         }
         else if (_current_game == 9)
         {
-            trial_done = LearningLongerSequences_Loop(_hub, _trial_info);
+            trial_done = LearningLongerSequences_Loop(_hub); //, _trial_info);
         }
         else if (_current_game == 10)
         {
-            trial_done = MatchingTwoColors_Loop(_hub, _trial_info);
+            trial_done = MatchingTwoColors_Loop(_hub); //, _trial_info);
         }
         else if (_current_game == 11)
         {
-            trial_done = MatchingMoreColors_Loop(_hub, _trial_info);
+            trial_done = MatchingMoreColors_Loop(_hub); //, _trial_info);
         }
         else
         {

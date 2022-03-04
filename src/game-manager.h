@@ -37,9 +37,4 @@ class GameManager
 };
 
 
-struct trial_info {
-    bool food_eaten;
-};
-
-
 #endif

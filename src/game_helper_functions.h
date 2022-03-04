@@ -72,4 +72,10 @@ void advanceTouchpad_MatchingTwoColors(unsigned char pad, unsigned char touchpad
 void advanceTouchpad_MatchingMoreColors(unsigned char pad, unsigned char touchpadsColor[], int numberOfColors);
 
 
+
+struct trial_info {
+    bool food_eaten;
+};
+
+
 #endif

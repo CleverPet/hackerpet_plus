@@ -79,7 +79,7 @@ namespace ExploringTheTouchpads
 }
 
 //// The actual ExploringTheTouchpads function. This function needs to be called in a loop.
-bool playExploringTheTouchpads(HubInterface * hub) {
+bool playExploringTheTouchpads(HubInterface * hub, trial_info *_trial_info) {
   using namespace ExploringTheTouchpads;
   yield_begin();
 
@@ -179,6 +179,8 @@ bool playExploringTheTouchpads(HubInterface * hub) {
     foodtreatWasEaten = false;
   }
 
+  _trial_info->food_eaten = foodtreatWasEaten;
+
   if (!timeout) {
 
     // Send report
@@ -239,14 +241,14 @@ bool playExploringTheTouchpads(HubInterface * hub) {
 
 
 // new loop to call; same as original loop() below, but without hub->Run(20)
-bool ExploringTheTouchpads_Loop(HubInterface * hub)
+bool ExploringTheTouchpads_Loop(HubInterface * hub, trial_info *_trial_info)
 {
   using namespace ExploringTheTouchpads;
 
   bool gameIsComplete = false;
 
   // Play 1 level of the ExploringTheTouchpads challenge
-  gameIsComplete = playExploringTheTouchpads(hub); // Will return true if level is done
+  gameIsComplete = playExploringTheTouchpads(hub, _trial_info); // Will return true if level is done
 
   return gameIsComplete;
 }

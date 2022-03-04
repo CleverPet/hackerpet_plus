@@ -37,11 +37,11 @@
  */
 
 /// The actual Eating The Food challenge. Function must be be called in a loop.
-bool playEatingTheFood(HubInterface * hub);
+bool playEatingTheFood(HubInterface * hub, trial_info *_trial_info);
 
 
 // new loop to call; same as original loop() below, but without hub->Run(20)
-bool EatingTheFood_Loop(HubInterface * hub);
+bool EatingTheFood_Loop(HubInterface * hub, trial_info *_trial_info);
 
 
 
