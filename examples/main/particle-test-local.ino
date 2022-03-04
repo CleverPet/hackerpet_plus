@@ -43,8 +43,7 @@ void loop() {
     
     // ************************************ DISABLE FOR TESTING WITHOUT HUB ************************************
     // run the hub
-    // RE ENABLE THIS
-    // hub.Run(20);
+    hub.Run(20);
     // ************************************ ************************************ ************************************
 
     // run the loop for the current active game
