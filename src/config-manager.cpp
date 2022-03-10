@@ -92,6 +92,8 @@ bool ConfigManager::Initialize()
         
         EEPROM.get(_KIBBLES_LIMIT_ADDRESS, _kibbles_limit);
 
+        EEPROM.get(_FOODTREAT_THRESH_ADDRESS, _foodtreat_detect_thresh);
+
         _last_hub_mode = _hub_mode;
 
     }
@@ -144,7 +146,13 @@ bool ConfigManager::Initialize()
         _kibbles_limit = 0;
         EEPROM.put(_KIBBLES_LIMIT_ADDRESS, _kibbles_limit);
 
+        _foodtreat_detect_thresh = 60;  // 40 for empty dish fix
+        EEPROM.put(_FOODTREAT_THRESH_ADDRESS, _foodtreat_detect_thresh);
+
     }
+
+    // TODO need to read _foodtreat_detect_thresh from EEPROM!!!
+    _hub->SetFoodTreatDetectThresh(_foodtreat_detect_thresh);
 
     return true;
 
@@ -934,15 +942,18 @@ bool ConfigManager::_write_response_html()
     
     String content_5 = "";
     content_5 += _htmlMan->get_kibbles_html(_kibbles_limit, _kibbles_eaten_today);
+    
+    String content_6 = "";
+    content_6 += _htmlMan->get_foodtreat_thresh_html(_foodtreat_detect_thresh);
 
-    content_5 += "</body>\n";
-    content_5 += "</html>";
+    content_6 += "</body>\n";
+    content_6 += "</html>";
     //Log.info("content length: " + int_to_string(content.length()));
     //Log.info("content_2 length: " + int_to_string(content_2.length()));
     _webclient.println("HTTP/1.0 200 OK");
     _webclient.println("Content-type: text/html");
     _webclient.print("Content-length: ");
-    _webclient.println(content.length() + time_zone_str.length() + content_2.length() + content_3.length() + content_4.length() + content_5.length());
+    _webclient.println(content.length() + time_zone_str.length() + content_2.length() + content_3.length() + content_4.length() + content_5.length() + content_6.length());
     _webclient.println("");
     _webclient.print(content);
     _webclient.print(time_zone_str);
@@ -950,6 +961,7 @@ bool ConfigManager::_write_response_html()
     _webclient.print(content_3);
     _webclient.print(content_4);
     _webclient.print(content_5);
+    _webclient.print(content_6);
     _webclient.println();
 
     return true;

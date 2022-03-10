@@ -52,6 +52,7 @@ String HtmlManager::get_script_html()
                          "      console.log(xhttp.responseText);\n"
                          "      var data = JSON.parse(xhttp.responseText);\n"
                          //"      kibbles_elem.value = data.max_kibbles;\n"  // This overwrites as user types!
+                         "           max_kb_disp_element.innerHTML = data.max_kibbles;\n" // won't interfere now!
                          "      status_element.innerHTML = data.status;\n"
                          "      time_element.innerHTML = data.time;\n"
                          "      hub_state_element.innerHTML = data.hub_state;\n"
@@ -298,19 +299,30 @@ String HtmlManager::get_kibbles_html(int kibbles_limit, int kibbles_eaten_today)
                          "      xhttp.open(\"POST\", \"http://cleverpet.local/local-api/kibbles_set\", true);\n"
                          "      xhttp.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded\");\n"
                          "      var kibbles_elem = document.getElementById(\"kibbles_set\");\n"
+                         "      var max_kb_disp_element = document.getElementById(\"max-kb-disp\");\n"
                          "      xhttp.send(\"max_kibbles=\"+kibbles_elem.value);\n"
                          "      xhttp.onload = function () {\n"
                          "           console.log(xhttp.responseText);\n"
                          "           var data = JSON.parse(xhttp.responseText);\n"
-                         "           kibbles_elem.value = data.max_kibbles;\n"
+                         // "           kibbles_elem.value = data.max_kibbles;\n"  // disabled so we don't overwrite during editing
+                         "           max_kb_disp_element.innerHTML = data.max_kibbles;\n" // also re-enable: update this every 2 seconds with everything else! won't interfere now!
                          "      };\n"
                          "      \n"
                          "}\n"
                          "</script>\n"
-                         "<label for=\"kibbles_set\">max kibbles per day (0 for unlimited):</label>\n"
-                         "<input type=\"text\" id=\"kibbles_set\" name=\"kibbles_set\" onchange=\"kibbles_change()\" value=\"" + int_to_string(kibbles_limit) + "\"><br><br>\n"
+                         "<b>current max kibbles limit per day: <strong class=\"api-msg\" id=\"max-kb-disp\">" + kibbles_limit + "</strong></b><br />\n"
+                         "<label for=\"kibbles_set\">enter new max kibbles per day (0 for unlimited):</label>\n"
+                         "<input type=\"text\" id=\"kibbles_set\" name=\"kibbles_set\" oninput=\"kibbles_change()\" value=\"" + int_to_string(kibbles_limit) + "\"><br><br>\n"
                          "<b>Kibbles eaten: </b>"+ int_to_string(kibbles_eaten_today) + "<br>\n";
                          //"</form>\n";
 
     return content_str;
+}
+
+
+String HtmlManager::get_foodtreat_thresh_html(int foodtreat_detect_thresh)
+{
+    String content_str = ""
+                         ""
+                         "";
 }
