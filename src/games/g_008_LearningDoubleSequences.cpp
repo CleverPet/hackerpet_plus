@@ -74,7 +74,7 @@ namespace LearningDoubleSequences
 
 
 /// The actual LearningDoubleSequences challenge. This function needs to be called in a loop.
-bool playLearningDoubleSequences(HubInterface * hub){
+bool playLearningDoubleSequences(HubInterface * hub, trial_info *_trial_info){
     using namespace LearningDoubleSequences;
     yield_begin();
 
@@ -263,6 +263,8 @@ bool playLearningDoubleSequences(HubInterface * hub){
         addResultToPerformanceHistory(accurate, performance, perfDepth, perfPos, HISTORY_LENGTH);
     }
 
+    _trial_info->food_eaten = foodtreatWasEaten;
+
     // Check if we're ready for next challenge
     if (currentLevel == MAX_LEVEL){
         if (countSuccesses(performance, perfDepth) >= ENOUGH_SUCCESSES){
@@ -317,11 +319,11 @@ bool playLearningDoubleSequences(HubInterface * hub){
 
 
 
-bool LearningDoubleSequences_Loop(HubInterface * hub)
+bool LearningDoubleSequences_Loop(HubInterface * hub, trial_info *_trial_info)
 {
   using namespace LearningDoubleSequences;
   bool gameIsComplete = false;
-  gameIsComplete = playLearningDoubleSequences(hub);// Returns true if level is done
+  gameIsComplete = playLearningDoubleSequences(hub, _trial_info);// Returns true if level is done
   return gameIsComplete;
 }
 

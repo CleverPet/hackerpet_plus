@@ -41,9 +41,9 @@
 
 
 /// The actual LearningLongerSequences function. This function needs to be called in a loop.
-bool playLearningLongerSequences(HubInterface * hub);
+bool playLearningLongerSequences(HubInterface * hub, trial_info *_trial_info);
 
-bool LearningLongerSequences_Loop(HubInterface * hub);
+bool LearningLongerSequences_Loop(HubInterface * hub, trial_info *_trial_info);
 
 // /**
 //  * Setup function

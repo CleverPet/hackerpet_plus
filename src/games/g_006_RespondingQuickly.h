@@ -40,9 +40,9 @@
 
 
 /// The actual RespondingQuickly challenge. This function needs to be called in a loop.
-bool playRespondingQuickly(HubInterface * hub);
+bool playRespondingQuickly(HubInterface * hub, trial_info *_trial_info);
 
-bool RespondingQuickly_Loop(HubInterface * hub);
+bool RespondingQuickly_Loop(HubInterface * hub, trial_info *_trial_info);
 
 
 // /**

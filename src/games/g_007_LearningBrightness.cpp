@@ -89,7 +89,7 @@ namespace LearningBrightness
 
 
 /// The actual LearningBrightness challenge. This function needs to be called in a loop.
-bool playLearningBrightness(HubInterface * hub){
+bool playLearningBrightness(HubInterface * hub, trial_info *_trial_info){
     using namespace LearningBrightness;
     yield_begin();
 
@@ -279,6 +279,8 @@ discarding performance.");
         }
     }
 
+    _trial_info->food_eaten = foodtreatWasEaten;
+
     // Check if we're ready for next challenge
     if (currentLevel == MAX_LEVEL){
         if (countSuccesses(performance, perfDepth) >= ENOUGH_SUCCESSES){
@@ -348,11 +350,11 @@ discarding performance.");
     return true;
 }
 
-bool LearningBrightness_Loop(HubInterface * hub)
+bool LearningBrightness_Loop(HubInterface * hub, trial_info *_trial_info)
 {
     using namespace LearningBrightness;
     bool gameIsComplete = false;
-    gameIsComplete = playLearningBrightness(hub); // Returns true if level is done
+    gameIsComplete = playLearningBrightness(hub, _trial_info); // Returns true if level is done
     return gameIsComplete;
 }
 

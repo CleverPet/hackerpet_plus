@@ -49,9 +49,9 @@
 
 
 /// The actual LearningBrightness challenge. This function needs to be called in a loop.
-bool playLearningBrightness(HubInterface * hub);
+bool playLearningBrightness(HubInterface * hub, trial_info *_trial_info);
 
-bool LearningBrightness_Loop(HubInterface * hub);
+bool LearningBrightness_Loop(HubInterface * hub, trial_info *_trial_info);
 
 // /**
 //  * Setup function

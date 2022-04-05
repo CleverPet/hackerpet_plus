@@ -67,7 +67,7 @@ namespace LearningTheLights
 
 
 /// The actual LearningTheLights challenge. This function needs to be called in a loop.
-bool playLearningTheLights(HubInterface * hub) {
+bool playLearningTheLights(HubInterface * hub, trial_info *_trial_info) {
   using namespace LearningTheLights;
   yield_begin();
 
@@ -205,6 +205,8 @@ bool playLearningTheLights(HubInterface * hub) {
     }
   }
 
+  _trial_info->food_eaten = foodtreatWasEaten;
+
   // Update performance, even on timeout
   // Check if we're ready for next challenge
   if (currentLevel == MAX_LEVEL) {
@@ -269,11 +271,11 @@ bool playLearningTheLights(HubInterface * hub) {
   return true;
 }
 
-bool LearningTheLights_Loop(HubInterface * hub)
+bool LearningTheLights_Loop(HubInterface * hub, trial_info *_trial_info)
 {
   using namespace LearningTheLights;
   bool gameIsComplete = false;
-  gameIsComplete = playLearningTheLights(hub);// Returns true if level is done
+  gameIsComplete = playLearningTheLights(hub, _trial_info);// Returns true if level is done
   return gameIsComplete;
 }
 

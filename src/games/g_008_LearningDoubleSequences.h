@@ -40,10 +40,10 @@
 #include "game_helper_functions.h"
 
 /// The actual LearningDoubleSequences challenge. This function needs to be called in a loop.
-bool playLearningDoubleSequences(HubInterface * hub);
+bool playLearningDoubleSequences(HubInterface * hub, trial_info *_trial_info);
 
 
-bool LearningDoubleSequences_Loop(HubInterface * hub);
+bool LearningDoubleSequences_Loop(HubInterface * hub, trial_info *_trial_info);
 
 
 // /**

@@ -79,7 +79,7 @@ namespace RespondingQuickly
 
 
 /// The actual RespondingQuickly challenge. This function needs to be called in a loop.
-bool playRespondingQuickly(HubInterface * hub) {
+bool playRespondingQuickly(HubInterface * hub, trial_info *_trial_info) {
   using namespace RespondingQuickly;
   yield_begin();
 
@@ -235,6 +235,8 @@ bool playRespondingQuickly(HubInterface * hub) {
     addResultToPerformanceHistory(accurate, performance, perfDepth, perfPos, HISTORY_LENGTH);
   }
 
+  _trial_info->food_eaten = foodtreatWasEaten;
+
   // Check if we're ready for next challenge
   if (currentLevel == MAX_LEVEL) {
     if (countSuccesses(performance, perfDepth) >= ENOUGH_SUCCESSES) {
@@ -311,11 +313,11 @@ bool playRespondingQuickly(HubInterface * hub) {
 }
 
 
-bool RespondingQuickly_Loop(HubInterface * hub)
+bool RespondingQuickly_Loop(HubInterface * hub, trial_info *_trial_info)
 {
   using namespace RespondingQuickly;
   bool gameIsComplete = false;
-  gameIsComplete = playRespondingQuickly(hub);// Returns true if level is done
+  gameIsComplete = playRespondingQuickly(hub, _trial_info);// Returns true if level is done
   return gameIsComplete;
 }
 

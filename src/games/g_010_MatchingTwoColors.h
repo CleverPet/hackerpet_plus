@@ -46,10 +46,10 @@
 
 
 /// The actual MatchingTwoColors challenge. This function needs to be called in a loop.
-bool playMatchingTwoColors(HubInterface * hub);
+bool playMatchingTwoColors(HubInterface * hub, trial_info *_trial_info);
 
 
-bool MatchingTwoColors_Loop(HubInterface * hub);
+bool MatchingTwoColors_Loop(HubInterface * hub, trial_info *_trial_info);
 
 // /**
 //  * Setup function
