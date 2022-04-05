@@ -278,3 +278,28 @@ String HtmlManager::_get_post_link_string(String text, String name, String value
                            "</form>\n";
     return post_link_str;
 }
+
+
+String HtmlManager::get_placeholder_html()
+{
+
+    // placeholder html for uncompleted features
+    String content_str = "Max Kibbles per day: <select name=\"select_max_kibbles\">\n"
+                         "<option value=\"0\" selected>Unlimited</option>\n"
+                         "<option value=\"25\">25</option>\n"
+                         "<option value=\"50\">50</option>\n"
+                         "<option value=\"100\">100</option>\n"
+                         "<option value=\"200\">200</option>\n"
+                         "<option value=\"400\">400</option>\n"
+                         "</select><br>\n"
+                         "<b>Kibbles eaten today: </b>10<br><br>\n"
+                         "Kibble detect threshold: <select name=\"select_kibble_threshold\">\n"
+                         "<option value=\"40\">40</option>\n"
+                         "<option value=\"60\">60</option>\n"
+                         "</select><br>\n";
+
+    // --config-- section: sensitivity of kibble detect
+
+    // something about logging?
+    return ""; //content_str;
+}

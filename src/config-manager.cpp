@@ -856,23 +856,28 @@ bool ConfigManager::_write_response_html()
         content_4 += "Invalid";
     }
 
-    content_4 += "</strong><br />\n";
-    content_4 += "</b>\n";
+    String content_5 = "";
 
-    content_4 += "</body>\n";
-    content_4 += "</html>";
+    content_5 += _htmlMan->get_placeholder_html();
+
+    content_5 += "</strong><br />\n";
+    content_5 += "</b>\n";
+
+    content_5 += "</body>\n";
+    content_5 += "</html>";
     //Log.info("content length: " + int_to_string(content.length()));
     //Log.info("content_2 length: " + int_to_string(content_2.length()));
     _webclient.println("HTTP/1.0 200 OK");
     _webclient.println("Content-type: text/html");
     _webclient.print("Content-length: ");
-    _webclient.println(content.length() + time_zone_str.length() + content_2.length() + content_3.length() + content_4.length());
+    _webclient.println(content.length() + time_zone_str.length() + content_2.length() + content_3.length() + content_4.length() + content_5.length());
     _webclient.println("");
     _webclient.print(content);
     _webclient.print(time_zone_str);
     _webclient.print(content_2);
     _webclient.print(content_3);
     _webclient.print(content_4);
+    _webclient.print(content_5);
     _webclient.println();
 
     return true;
