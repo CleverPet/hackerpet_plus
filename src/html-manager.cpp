@@ -281,15 +281,22 @@ String HtmlManager::_get_post_link_string(String text, String name, String value
     return post_link_str;
 }
 
+String HtmlManager::_get_selected_max_kibbles_option(int kibbles_limit, int compare)
+{
+    if (kibbles_limit == compare)
+    {
+        return " selected";
+    }
+    else
+    {
+        return "";
+    }
+}
+
 String HtmlManager::get_kibbles_html(int kibbles_limit, int kibbles_eaten_today)
 {
 
-    // TODO make a small form that can submit just this field
-    // on submit a change, also update the field?
-    // should just submit the change when number is changed in the form
-    // if not a number: set to 0 (unlimited)
-
-    // as part of onload: set the new, cleaned value. i.e. server will do all the checks for proper value etc. and return the new int. 0 if wrong values.
+    // TODO update all these for select instead of text field!!!
 
     String content_str = //"<form method=\"post\" action=\"http://cleverpet.local\">\n"
                          "<script>\n"
@@ -297,18 +304,20 @@ String HtmlManager::get_kibbles_html(int kibbles_limit, int kibbles_eaten_today)
                          "      var xhttp = new XMLHttpRequest();\n"
                          "      xhttp.open(\"POST\", \"http://cleverpet.local/local-api/kibbles_set\", true);\n"
                          "      xhttp.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded\");\n"
-                         "      var kibbles_elem = document.getElementById(\"kibbles_set\");\n"
-                         "      xhttp.send(\"max_kibbles=\"+kibbles_elem.value);\n"
-                         "      xhttp.onload = function () {\n"
-                         "           console.log(xhttp.responseText);\n"
-                         "           var data = JSON.parse(xhttp.responseText);\n"
-                         "           kibbles_elem.value = data.max_kibbles;\n"
-                         "      };\n"
+                         "      var kibbles_elem = document.getElementById(\"select_max_kibbles\");\n"
+                         "      xhttp.send(\"max_kibbles=\"+kibbles_elem.value);\n"  // TODO test! is this how to do for select? also TODO don't need to send back value!
                          "      \n"
                          "}\n"
                          "</script>\n"
-                         "<label for=\"kibbles_set\">max kibbles per day (0 for unlimited):</label>\n"
-                         "<input type=\"text\" id=\"kibbles_set\" name=\"kibbles_set\" onchange=\"kibbles_change()\" value=\"" + int_to_string(kibbles_limit) + "\"><br><br>\n"
+                         "Max Kibbles per day: <select name=\"select_max_kibbles\" onchange=\"kibbles_change()\">\n"
+                         "<option value=\"0\"" + _get_selected_max_kibbles_option(kibbles_limit, 0) + ">Unlimited</option>\n"
+                         "<option value=\"25\"" + _get_selected_max_kibbles_option(kibbles_limit, 25) + ">25</option>\n"
+                         "<option value=\"50\"" + _get_selected_max_kibbles_option(kibbles_limit, 50) + ">50</option>\n"
+                         "<option value=\"100\"" + _get_selected_max_kibbles_option(kibbles_limit, 100) + ">100</option>\n"
+                         "<option value=\"200\"" + _get_selected_max_kibbles_option(kibbles_limit, 200) + ">200</option>\n"
+                         "<option value=\"400\"" + _get_selected_max_kibbles_option(kibbles_limit, 400) + ">400</option>\n"
+                         "</select><br>\n"
+                         "<br>"
                          "<b>Kibbles eaten: </b>"+ int_to_string(kibbles_eaten_today) + "<br>\n";
                          //"</form>\n";
 
