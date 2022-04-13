@@ -500,36 +500,391 @@ bool ConfigManager::_process_request(String req_str)
 
     // different types of requests
     
+    bool req_get = req_str.substring(0, 3).equalsIgnoreCase("GET");
+    bool req_post = req_str.substring(0, 4).equalsIgnoreCase("POST");
+
     if (req_str.indexOf("local-api") > -1)
     {
-        _process_api_req(req_str);
-    }
-    else
-    {
-        bool req_get = req_str.substring(0, 3).equalsIgnoreCase("GET");
-        bool req_post = req_str.substring(0, 4).equalsIgnoreCase("POST");
-
         if (req_get)
         {
-            Log.info("!!! SERVER IS SERVING GET REQUEST !!!");
-            _process_get_req(req_str);
+            Log.info("--- SERVER IS SERVING API GET REQUEST ---");
+            _process_api_get_req(req_str);
         }
         else if (req_post)
         {
-            Log.info("!!! SERVER IS SERVING POST REQUEST !!!");
-            _process_post_req(req_str);
+            Log.info("--- SERVER IS SERVING API POST REQUEST ---");
+            _process_api_post_req(req_str);  
         }
         else
         {
-            Log.error("!!! SERVER IS SERVING UNKNOWN REQUEST !!!");
+            Log.error("!!! SERVER IS SERVING UNKNOWN REQUEST HTTP TYPE !!!");
         }
 
-        _write_response_html();
+        // old GET: refreshes info on page; 
+        // old POST: max_kibbles, scheduler
+    }
+    else
+    {
+
+        if (req_get)
+        {
+            Log.info("--- SERVER IS SERVING GET REQUEST ---");
+
+            _process_get_req(req_str);  // writes the webpage for browser
+        }
+        // DEPRECATED
+        // else if (req_post)
+        // {
+        //     Log.info("!!! SERVER IS SERVING POST REQUEST !!!");
+        //     _process_post_req(req_str); // old: timezone, game, dst, hub_mode
+        // }
+        else
+        {
+            Log.error("!!! SERVER IS SERVING UNKNOWN REQUEST HTTP TYPE !!!");
+        }
 
     }
     return true;
 }
 
+
+// ******************************************************** API GET ******************************************************** API GET ********************************************************
+
+
+bool ConfigManager::_process_api_get_req(String req_str)
+{
+        //Log.info("API request string:");
+        //Log.print(req_str);
+        
+        String next_game_str = int_to_string(_next_game_to_play);
+        String current_game_str = int_to_string(_game_to_play);
+
+        // TODO return also the "hub status" here !!!
+
+        String hub_state_str = "";
+        if (_hub_state == _HUB_STATE_ACTIVE)
+        {
+            hub_state_str += "Active";
+        }
+        else if (_hub_state == _HUB_STATE_STANDBY)
+        {
+            hub_state_str += "Standby";
+        }
+        else
+        {
+            hub_state_str += "Invalid";
+        }
+
+        String return_str = "{"
+                            "\"status\":\"" + _display_error_msg + "\","
+                            "\"game_id_queued\":\"" + next_game_str + "\","
+                            "\"game_id_playing\":\"" + current_game_str + "\","
+                            "\"hub_state\":\"" + hub_state_str + "\","
+                            "\"time\":\"" + Time.timeStr() + "\","
+                            "\"max_kibbles\":\"" + int_to_string(_kibbles_limit) + "\""
+                            "}";
+        _webclient.println(return_str);
+}
+
+
+// ******************************************************** API POST ******************************************************** API POST ********************************************************
+
+
+
+bool ConfigManager::_process_api_post_req(String req_str)
+{
+
+    // TODO what to print as return str that gets no error? empty dict?
+    if (req_str.indexOf("set_game") > -1)
+    {
+        _process_set_game_req(req_str);
+    }
+    else if (req_str.indexOf("set_max_kibbles") > -1)
+    {
+        _process_set_max_kibbles_req(req_str);
+    }
+    else if (req_str.indexOf("set_kibbles_thresh") > -1)
+    {
+        _process_set_kibbles_thresh_req(req_str);
+    }
+    else if (req_str.indexOf("set_dst") > -1)
+    {
+        _process_set_dst_req(req_str);
+    }
+    else if (req_str.indexOf("set_timezone") > -1)
+    {
+        _process_set_timezone_req(req_str);
+    }
+    else if (req_str.indexOf("set_hub_mode") > -1)
+    {
+        _process_set_hub_mode_req(req_str);
+    }
+    else if (req_str.indexOf("set_schedule") > -1)
+    {
+        _process_set_schedule_req(req_str);
+    }
+    else
+    {
+ 
+        Log.error("!!! SERVER IS SERVING UNKNOWN API POST REQUEST !!!");
+    }
+
+}
+
+
+bool ConfigManager::_process_set_game_req(String req_str)
+{   
+    // TODO fix indexes and names of req for new api post, model after max kibbles
+
+    int game_html_index = req_str.indexOf("game=");
+
+    Log.info("This is a GAME post request.");
+
+    String new_game_str = req_str.substring(game_html_index + 5, game_html_index + 6);
+    String new_game_str_2 = req_str.substring(game_html_index + 5, game_html_index + 7);
+    
+    if (new_game_str_2.equalsIgnoreCase("10"))
+    {
+        _new_game_selected = 10;
+        Log.info("POST: selected game 10!");
+    }
+    else if (new_game_str_2.equalsIgnoreCase("11"))
+    {
+        _new_game_selected = 11;
+        Log.info("POST: selected game 11!");
+    }
+    else if (new_game_str.equalsIgnoreCase("0"))
+    {
+        _new_game_selected = 0;
+        Log.info("POST: selected game 0!");
+    }
+    else if (new_game_str.equalsIgnoreCase("1"))
+    {
+        _new_game_selected = 1;
+        Log.info("POST: selected game 1!");          
+    }
+    else if (new_game_str.equalsIgnoreCase("2"))
+    {
+        _new_game_selected = 2;
+        Log.info("POST: selected game 2!");
+    }
+    else if (new_game_str.equalsIgnoreCase("3"))
+    {
+        _new_game_selected = 3;
+        Log.info("POST: selected game 3!");
+    }
+    else if (new_game_str.equalsIgnoreCase("4"))
+    {
+        _new_game_selected = 4;
+        Log.info("POST: selected game 4!");
+    }
+    else if (new_game_str.equalsIgnoreCase("5"))
+    {
+        _new_game_selected = 5;
+        Log.info("POST: selected game 5!");
+    }
+    else if (new_game_str.equalsIgnoreCase("6"))
+    {
+        _new_game_selected = 6;
+        Log.info("POST: selected game 6!");
+    }
+    else if (new_game_str.equalsIgnoreCase("7"))
+    {
+        _new_game_selected = 7;
+        Log.info("POST: selected game 7!");
+    }
+    else if (new_game_str.equalsIgnoreCase("8"))
+    {
+        _new_game_selected = 8;
+        Log.info("POST: selected game 8!");
+    }
+    else if (new_game_str.equalsIgnoreCase("9"))
+    {
+        _new_game_selected = 9;
+        Log.info("POST: selected game 9!");
+    }
+
+    String return_str = "{}";
+    
+    Log.info("sending back: string:");
+    Log.print(return_str);
+
+    _webclient.println(return_str);
+
+    return true;
+
+}
+
+
+bool ConfigManager::_process_set_max_kibbles_req(String req_str)
+{
+        String max_kibbles_str = req_str.substring(req_str.indexOf("max_kibbles=") + 12).substring(0, 5);
+        int max_kibbles = max_kibbles_str.toInt();
+        // check if int
+        // toInt will return zero if invalid
+                    
+        if (max_kibbles < 0)
+        {
+            max_kibbles = 0;
+        }
+        
+        EEPROM.put(_KIBBLES_LIMIT_ADDRESS, max_kibbles);
+        _kibbles_limit = max_kibbles;
+
+        String return_str = "{}";
+        Log.info("sending back: string:");
+        Log.print(return_str);
+        _webclient.println(return_str);
+
+        return true;
+}
+
+bool _process_set_kibbles_thresh_req(String req_str)
+{
+
+    // TODO is there  abranch where we have eeprom etc. stuff for this already coded?
+    // yes: 
+    // https://github.com/CleverPet/hackerpet_plus/pull/7/files
+
+    return true;
+}
+
+bool ConfigManager::_process_dst_req(String req_str)
+{
+
+    // TODO fix indexes and names of req for new api post, model after max kibbles
+
+    int dst_html_index = req_str.indexOf("select_dst=");
+
+    Log.info("This is a DST post request.");
+
+    String tmp_2 = req_str.substring(dst_html_index + 11);
+    //tmp_2 = tmp_2.substring(0, tmp_2.indexOf("&"));
+    Log.print(tmp_2 + "\n");
+    
+    _dst_on = bool(tmp_2.toInt());
+    if(_dst_on)
+    {
+        Time.beginDST();
+    }
+    else
+    {
+        Time.endDST();
+    }
+    EEPROM.put(_DST_EEP_ADDRESS, _dst_on);
+
+    String return_str = "{}";
+    Log.info("sending back: string:");
+    Log.print(return_str);
+    _webclient.println(return_str);
+
+    return true;
+}
+
+bool ConfigManager::_process_timezone_req(String req_str)
+{
+
+    // TODO fix indexes and names of req for new api post, model after max kibbles
+
+    int timezone_html_index = req_str.indexOf("select_timezone=");
+
+    Log.info("This is a TIMEZONE post request.");
+
+    String tmp_2 = req_str.substring(timezone_html_index + 16);
+    //tmp_2 = tmp_2.substring(0, tmp_2.indexOf("&"));
+    Log.print(tmp_2 + "\n");
+    
+    float tz_offset = tmp_2.toFloat();
+    Time.zone(tz_offset);              
+    _time_zone_offset = tz_offset;
+    EEPROM.put(_TIME_ZONE_EEP_ADDRESS, _time_zone_offset);
+    
+            String return_str = "{}";
+        Log.info("sending back: string:");
+        Log.print(return_str);
+        _webclient.println(return_str);
+
+    return true;
+}
+
+
+bool ConfigManager::_process_hub_mode_req(String req_str)
+{
+
+    // TODO fix indexes and names of req for new api post, model after max kibbles
+
+    int hub_mode_html_index = req_str.indexOf("hub_mode="); 
+
+    Log.info("This is a HUB MODE / SCHEDULER post request.");
+    //Log.print("*******\n");
+    //Log.print(thing + "\n");
+    //Log.print("*-------------*\n");
+    String tmp_2 = req_str.substring(hub_mode_html_index + 9);
+    tmp_2 = tmp_2.substring(0, tmp_2.indexOf("&"));
+    Log.print(tmp_2 + "\n");
+    _hub_mode = tmp_2.toInt();
+    EEPROM.put(_HUB_MODE_EEP_ADDRESS, _hub_mode);
+
+        String return_str = "{}";
+        Log.info("sending back: string:");
+        Log.print(return_str);
+        _webclient.println(return_str);
+
+    return true;
+
+}
+
+bool ConfigManager::_process_set_schedule_req(String req_str)
+{
+        //scheduler request
+
+        // weekday_from=14:22&weekday_to=14:24&weekend_from=14:23&weekend_to=06:21
+        _weekday_from = req_str.substring(req_str.indexOf("weekday_from=") + 13).substring(0, 5);
+        _weekday_to = req_str.substring(req_str.indexOf("weekday_to=") + 11).substring(0, 5);
+        _weekend_from = req_str.substring(req_str.indexOf("weekend_from=") + 13).substring(0, 5);
+        _weekend_to = req_str.substring(req_str.indexOf("weekend_to=") + 11).substring(0, 5);
+
+        char char_tmp[6];
+        char_tmp[5] = 0;
+
+        _sched_string_to_char(char_tmp, _weekday_from);
+        EEPROM.put(_SCHED_WEEKDAY_FROM_ADDRESS, char_tmp);
+        
+        _sched_string_to_char(char_tmp, _weekday_to);
+        EEPROM.put(_SCHED_WEEKDAY_TO_ADDRESS, char_tmp);
+
+        _sched_string_to_char(char_tmp, _weekend_from);
+        EEPROM.put(_SCHED_WEEKEND_FROM_ADDRESS, char_tmp);
+
+        _sched_string_to_char(char_tmp, _weekend_to);
+        EEPROM.put(_SCHED_WEEKEND_TO_ADDRESS, char_tmp);
+
+        String return_str = "{}";
+        Log.info("sending back: string:");
+        Log.print(return_str);
+        _webclient.println(return_str);
+}
+
+// ******************************************************** WEBPAGE GET ******************************************************** WEBPAGE GET ********************************************************
+
+
+bool ConfigManager::_process_get_req(String req_str)
+{
+
+    // TODO write the new webpage
+    // (i.e. new version of (_write_response_html)
+    
+    return true;
+}
+
+
+
+
+
+
+// ////////////////////////////////////////////////////////////////////////////////////// DEPRECATED //////////////////////////////////////////////////////////////////////////////////////
+
+// DELETE: this is old, deprecated
 bool ConfigManager::_process_api_req(String req_str)
 {
     // this is an API request (asynchronous webpage update)
@@ -645,13 +1000,7 @@ bool ConfigManager::_process_api_req(String req_str)
     return true;
 }
 
-bool ConfigManager::_process_get_req(String req_str)
-{
-    // currently nothing specific in the request to process for GET
-    // assume all GET requests route to cleverpet.local
-    return true;
-}
-
+// DELETE: this is old, deprecated
 bool ConfigManager::_process_post_req(String req_str)
 {
     // what kind of request was it?

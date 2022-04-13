@@ -25,9 +25,9 @@ class ConfigManager
         bool _serve_webinterface();
         bool _read_from_client(bool & request_finished, String & response_str);
         bool _process_request(String req_str);
-        bool _process_api_req(String req_str);
+        bool _process_api_get_req(String req_str);
+        bool _process_api_post_req(String req_str);
         bool _process_get_req(String req_str);
-        bool _process_post_req(String req_str);
         
         bool _process_dst_req(String req_str, int dst_index);
         bool _process_timezone_req(String req_str, int dst_index);
