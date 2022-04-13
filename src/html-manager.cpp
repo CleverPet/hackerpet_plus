@@ -44,12 +44,14 @@ String HtmlManager::get_script_html()
                          "  var status_element = document.getElementById(\"api-hub-status\");\n"
                          "  var time_element = document.getElementById(\"api-time\");\n"
                          "  var hub_state_element = document.getElementById(\"api-hub-state\");\n"
+                        "   var kibbles_elem = document.getElementById(\"kibbles_set\");\n"
                          "  xhttp.open(\"GET\", \"http://cleverpet.local/local-api\", true);\n"
                          "  xhttp.send();\n"
                          "  xhttp.onload = function () {\n"
                          "      console.log('DONE', xhttp.readyState);\n" // readyState will be 4
                          "      console.log(xhttp.responseText);\n"
                          "      var data = JSON.parse(xhttp.responseText);\n"
+                         //"      kibbles_elem.value = data.max_kibbles;\n"  // This overwrites as user types!
                          "      status_element.innerHTML = data.status;\n"
                          "      time_element.innerHTML = data.time;\n"
                          "      hub_state_element.innerHTML = data.hub_state;\n"
@@ -277,4 +279,47 @@ String HtmlManager::_get_post_link_string(String text, String name, String value
                            "</button>\n"
                            "</form>\n";
     return post_link_str;
+}
+
+String HtmlManager::_get_selected_max_kibbles_option(int kibbles_limit, int compare)
+{
+    if (kibbles_limit == compare)
+    {
+        return " selected";
+    }
+    else
+    {
+        return "";
+    }
+}
+
+String HtmlManager::get_kibbles_html(int kibbles_limit, int kibbles_eaten_today)
+{
+
+    // TODO update all these for select instead of text field!!!
+
+    String content_str = //"<form method=\"post\" action=\"http://cleverpet.local\">\n"
+                         "<script>\n"
+                         "function kibbles_change() { \n"
+                         "      var xhttp = new XMLHttpRequest();\n"
+                         "      xhttp.open(\"POST\", \"http://cleverpet.local/local-api/kibbles_set\", true);\n"
+                         "      xhttp.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded\");\n"
+                         "      var kibbles_elem = document.getElementById(\"select_max_kibbles\");\n"
+                         "      xhttp.send(\"max_kibbles=\"+kibbles_elem.value);\n"  // TODO test! is this how to do for select? also TODO don't need to send back value!
+                         "      \n"
+                         "}\n"
+                         "</script>\n"
+                         "Max Kibbles per day: <select name=\"select_max_kibbles\" id=\"select_max_kibbles\" onchange=\"kibbles_change()\">\n"
+                         "<option value=\"0\"" + _get_selected_max_kibbles_option(kibbles_limit, 0) + ">Unlimited</option>\n"
+                         "<option value=\"25\"" + _get_selected_max_kibbles_option(kibbles_limit, 25) + ">25</option>\n"
+                         "<option value=\"50\"" + _get_selected_max_kibbles_option(kibbles_limit, 50) + ">50</option>\n"
+                         "<option value=\"100\"" + _get_selected_max_kibbles_option(kibbles_limit, 100) + ">100</option>\n"
+                         "<option value=\"200\"" + _get_selected_max_kibbles_option(kibbles_limit, 200) + ">200</option>\n"
+                         "<option value=\"400\"" + _get_selected_max_kibbles_option(kibbles_limit, 400) + ">400</option>\n"
+                         "</select><br>\n"
+                         "<br>"
+                         "<b>Kibbles eaten: </b>"+ int_to_string(kibbles_eaten_today) + "<br>\n";
+                         //"</form>\n";
+
+    return content_str;
 }

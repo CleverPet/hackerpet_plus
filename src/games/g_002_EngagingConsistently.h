@@ -42,10 +42,10 @@
 
 
 /// The actual EngagingConsistently challenge. This function needs to be called in a loop.
-bool playEngagingConsistently(HubInterface * hub);
+bool playEngagingConsistently(HubInterface * hub, trial_info *_trial_info);
 
 
 // new loop to call; same as original loop() below, but without hub->Run(20)
-bool EngagingConsistently_Loop(HubInterface * hub);
+bool EngagingConsistently_Loop(HubInterface * hub, trial_info *_trial_info);
 
 #endif

@@ -40,10 +40,10 @@
 
 
 /// The actual AvoidingUnlitTouchpads challenge. This function needs to be called in a loop.
-bool playAvoidingUnlitTouchpads(HubInterface * hub);
+bool playAvoidingUnlitTouchpads(HubInterface * hub, trial_info *_trial_info);
 
 
-bool AvoidingUnlitTouchpads_Loop(HubInterface * hub);
+bool AvoidingUnlitTouchpads_Loop(HubInterface * hub, trial_info *_trial_info);
 
 
 // /**

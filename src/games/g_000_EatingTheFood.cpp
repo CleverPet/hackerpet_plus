@@ -73,7 +73,7 @@ namespace EatingTheFood
  */
 
 /// The actual Eating The Food challenge. Function must be be called in a loop.
-bool playEatingTheFood(HubInterface * hub) {
+bool playEatingTheFood(HubInterface * hub, trial_info *_trial_info) {
   using namespace EatingTheFood;
   yield_begin();
 
@@ -115,7 +115,7 @@ bool playEatingTheFood(HubInterface * hub) {
 
   // play "reward" sound
   hub->PlayAudio(hub->AUDIO_POSITIVE, 20);
-  // give the Hub a moment to finish playing the reward sound
+  // give the Hub a moment to finish playing the reward sounds
   yield_sleep_ms(SOUND_FOODTREAT_DELAY, false);
 
   // dispense a foodtreat and wait until the tray is closed again
@@ -138,6 +138,8 @@ bool playEatingTheFood(HubInterface * hub) {
     Log.info("Foodtreat not eaten");
     foodtreatWasEaten = false;
   }
+
+_trial_info->food_eaten = foodtreatWasEaten;
 
   // send report
   Log.info("Sending report");
@@ -181,7 +183,7 @@ bool playEatingTheFood(HubInterface * hub) {
 
 
 // new loop to call; same as original loop() below, but without hub->Run(20)
-bool EatingTheFood_Loop(HubInterface * hub)
+bool EatingTheFood_Loop(HubInterface * hub, trial_info *_trial_info)
 {
   using namespace EatingTheFood;
   unsigned int perf_total = 0;  // sum of performance of the
@@ -189,7 +191,7 @@ bool EatingTheFood_Loop(HubInterface * hub)
   bool gameIsComplete = false;
 
   // Play 1 level of the Eating The Food challenge
-  gameIsComplete = playEatingTheFood(hub);  // Will return true if level is done
+  gameIsComplete = playEatingTheFood(hub, _trial_info);  // Will return true if level is done
 
   // Store level result in performance array
   if (gameIsComplete) {

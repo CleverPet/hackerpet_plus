@@ -36,10 +36,10 @@
 
 
 /// The actual MasteringTheLights challenge. This function needs to be called in a loop.
-bool playMasteringTheLights(HubInterface * hub);
+bool playMasteringTheLights(HubInterface * hub, trial_info *_trial_info);
 
 
-bool MasteringTheLights_Loop(HubInterface * hub);
+bool MasteringTheLights_Loop(HubInterface * hub, trial_info *_trial_info);
 
 
 // /**

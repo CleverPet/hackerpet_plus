@@ -70,7 +70,7 @@ namespace MasteringTheLights
 
 
 /// The actual MasteringTheLights challenge. This function needs to be called in a loop.
-bool playMasteringTheLights(HubInterface * hub) {
+bool playMasteringTheLights(HubInterface * hub, trial_info *_trial_info) {
   using namespace MasteringTheLights;
   yield_begin();
 
@@ -210,6 +210,8 @@ bool playMasteringTheLights(HubInterface * hub) {
     }
   }
 
+  _trial_info->food_eaten = foodtreatWasEaten;
+
   // Don't update performance if we have a timeout
   if (!timeout) {
     // Check if we're ready for next challenge
@@ -277,11 +279,11 @@ bool playMasteringTheLights(HubInterface * hub) {
 
 
 
-bool MasteringTheLights_Loop(HubInterface * hub)
+bool MasteringTheLights_Loop(HubInterface * hub, trial_info *_trial_info)
 {
   using namespace MasteringTheLights;
   bool gameIsComplete = false;
-  gameIsComplete = playMasteringTheLights(hub);// Returns true if level is done
+  gameIsComplete = playMasteringTheLights(hub, _trial_info);// Returns true if level is done
   return gameIsComplete;
 }
 

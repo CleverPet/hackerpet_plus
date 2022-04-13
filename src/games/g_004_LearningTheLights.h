@@ -32,9 +32,9 @@
 #include "game_helper_functions.h"
 
 /// The actual LearningTheLights challenge. This function needs to be called in a loop.
-bool playLearningTheLights(HubInterface * hub);
+bool playLearningTheLights(HubInterface * hub, trial_info *_trial_info);
 
-bool LearningTheLights_Loop(HubInterface * hub);
+bool LearningTheLights_Loop(HubInterface * hub, trial_info *_trial_info);
 
 
 // /**

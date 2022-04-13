@@ -17,6 +17,7 @@ ConfigManager::ConfigManager(HubInterface * hub, GameManager * gameMan)
     _hub = hub;
     _gameMan = gameMan;
     _htmlMan = new HtmlManager();
+    _last_day = 0;
 }
 
 bool ConfigManager::_sched_char_to_string(char * char_tmp, String & str)
@@ -88,6 +89,8 @@ bool ConfigManager::Initialize()
         Log.info("char_tmp 3:");
         Log.info(char_tmp);
         _sched_char_to_string(char_tmp, _weekend_to);
+        
+        EEPROM.get(_KIBBLES_LIMIT_ADDRESS, _kibbles_limit);
 
         _last_hub_mode = _hub_mode;
 
@@ -137,6 +140,10 @@ bool ConfigManager::Initialize()
         EEPROM.put(_SCHED_WEEKEND_TO_ADDRESS, char_tmp);
 
         _last_hub_mode = _hub_mode;
+
+        _kibbles_limit = 0;
+        EEPROM.put(_KIBBLES_LIMIT_ADDRESS, _kibbles_limit);
+
     }
 
     return true;
@@ -340,6 +347,34 @@ bool ConfigManager::_process_hub_mode()
         _hub_mode = _HUB_MODE_STAY_ON;
         new_hub_state = _HUB_STATE_ACTIVE;
     }
+    
+    // TODO have to count _kibbles_eaten_today !!
+    _kibbles_eaten_today = _gameMan->get_kibbles_eaten();
+
+    // if kibbles are above limit, override new_hub_state to standby
+    if (_kibbles_limit > 0 && _kibbles_eaten_today >= _kibbles_limit)
+    {
+        new_hub_state = _HUB_STATE_STANDBY;
+    }
+
+    // TODO reset kibbles eaten when needed! (when it is after midnight and previous time was before)
+    // based on: Time.day, Time.last_day ? - this is day of the month! check not equals
+    // Time.day()
+    int day_now = Time.day();
+
+    bool reset_kibbles = false;
+    if (day_now != _last_day)
+    {
+        reset_kibbles = true;
+    }
+
+    _last_day = day_now;
+
+    if (reset_kibbles)
+    {
+        _kibbles_eaten_today = 0;
+        _gameMan->reset_kibbles_eaten();
+    }
 
     if (new_hub_state != _hub_state)
     {
@@ -460,6 +495,9 @@ bool ConfigManager::_read_from_client(bool & request_finished, String & response
 bool ConfigManager::_process_request(String req_str)
 {
 
+    //Log.info("request string:");
+    //Log.print(req_str);
+
     // different types of requests
     
     if (req_str.indexOf("local-api") > -1)
@@ -529,7 +567,8 @@ bool ConfigManager::_process_api_req(String req_str)
                             "\"game_id_queued\":\"" + next_game_str + "\","
                             "\"game_id_playing\":\"" + current_game_str + "\","
                             "\"hub_state\":\"" + hub_state_str + "\","
-                            "\"time\":\"" + Time.timeStr() + "\""
+                            "\"time\":\"" + Time.timeStr() + "\","
+                            "\"max_kibbles\":\"" + int_to_string(_kibbles_limit) + "\""
                             "}";
         _webclient.println(return_str);
     }
@@ -539,29 +578,63 @@ bool ConfigManager::_process_api_req(String req_str)
         Log.info("API request string:");
         Log.print(req_str);
         
-        // weekday_from=14:22&weekday_to=14:24&weekend_from=14:23&weekend_to=06:21
-        _weekday_from = req_str.substring(req_str.indexOf("weekday_from=") + 13).substring(0, 5);
-        _weekday_to = req_str.substring(req_str.indexOf("weekday_to=") + 11).substring(0, 5);
-        _weekend_from = req_str.substring(req_str.indexOf("weekend_from=") + 13).substring(0, 5);
-        _weekend_to = req_str.substring(req_str.indexOf("weekend_to=") + 11).substring(0, 5);
+        // TODO TAKE THIS OUT!!!!!
+        //return true;
 
-        char char_tmp[6];
-        char_tmp[5] = 0;
+        if (req_str.indexOf("kibbles_set") > -1)
+        {
+            // max kibbles request
 
-        _sched_string_to_char(char_tmp, _weekday_from);
-        EEPROM.put(_SCHED_WEEKDAY_FROM_ADDRESS, char_tmp);
-        
-        _sched_string_to_char(char_tmp, _weekday_to);
-        EEPROM.put(_SCHED_WEEKDAY_TO_ADDRESS, char_tmp);
+            String max_kibbles_str = req_str.substring(req_str.indexOf("max_kibbles=") + 12).substring(0, 5);
+            int max_kibbles = max_kibbles_str.toInt();
+            // check if int
+            // toInt will return zero if invalid
+                        
+            if (max_kibbles < 0)
+            {
+                max_kibbles = 0;
+            }
+            
+            EEPROM.put(_KIBBLES_LIMIT_ADDRESS, max_kibbles);
+            _kibbles_limit = max_kibbles;
 
-        _sched_string_to_char(char_tmp, _weekend_from);
-        EEPROM.put(_SCHED_WEEKEND_FROM_ADDRESS, char_tmp);
+            String return_str = "{"
+                    "\"max_kibbles\":\"" + int_to_string(max_kibbles) + "\""
+                    "}";
+            
+            Log.info("kibbles set request, sending back: string:");
+            Log.print(return_str);
 
-        _sched_string_to_char(char_tmp, _weekend_to);
-        EEPROM.put(_SCHED_WEEKEND_TO_ADDRESS, char_tmp);
+            _webclient.println(return_str);
+        }
+        else
+        {
+            //scheduler request
 
-        String return_str = "{}";
-        _webclient.println(return_str);
+            // weekday_from=14:22&weekday_to=14:24&weekend_from=14:23&weekend_to=06:21
+            _weekday_from = req_str.substring(req_str.indexOf("weekday_from=") + 13).substring(0, 5);
+            _weekday_to = req_str.substring(req_str.indexOf("weekday_to=") + 11).substring(0, 5);
+            _weekend_from = req_str.substring(req_str.indexOf("weekend_from=") + 13).substring(0, 5);
+            _weekend_to = req_str.substring(req_str.indexOf("weekend_to=") + 11).substring(0, 5);
+
+            char char_tmp[6];
+            char_tmp[5] = 0;
+
+            _sched_string_to_char(char_tmp, _weekday_from);
+            EEPROM.put(_SCHED_WEEKDAY_FROM_ADDRESS, char_tmp);
+            
+            _sched_string_to_char(char_tmp, _weekday_to);
+            EEPROM.put(_SCHED_WEEKDAY_TO_ADDRESS, char_tmp);
+
+            _sched_string_to_char(char_tmp, _weekend_from);
+            EEPROM.put(_SCHED_WEEKEND_FROM_ADDRESS, char_tmp);
+
+            _sched_string_to_char(char_tmp, _weekend_to);
+            EEPROM.put(_SCHED_WEEKEND_TO_ADDRESS, char_tmp);
+
+            String return_str = "{}";
+            _webclient.println(return_str);
+        }
     }
     else
     {
@@ -858,21 +931,25 @@ bool ConfigManager::_write_response_html()
 
     content_4 += "</strong><br />\n";
     content_4 += "</b>\n";
+    
+    String content_5 = "";
+    content_5 += _htmlMan->get_kibbles_html(_kibbles_limit, _kibbles_eaten_today);
 
-    content_4 += "</body>\n";
-    content_4 += "</html>";
+    content_5 += "</body>\n";
+    content_5 += "</html>";
     //Log.info("content length: " + int_to_string(content.length()));
     //Log.info("content_2 length: " + int_to_string(content_2.length()));
     _webclient.println("HTTP/1.0 200 OK");
     _webclient.println("Content-type: text/html");
     _webclient.print("Content-length: ");
-    _webclient.println(content.length() + time_zone_str.length() + content_2.length() + content_3.length() + content_4.length());
+    _webclient.println(content.length() + time_zone_str.length() + content_2.length() + content_3.length() + content_4.length() + content_5.length());
     _webclient.println("");
     _webclient.print(content);
     _webclient.print(time_zone_str);
     _webclient.print(content_2);
     _webclient.print(content_3);
     _webclient.print(content_4);
+    _webclient.print(content_5);
     _webclient.println();
 
     return true;

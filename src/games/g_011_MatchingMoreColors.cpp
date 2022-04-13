@@ -87,7 +87,7 @@ namespace MatchingMoreColors
 
 
 /// The actual MatchingMoreColors challenge. This function needs to be called in a loop.
-bool playMatchingMoreColors(HubInterface * hub){
+bool playMatchingMoreColors(HubInterface * hub, trial_info *_trial_info){
     using namespace MatchingMoreColors;
     yield_begin();
 
@@ -306,6 +306,8 @@ bool playMatchingMoreColors(HubInterface * hub){
         addResultToPerformanceHistory(accurate, performance, perfDepth, perfPos, HISTORY_LENGTH);
     }
 
+    _trial_info->food_eaten = foodtreatWasEaten;
+
     // Check if we're ready for next challenge
     if (currentLevel == MAX_LEVEL){
         if (countSuccesses(performance, perfDepth) >= ENOUGH_SUCCESSES){
@@ -371,11 +373,11 @@ bool playMatchingMoreColors(HubInterface * hub){
 }
 
 
-bool MatchingMoreColors_Loop(HubInterface * hub)
+bool MatchingMoreColors_Loop(HubInterface * hub, trial_info *_trial_info)
 {
   using namespace MatchingMoreColors;
   bool gameIsComplete = false;
-  gameIsComplete = playMatchingMoreColors(hub);// Returns true if level is done
+  gameIsComplete = playMatchingMoreColors(hub, _trial_info);// Returns true if level is done
   return gameIsComplete;
 }
 

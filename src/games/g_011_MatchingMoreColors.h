@@ -39,10 +39,10 @@
 
 
 /// The actual MatchingMoreColors challenge. This function needs to be called in a loop.
-bool playMatchingMoreColors(HubInterface * hub);
+bool playMatchingMoreColors(HubInterface * hub, trial_info *_trial_info);
 
 
-bool MatchingMoreColors_Loop(HubInterface * hub);
+bool MatchingMoreColors_Loop(HubInterface * hub, trial_info *_trial_info);
 
 // /**
 //  * Setup function

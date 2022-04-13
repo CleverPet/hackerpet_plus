@@ -42,11 +42,11 @@ BUT, LEAVING OUT setup() and loop() functions!
 
 
 //// The actual ExploringTheTouchpads function. This function needs to be called in a loop.
-bool playExploringTheTouchpads(HubInterface * hub);
+bool playExploringTheTouchpads(HubInterface * hub, trial_info *_trial_info);
 
 
 // new loop to call; same as original loop() below, but without hub->Run(20)
-bool ExploringTheTouchpads_Loop(HubInterface * hub);
+bool ExploringTheTouchpads_Loop(HubInterface * hub, trial_info *_trial_info);
 
 
 

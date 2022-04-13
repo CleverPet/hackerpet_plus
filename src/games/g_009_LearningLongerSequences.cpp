@@ -79,7 +79,7 @@ namespace LearningLongerSequences
 
 
 /// The actual LearningLongerSequences function. This function needs to be called in a loop.
-bool playLearningLongerSequences(HubInterface * hub){
+bool playLearningLongerSequences(HubInterface * hub, trial_info *_trial_info){
     using namespace LearningLongerSequences;
     yield_begin();
 
@@ -291,6 +291,8 @@ bool playLearningLongerSequences(HubInterface * hub){
     if (!timeout){
         addResultToPerformanceHistory(accurate, performance, perfDepth, perfPos, HISTORY_LENGTH);
     }
+    
+    _trial_info->food_eaten = foodtreatWasEaten;
 
     // adjust sequence length according to performance
     if (countSuccesses(performance, perfDepth) >= ENOUGH_SUCCESSES) {
@@ -354,11 +356,11 @@ bool playLearningLongerSequences(HubInterface * hub){
     return true;
 }
 
-bool LearningLongerSequences_Loop(HubInterface * hub)
+bool LearningLongerSequences_Loop(HubInterface * hub, trial_info *_trial_info)
 {
   using namespace LearningLongerSequences;
   bool gameIsComplete = false;
-  gameIsComplete = playLearningLongerSequences(hub);// Returns true if level is done
+  gameIsComplete = playLearningLongerSequences(hub, _trial_info);// Returns true if level is done
   return gameIsComplete;
 }
 
