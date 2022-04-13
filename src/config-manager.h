@@ -66,7 +66,7 @@ class ConfigManager
         // ***************** const other *****************
 
         // we can change this number to force an eeprom "reset" to defaults; and to avoid undefined state when adding new variables
-        const int _EVER_STORED_CHECK_VALUE = 12355;  // EVER_STORED_CHECK_VALUE = 12346; 
+        const int _EVER_STORED_CHECK_VALUE = 12356;  // EVER_STORED_CHECK_VALUE = 12346; 
         
         const int _HUB_MODE_STAY_OFF = 0;
         const int _HUB_MODE_STAY_ON = 1;

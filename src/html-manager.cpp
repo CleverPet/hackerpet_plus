@@ -309,7 +309,7 @@ String HtmlManager::get_kibbles_html(int kibbles_limit, int kibbles_eaten_today)
                          "      \n"
                          "}\n"
                          "</script>\n"
-                         "Max Kibbles per day: <select name=\"select_max_kibbles\" onchange=\"kibbles_change()\">\n"
+                         "Max Kibbles per day: <select name=\"select_max_kibbles\" id=\"select_max_kibbles\" onchange=\"kibbles_change()\">\n"
                          "<option value=\"0\"" + _get_selected_max_kibbles_option(kibbles_limit, 0) + ">Unlimited</option>\n"
                          "<option value=\"25\"" + _get_selected_max_kibbles_option(kibbles_limit, 25) + ">25</option>\n"
                          "<option value=\"50\"" + _get_selected_max_kibbles_option(kibbles_limit, 50) + ">50</option>\n"
