@@ -22,25 +22,23 @@ class ConfigManager
     private:
         bool _sched_char_to_string(char * char_tmp, String & str);
         bool _sched_string_to_char(char * char_tmp, String & str);
+        bool _process_hub_mode();
         bool _serve_webinterface();
         bool _read_from_client(bool & request_finished, String & response_str);
         bool _process_request(String req_str);
         bool _process_api_get_req(String req_str);
         bool _process_api_post_req(String req_str);
+        bool _process_set_game_req(String req_str);  //, int dst_index);
+        bool _process_set_max_kibbles_req(String req_str);
+        bool _process_set_kibbles_thresh_req(String req_str);
+        bool _process_set_dst_req(String req_str);  //, int dst_index);
+        bool _process_set_timezone_req(String req_str);  // , int dst_index);
+        bool _process_set_hub_mode_req(String req_str);  //, int dst_index);
+        bool _process_set_schedule_req(String req_str); 
         bool _process_get_req(String req_str);
-        
-        bool _process_dst_req(String req_str, int dst_index);
-        bool _process_timezone_req(String req_str, int dst_index);
-        bool _process_hub_mode_req(String req_str, int dst_index);
-        bool _process_game_select_req(String req_str, int dst_index);
-
-        bool _write_response_html();
-
-        bool _process_hub_mode();
 
         HubInterface * _hub;
         GameManager * _gameMan;
-        HtmlManager * _htmlMan;
 
         // ***************** http server stuff *****************
         

@@ -16,7 +16,6 @@ ConfigManager::ConfigManager(HubInterface * hub, GameManager * gameMan)
 {
     _hub = hub;
     _gameMan = gameMan;
-    _htmlMan = new HtmlManager();
     _last_day = 0;
 }
 
@@ -584,6 +583,7 @@ bool ConfigManager::_process_api_get_req(String req_str)
                             "\"max_kibbles\":\"" + int_to_string(_kibbles_limit) + "\""
                             "}";
         _webclient.println(return_str);
+        return true;
 }
 
 
@@ -629,6 +629,7 @@ bool ConfigManager::_process_api_post_req(String req_str)
         Log.error("!!! SERVER IS SERVING UNKNOWN API POST REQUEST !!!");
     }
 
+    return true;
 }
 
 
@@ -749,7 +750,7 @@ bool _process_set_kibbles_thresh_req(String req_str)
     return true;
 }
 
-bool ConfigManager::_process_dst_req(String req_str)
+bool ConfigManager::_process_set_dst_req(String req_str)
 {
 
     // TODO fix indexes and names of req for new api post, model after max kibbles
@@ -781,7 +782,7 @@ bool ConfigManager::_process_dst_req(String req_str)
     return true;
 }
 
-bool ConfigManager::_process_timezone_req(String req_str)
+bool ConfigManager::_process_set_timezone_req(String req_str)
 {
 
     // TODO fix indexes and names of req for new api post, model after max kibbles
@@ -808,7 +809,7 @@ bool ConfigManager::_process_timezone_req(String req_str)
 }
 
 
-bool ConfigManager::_process_hub_mode_req(String req_str)
+bool ConfigManager::_process_set_hub_mode_req(String req_str)
 {
 
     // TODO fix indexes and names of req for new api post, model after max kibbles
@@ -863,6 +864,7 @@ bool ConfigManager::_process_set_schedule_req(String req_str)
         Log.info("sending back: string:");
         Log.print(return_str);
         _webclient.println(return_str);
+        return true;
 }
 
 // ******************************************************** WEBPAGE GET ******************************************************** WEBPAGE GET ********************************************************
@@ -874,149 +876,198 @@ bool ConfigManager::_process_get_req(String req_str)
     // TODO write the new webpage
     // (i.e. new version of (_write_response_html)
     
-    return true;
-}
+    // make sure each bit after loading is then deleted after writing, before reading next bit
+    // otherwise ram will run out!
 
-
-// ////////////////////////////////////////////////////////////////////////////////////// DEPRECATED //////////////////////////////////////////////////////////////////////////////////////
-
-
-bool ConfigManager::_write_response_html()
-{
-    String content = "";
-    content += "<!DOCTYPE html>\n";
-    content += "<html>\n";
-    content += "<head>\n<style>\n";
-    content += _htmlMan->get_css_string();
-    content += "</style>\n";
-    content += _htmlMan->get_script_html();
-    content += "</head>\n";
-    content += "<body>\n";
-
-    // enable for debugging full GET request:
-    //content += "<br><br>";
-    //content += thing;
-    //content += "<br><br>";
-
-    // return the id from this function at the end; or, return what? -1? to indicate no new choice?
-
-    // print list of games and URL to go to
-    
-    content += "<br>\n";
-    content += "select game:<br><br>\n";
-
-    int next_game_to_disp = _next_game_to_play;
-    if (_new_game_selected > 0)
-    {
-        // main loop has not set this yet, if it was just selected; so we need this check
-        next_game_to_disp = _new_game_selected;
-    }
-
-    content += _htmlMan->get_link_for_game(0, "0", "Eating the Food", _game_to_play, next_game_to_disp);
-    content += _htmlMan->get_link_for_game(1, "1", "Exploring the Touchpads", _game_to_play, next_game_to_disp);
-    content += _htmlMan->get_link_for_game(2, "2", "Engaging Consistently", _game_to_play, next_game_to_disp);
-    content += _htmlMan->get_link_for_game(3, "3", "Avoiding Unlit Touchpads", _game_to_play, next_game_to_disp);
-    content += _htmlMan->get_link_for_game(4, "4", "Learning the Lights", _game_to_play, next_game_to_disp);
-    content += _htmlMan->get_link_for_game(5, "5", "Mastering the Lights", _game_to_play, next_game_to_disp);
-    content += _htmlMan->get_link_for_game(6, "6", "Responding Quickly", _game_to_play, next_game_to_disp);
-    content += _htmlMan->get_link_for_game(7, "7", "Learning Brightness", _game_to_play, next_game_to_disp);
-    content += _htmlMan->get_link_for_game(8, "8", "Learning Double Sequences", _game_to_play, next_game_to_disp);
-    content += _htmlMan->get_link_for_game(9, "9", "Learning Longer Sequences", _game_to_play, next_game_to_disp);
-    content += _htmlMan->get_link_for_game(10, "10", "Matching Two Colors", _game_to_play, next_game_to_disp);
-    content += _htmlMan->get_link_for_game(11, "11", "Matching More Colors", _game_to_play, next_game_to_disp);
-
-    content += "<br>\n";
-    //content += display_error_msg;
-    //content += "<br>";
-    content += _htmlMan->get_async_html();
-    content += "<br>\n";
-    
-    //    "<form method=\"post\" action=\"http://cleverpet.local\">\n"
-    //"Select Timezone: <select name=\"select_timezone\" onchange=\"this.form.submit()\">\n"
-    
-    String dst_option_1_sel = "";
-    String dst_option_2_sel = "";
-    if (_dst_on)
-    {
-        dst_option_1_sel = " selected";
-    }
-    else
-    {
-        dst_option_2_sel = " selected";
-    }
-
-    content += "<form method=\"post\" action=\"http://cleverpet.local\">\n"
-                "Apply Daylight Savings: <select name=\"select_dst\" onchange=\"this.form.submit()\"><option value=\"1\"" + dst_option_1_sel + ">Yes</option><option value=\"0\"" + dst_option_2_sel + ">No</option></select><br>\n"
-                "</form>\n";
-
-    String time_zone_str = _htmlMan->get_time_zone_string(_time_zone_offset);
-    Log.info("time zone str length: " + int_to_string(time_zone_str.length()));
-
-    String content_2 = "";
-    
-    content_2 += "<br>\n";
-    
-    content_2 += "Current Date/Time:<br>\n";
-    content_2 += "<b><strong class=\"api-msg\" id=\"api-time\">" + Time.timeStr() + "</strong><br />\n" + "</b>";
-
-    content_2 += "<br>\n";
-    
-    String content_3 = "";
-    
-    // add scheduler to content_3
-
-    Log.info("_weekday_from: <" + _weekday_from + ">");
-    Log.info("_weekday_to: <" + _weekday_to + ">");
-    Log.info("_weekend_from: <" + _weekend_from + ">");
-    Log.info("_weekend_to: <" + _weekend_to + ">");
-
-    content_3 += _htmlMan->get_scheduler_html(_hub_mode, _weekday_from, _weekday_to, _weekend_from, _weekend_to);
-
-
-    String content_4 = "";
-
-    content_4 += "<br>\n";
-    
-    content_4 += "Hub state: <b><strong class=\"api-hub-state\" id=\"api-hub-state\">";
-
-    // this sets on init load
-    
-    if (_hub_state == _HUB_STATE_ACTIVE)
-    {
-        content_4 += "Active";
-    }
-    else if (_hub_state == _HUB_STATE_STANDBY)
-    {
-        content_4 += "Standby";
-    }
-    else
-    {
-        content_4 += "Invalid";
-    }
-
-    content_4 += "</strong><br />\n";
-    content_4 += "</b>\n";
-    
-    String content_5 = "";
-    content_5 += _htmlMan->get_kibbles_html(_kibbles_limit, _kibbles_eaten_today);
-
-    content_5 += "</body>\n";
-    content_5 += "</html>";
-    //Log.info("content length: " + int_to_string(content.length()));
-    //Log.info("content_2 length: " + int_to_string(content_2.length()));
     _webclient.println("HTTP/1.0 200 OK");
     _webclient.println("Content-type: text/html");
     _webclient.print("Content-length: ");
-    _webclient.println(content.length() + time_zone_str.length() + content_2.length() + content_3.length() + content_4.length() + content_5.length());
+    _webclient.println(1625 * 40);
     _webclient.println("");
-    _webclient.print(content);
-    _webclient.print(time_zone_str);
-    _webclient.print(content_2);
-    _webclient.print(content_3);
-    _webclient.print(content_4);
-    _webclient.print(content_5);
-    _webclient.println();
 
+    _webclient.print(bin2c_html_piece_0_tmp);
+    _webclient.print(bin2c_html_piece_1_tmp);
+    _webclient.print(bin2c_html_piece_2_tmp);
+    _webclient.print(bin2c_html_piece_3_tmp);
+    _webclient.print(bin2c_html_piece_4_tmp);
+    _webclient.print(bin2c_html_piece_5_tmp);
+    _webclient.print(bin2c_html_piece_6_tmp);
+    _webclient.print(bin2c_html_piece_7_tmp);
+    _webclient.print(bin2c_html_piece_8_tmp);
+    _webclient.print(bin2c_html_piece_9_tmp);
+    _webclient.print(bin2c_html_piece_10_tmp);
+    _webclient.print(bin2c_html_piece_11_tmp);
+    _webclient.print(bin2c_html_piece_12_tmp);
+    _webclient.print(bin2c_html_piece_13_tmp);
+    _webclient.print(bin2c_html_piece_14_tmp);
+    _webclient.print(bin2c_html_piece_15_tmp);
+    _webclient.print(bin2c_html_piece_16_tmp);
+    _webclient.print(bin2c_html_piece_17_tmp);
+    _webclient.print(bin2c_html_piece_18_tmp);
+    _webclient.print(bin2c_html_piece_19_tmp);
+    _webclient.print(bin2c_html_piece_20_tmp);
+    _webclient.print(bin2c_html_piece_21_tmp);
+    _webclient.print(bin2c_html_piece_22_tmp);
+    _webclient.print(bin2c_html_piece_23_tmp);
+    _webclient.print(bin2c_html_piece_24_tmp);
+    _webclient.print(bin2c_html_piece_25_tmp);
+    _webclient.print(bin2c_html_piece_26_tmp);
+    _webclient.print(bin2c_html_piece_27_tmp);
+    _webclient.print(bin2c_html_piece_28_tmp);
+    _webclient.print(bin2c_html_piece_29_tmp);
+    _webclient.print(bin2c_html_piece_30_tmp);
+    _webclient.print(bin2c_html_piece_31_tmp);
+    _webclient.print(bin2c_html_piece_32_tmp);
+    _webclient.print(bin2c_html_piece_33_tmp);
+    _webclient.print(bin2c_html_piece_34_tmp);
+    _webclient.print(bin2c_html_piece_35_tmp);
+    _webclient.print(bin2c_html_piece_36_tmp);
+    _webclient.print(bin2c_html_piece_37_tmp);
+    _webclient.print(bin2c_html_piece_38_tmp);
+    _webclient.print(bin2c_html_piece_39_tmp);    
     return true;
 }
+
+
+// // ////////////////////////////////////////////////////////////////////////////////////// DEPRECATED //////////////////////////////////////////////////////////////////////////////////////
+
+
+// bool ConfigManager::_write_response_html()
+// {
+//     String content = "";
+//     content += "<!DOCTYPE html>\n";
+//     content += "<html>\n";
+//     content += "<head>\n<style>\n";
+//     content += _htmlMan->get_css_string();
+//     content += "</style>\n";
+//     content += _htmlMan->get_script_html();
+//     content += "</head>\n";
+//     content += "<body>\n";
+
+//     // enable for debugging full GET request:
+//     //content += "<br><br>";
+//     //content += thing;
+//     //content += "<br><br>";
+
+//     // return the id from this function at the end; or, return what? -1? to indicate no new choice?
+
+//     // print list of games and URL to go to
+    
+//     content += "<br>\n";
+//     content += "select game:<br><br>\n";
+
+//     int next_game_to_disp = _next_game_to_play;
+//     if (_new_game_selected > 0)
+//     {
+//         // main loop has not set this yet, if it was just selected; so we need this check
+//         next_game_to_disp = _new_game_selected;
+//     }
+
+//     content += _htmlMan->get_link_for_game(0, "0", "Eating the Food", _game_to_play, next_game_to_disp);
+//     content += _htmlMan->get_link_for_game(1, "1", "Exploring the Touchpads", _game_to_play, next_game_to_disp);
+//     content += _htmlMan->get_link_for_game(2, "2", "Engaging Consistently", _game_to_play, next_game_to_disp);
+//     content += _htmlMan->get_link_for_game(3, "3", "Avoiding Unlit Touchpads", _game_to_play, next_game_to_disp);
+//     content += _htmlMan->get_link_for_game(4, "4", "Learning the Lights", _game_to_play, next_game_to_disp);
+//     content += _htmlMan->get_link_for_game(5, "5", "Mastering the Lights", _game_to_play, next_game_to_disp);
+//     content += _htmlMan->get_link_for_game(6, "6", "Responding Quickly", _game_to_play, next_game_to_disp);
+//     content += _htmlMan->get_link_for_game(7, "7", "Learning Brightness", _game_to_play, next_game_to_disp);
+//     content += _htmlMan->get_link_for_game(8, "8", "Learning Double Sequences", _game_to_play, next_game_to_disp);
+//     content += _htmlMan->get_link_for_game(9, "9", "Learning Longer Sequences", _game_to_play, next_game_to_disp);
+//     content += _htmlMan->get_link_for_game(10, "10", "Matching Two Colors", _game_to_play, next_game_to_disp);
+//     content += _htmlMan->get_link_for_game(11, "11", "Matching More Colors", _game_to_play, next_game_to_disp);
+
+//     content += "<br>\n";
+//     //content += display_error_msg;
+//     //content += "<br>";
+//     content += _htmlMan->get_async_html();
+//     content += "<br>\n";
+    
+//     //    "<form method=\"post\" action=\"http://cleverpet.local\">\n"
+//     //"Select Timezone: <select name=\"select_timezone\" onchange=\"this.form.submit()\">\n"
+    
+//     String dst_option_1_sel = "";
+//     String dst_option_2_sel = "";
+//     if (_dst_on)
+//     {
+//         dst_option_1_sel = " selected";
+//     }
+//     else
+//     {
+//         dst_option_2_sel = " selected";
+//     }
+
+//     content += "<form method=\"post\" action=\"http://cleverpet.local\">\n"
+//                 "Apply Daylight Savings: <select name=\"select_dst\" onchange=\"this.form.submit()\"><option value=\"1\"" + dst_option_1_sel + ">Yes</option><option value=\"0\"" + dst_option_2_sel + ">No</option></select><br>\n"
+//                 "</form>\n";
+
+//     String time_zone_str = _htmlMan->get_time_zone_string(_time_zone_offset);
+//     Log.info("time zone str length: " + int_to_string(time_zone_str.length()));
+
+//     String content_2 = "";
+    
+//     content_2 += "<br>\n";
+    
+//     content_2 += "Current Date/Time:<br>\n";
+//     content_2 += "<b><strong class=\"api-msg\" id=\"api-time\">" + Time.timeStr() + "</strong><br />\n" + "</b>";
+
+//     content_2 += "<br>\n";
+    
+//     String content_3 = "";
+    
+//     // add scheduler to content_3
+
+//     Log.info("_weekday_from: <" + _weekday_from + ">");
+//     Log.info("_weekday_to: <" + _weekday_to + ">");
+//     Log.info("_weekend_from: <" + _weekend_from + ">");
+//     Log.info("_weekend_to: <" + _weekend_to + ">");
+
+//     content_3 += _htmlMan->get_scheduler_html(_hub_mode, _weekday_from, _weekday_to, _weekend_from, _weekend_to);
+
+
+//     String content_4 = "";
+
+//     content_4 += "<br>\n";
+    
+//     content_4 += "Hub state: <b><strong class=\"api-hub-state\" id=\"api-hub-state\">";
+
+//     // this sets on init load
+    
+//     if (_hub_state == _HUB_STATE_ACTIVE)
+//     {
+//         content_4 += "Active";
+//     }
+//     else if (_hub_state == _HUB_STATE_STANDBY)
+//     {
+//         content_4 += "Standby";
+//     }
+//     else
+//     {
+//         content_4 += "Invalid";
+//     }
+
+//     content_4 += "</strong><br />\n";
+//     content_4 += "</b>\n";
+    
+//     String content_5 = "";
+//     content_5 += _htmlMan->get_kibbles_html(_kibbles_limit, _kibbles_eaten_today);
+
+//     content_5 += "</body>\n";
+//     content_5 += "</html>";
+//     //Log.info("content length: " + int_to_string(content.length()));
+//     //Log.info("content_2 length: " + int_to_string(content_2.length()));
+//     _webclient.println("HTTP/1.0 200 OK");
+//     _webclient.println("Content-type: text/html");
+//     _webclient.print("Content-length: ");
+//     _webclient.println(content.length() + time_zone_str.length() + content_2.length() + content_3.length() + content_4.length() + content_5.length());
+//     _webclient.println("");
+//     _webclient.print(content);
+//     _webclient.print(time_zone_str);
+//     _webclient.print(content_2);
+//     _webclient.print(content_3);
+//     _webclient.print(content_4);
+//     _webclient.print(content_5);
+//     _webclient.println();
+
+//     return true;
+// }
 
