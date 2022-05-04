@@ -740,7 +740,7 @@ bool ConfigManager::_process_set_max_kibbles_req(String req_str)
         return true;
 }
 
-bool _process_set_kibbles_thresh_req(String req_str)
+bool ConfigManager::_process_set_kibbles_thresh_req(String req_str)
 {
 
     // TODO is there  abranch where we have eeprom etc. stuff for this already coded?
