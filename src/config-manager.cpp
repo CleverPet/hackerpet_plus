@@ -575,6 +575,9 @@ bool ConfigManager::_process_api_get_req(String req_str)
         }
 
         String return_str = "{"
+                            "\"timezone\":\"" + float_to_string(_time_zone_offset) + "\","  // new!
+                            "\"dst_on\":\"" + int_to_string(_dst_on) + "\","  // new!
+                            "\"hub_mode\":\"" + int_to_string(_hub_mode) + "\","  // new!
                             "\"status\":\"" + _display_error_msg + "\","
                             "\"game_id_queued\":\"" + next_game_str + "\","
                             "\"game_id_playing\":\"" + current_game_str + "\","
