@@ -174,22 +174,22 @@ bool ConfigManager::Run()
     {
         mgschwan_MDNS_loop();
 
-        _display_error_msg = "<b> Your hub is functioning normally.</b>";
+        _display_error_msg = "Your hub is working.";
         if (_hub->IsHubOutOfFood())
         {
-            _display_error_msg = "<b> Your hub is out of food. Please place food in the singulator and remove and replace dome.</b>";
+            _display_error_msg = "Out of food. Please place food in the singulator and remove and replace dome.";
         }
         if (_hub->IsPlatterStuck() || _hub->IsPlatterError())
         {
-            _display_error_msg = "<b> Your hub's platter is jammed. Please remove dome and clear the obstruction, then replace dome.</b>";
+            _display_error_msg = "Platter is jammed. Please remove dome and clear the obstruction, then replace dome.";
         }
         if (_hub->IsSingulatorError())
         {
-            _display_error_msg = "<b> Your hub's singulator is jammed. Please remove dome and clear the obstruction, then replace dome.</b>";
+            _display_error_msg = "Singulator is jammed. Please remove dome and clear the obstruction, then replace dome.";
         }
         if (_hub->IsDomeRemoved())
         {
-            _display_error_msg = "<b> Your hub's dome is removed.</b>";
+            _display_error_msg = "Dome is removed.";
         }
 
         // get current game from gameMan
@@ -580,12 +580,12 @@ bool ConfigManager::_process_api_get_req(String req_str)
                             "\"game_id_playing\":\"" + current_game_str + "\","
                             "\"hub_state\":\"" + hub_state_str + "\","
                             "\"time\":\"" + Time.timeStr() + "\","
-                            "\"max_kibbles\":\"" + int_to_string(_kibbles_limit) + "\""
+                            "\"max_kibbles\":\"" + int_to_string(_kibbles_limit) + "\","
+                            "\"kibbles_eaten_today\":\"" + int_to_string(_kibbles_eaten_today) + "\""
                             "}";
         _webclient.println(return_str);
         return true;
 }
-
 
 // ******************************************************** API POST ******************************************************** API POST ********************************************************
 
@@ -593,6 +593,14 @@ bool ConfigManager::_process_api_get_req(String req_str)
 
 bool ConfigManager::_process_api_post_req(String req_str)
 {
+
+    Log.info("\n");
+    Log.info("------------------------ START REQ STR ------------------------");
+    Log.info("\n");
+    Serial.println(req_str);
+    Log.info("\n");
+    Log.info("------------------------ END REQ STR ------------------------");
+    Log.info("\n");
 
     // TODO what to print as return str that gets no error? empty dict?
     if (req_str.indexOf("set_game") > -1)
@@ -637,12 +645,12 @@ bool ConfigManager::_process_set_game_req(String req_str)
 {   
     // TODO fix indexes and names of req for new api post, model after max kibbles
 
-    int game_html_index = req_str.indexOf("game=");
+    int game_html_index = req_str.indexOf("game\"");
 
     Log.info("This is a GAME post request.");
 
-    String new_game_str = req_str.substring(game_html_index + 5, game_html_index + 6);
-    String new_game_str_2 = req_str.substring(game_html_index + 5, game_html_index + 7);
+    String new_game_str = req_str.substring(game_html_index + 6, game_html_index + 7);
+    String new_game_str_2 = req_str.substring(game_html_index + 6, game_html_index + 8);
     
     if (new_game_str_2.equalsIgnoreCase("10"))
     {
@@ -719,7 +727,11 @@ bool ConfigManager::_process_set_game_req(String req_str)
 
 bool ConfigManager::_process_set_max_kibbles_req(String req_str)
 {
-        String max_kibbles_str = req_str.substring(req_str.indexOf("max_kibbles=") + 12).substring(0, 5);
+        String max_kibbles_str = req_str.substring(req_str.indexOf("max_kibbles\"") + 13);
+        int index_stop = max_kibbles_str.indexOf("}");
+        max_kibbles_str = max_kibbles_str.substring(0, index_stop);
+        
+        //.substring(0, 5);
         int max_kibbles = max_kibbles_str.toInt();
         // check if int
         // toInt will return zero if invalid
@@ -729,6 +741,8 @@ bool ConfigManager::_process_set_max_kibbles_req(String req_str)
             max_kibbles = 0;
         }
         
+        Log.print(max_kibbles_str);
+
         EEPROM.put(_KIBBLES_LIMIT_ADDRESS, max_kibbles);
         _kibbles_limit = max_kibbles;
 
@@ -755,11 +769,14 @@ bool ConfigManager::_process_set_dst_req(String req_str)
 
     // TODO fix indexes and names of req for new api post, model after max kibbles
 
-    int dst_html_index = req_str.indexOf("select_dst=");
+    int dst_html_index = req_str.indexOf("dst_on\"");
 
     Log.info("This is a DST post request.");
 
-    String tmp_2 = req_str.substring(dst_html_index + 11);
+    String tmp_2 = req_str.substring(dst_html_index + 8);
+    int index_stop = tmp_2.indexOf("}");
+    tmp_2 = tmp_2.substring(0, index_stop);
+
     //tmp_2 = tmp_2.substring(0, tmp_2.indexOf("&"));
     Log.print(tmp_2 + "\n");
     
@@ -787,11 +804,15 @@ bool ConfigManager::_process_set_timezone_req(String req_str)
 
     // TODO fix indexes and names of req for new api post, model after max kibbles
 
-    int timezone_html_index = req_str.indexOf("select_timezone=");
+    int timezone_html_index = req_str.indexOf("timezone_offset\"");
 
     Log.info("This is a TIMEZONE post request.");
 
-    String tmp_2 = req_str.substring(timezone_html_index + 16);
+    String tmp_2 = req_str.substring(timezone_html_index + 17);
+    int index_stop = tmp_2.indexOf("}");
+    tmp_2 = tmp_2.substring(0, index_stop);
+
+
     //tmp_2 = tmp_2.substring(0, tmp_2.indexOf("&"));
     Log.print(tmp_2 + "\n");
     
@@ -814,14 +835,16 @@ bool ConfigManager::_process_set_hub_mode_req(String req_str)
 
     // TODO fix indexes and names of req for new api post, model after max kibbles
 
-    int hub_mode_html_index = req_str.indexOf("hub_mode="); 
+    int hub_mode_html_index = req_str.indexOf("hub_mode\"");  // "hub_mode": 
 
-    Log.info("This is a HUB MODE / SCHEDULER post request.");
+    Log.info("This is a HUB MODE post request.");
     //Log.print("*******\n");
     //Log.print(thing + "\n");
     //Log.print("*-------------*\n");
-    String tmp_2 = req_str.substring(hub_mode_html_index + 9);
-    tmp_2 = tmp_2.substring(0, tmp_2.indexOf("&"));
+    String tmp_2 = req_str.substring(hub_mode_html_index + 10);
+    int index_stop = tmp_2.indexOf("}");
+    tmp_2 = tmp_2.substring(0, index_stop);
+    
     Log.print(tmp_2 + "\n");
     _hub_mode = tmp_2.toInt();
     EEPROM.put(_HUB_MODE_EEP_ADDRESS, _hub_mode);
@@ -838,12 +861,15 @@ bool ConfigManager::_process_set_hub_mode_req(String req_str)
 bool ConfigManager::_process_set_schedule_req(String req_str)
 {
         //scheduler request
+        Log.info("This is a SCHEDULER post request.");
 
-        // weekday_from=14:22&weekday_to=14:24&weekend_from=14:23&weekend_to=06:21
-        _weekday_from = req_str.substring(req_str.indexOf("weekday_from=") + 13).substring(0, 5);
-        _weekday_to = req_str.substring(req_str.indexOf("weekday_to=") + 11).substring(0, 5);
-        _weekend_from = req_str.substring(req_str.indexOf("weekend_from=") + 13).substring(0, 5);
-        _weekend_to = req_str.substring(req_str.indexOf("weekend_to=") + 11).substring(0, 5);
+        // new: {"weekday_from":"06:08","weekday_to":"06:13","weekend_from":"18:08","weekend_to":"21:08"}
+        // was: weekday_from=14:22&weekday_to=14:24&weekend_from=14:23&weekend_to=06:21
+
+        _weekday_from = req_str.substring(req_str.indexOf("weekday_from\"") + 15).substring(0, 5);
+        _weekday_to = req_str.substring(req_str.indexOf("weekday_to\"") + 13).substring(0, 5);
+        _weekend_from = req_str.substring(req_str.indexOf("weekend_from\"") + 15).substring(0, 5);
+        _weekend_to = req_str.substring(req_str.indexOf("weekend_to\"") + 13).substring(0, 5);
 
         char char_tmp[6];
         char_tmp[5] = 0;
@@ -882,7 +908,7 @@ bool ConfigManager::_process_get_req(String req_str)
     _webclient.println("HTTP/1.0 200 OK");
     _webclient.println("Content-type: text/html");
     _webclient.print("Content-length: ");
-    _webclient.println(1625 * 40);
+    _webclient.println(len_html_piece * 39 + len_last_piece);
     _webclient.println("");
 
     _webclient.print(bin2c_html_piece_0_tmp);
