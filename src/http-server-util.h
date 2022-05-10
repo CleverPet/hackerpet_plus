@@ -18,4 +18,6 @@ void mgschwan_MDNS_loop();
 
 String int_to_string(int the_int);
 
+String float_to_string(float the_float);
+
 #endif

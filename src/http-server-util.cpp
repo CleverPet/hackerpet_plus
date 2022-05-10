@@ -57,6 +57,15 @@ String int_to_string(int the_int)
     return the_str2;
 }
 
+String float_to_string(float the_float)
+{
+    char the_str[30];
+    sprintf(the_str,"%f", the_float);
+    String the_str2 = String(the_str);
+    return the_str2;
+}
+
+
 void mgschwan_setupNetwork()
 {
     // these are *probably* not necessary for serving http?
