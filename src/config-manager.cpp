@@ -578,6 +578,10 @@ bool ConfigManager::_process_api_get_req(String req_str)
                             "\"timezone\":\"" + float_to_string(_time_zone_offset) + "\","  // new!
                             "\"dst_on\":\"" + int_to_string(_dst_on) + "\","  // new!
                             "\"hub_mode\":\"" + int_to_string(_hub_mode) + "\","  // new!
+                            "\"weekend_from\":\"" + _weekend_from + "\","
+                            "\"weekend_to\":\"" + _weekend_to + "\","
+                            "\"weekday_from\":\"" + _weekday_from + "\","
+                            "\"weekday_to\":\"" + _weekday_to + "\","
                             "\"status\":\"" + _display_error_msg + "\","
                             "\"game_id_queued\":\"" + next_game_str + "\","
                             "\"game_id_playing\":\"" + current_game_str + "\","
