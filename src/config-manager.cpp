@@ -574,10 +574,15 @@ bool ConfigManager::_process_api_get_req(String req_str)
             hub_state_str += "Invalid";
         }
 
-        String return_str = "{"
+        String return_str = "HTTP/1.1 200 OK\r\nConnection: Closed\r\n\r\n"
+                            "{"
                             "\"timezone\":\"" + float_to_string(_time_zone_offset) + "\","  // new!
                             "\"dst_on\":\"" + int_to_string(_dst_on) + "\","  // new!
                             "\"hub_mode\":\"" + int_to_string(_hub_mode) + "\","  // new!
+                            "\"weekend_from\":\"" + _weekend_from + "\","
+                            "\"weekend_to\":\"" + _weekend_to + "\","
+                            "\"weekday_from\":\"" + _weekday_from + "\","
+                            "\"weekday_to\":\"" + _weekday_to + "\","
                             "\"status\":\"" + _display_error_msg + "\","
                             "\"game_id_queued\":\"" + next_game_str + "\","
                             "\"game_id_playing\":\"" + current_game_str + "\","
@@ -716,7 +721,8 @@ bool ConfigManager::_process_set_game_req(String req_str)
         Log.info("POST: selected game 9!");
     }
 
-    String return_str = "{}";
+    String return_str = "HTTP/1.1 200 OK\r\nConnection: Closed\r\n\r\n"
+                        "{}";
     
     Log.info("sending back: string:");
     Log.print(return_str);
@@ -749,7 +755,8 @@ bool ConfigManager::_process_set_max_kibbles_req(String req_str)
         EEPROM.put(_KIBBLES_LIMIT_ADDRESS, max_kibbles);
         _kibbles_limit = max_kibbles;
 
-        String return_str = "{}";
+    String return_str = "HTTP/1.1 200 OK\r\nConnection: Closed\r\n\r\n"
+                        "{}";
         Log.info("sending back: string:");
         Log.print(return_str);
         _webclient.println(return_str);
@@ -794,7 +801,8 @@ bool ConfigManager::_process_set_dst_req(String req_str)
     }
     EEPROM.put(_DST_EEP_ADDRESS, _dst_on);
 
-    String return_str = "{}";
+    String return_str = "HTTP/1.1 200 OK\r\nConnection: Closed\r\n\r\n"
+                        "{}";
     Log.info("sending back: string:");
     Log.print(return_str);
     _webclient.println(return_str);
@@ -824,7 +832,8 @@ bool ConfigManager::_process_set_timezone_req(String req_str)
     _time_zone_offset = tz_offset;
     EEPROM.put(_TIME_ZONE_EEP_ADDRESS, _time_zone_offset);
     
-            String return_str = "{}";
+    String return_str = "HTTP/1.1 200 OK\r\nConnection: Closed\r\n\r\n"
+                        "{}";
         Log.info("sending back: string:");
         Log.print(return_str);
         _webclient.println(return_str);
@@ -852,7 +861,8 @@ bool ConfigManager::_process_set_hub_mode_req(String req_str)
     _hub_mode = tmp_2.toInt();
     EEPROM.put(_HUB_MODE_EEP_ADDRESS, _hub_mode);
 
-        String return_str = "{}";
+    String return_str = "HTTP/1.1 200 OK\r\nConnection: Closed\r\n\r\n"
+                        "{}";
         Log.info("sending back: string:");
         Log.print(return_str);
         _webclient.println(return_str);
@@ -889,7 +899,8 @@ bool ConfigManager::_process_set_schedule_req(String req_str)
         _sched_string_to_char(char_tmp, _weekend_to);
         EEPROM.put(_SCHED_WEEKEND_TO_ADDRESS, char_tmp);
 
-        String return_str = "{}";
+    String return_str = "HTTP/1.1 200 OK\r\nConnection: Closed\r\n\r\n"
+                        "{}";
         Log.info("sending back: string:");
         Log.print(return_str);
         _webclient.println(return_str);
