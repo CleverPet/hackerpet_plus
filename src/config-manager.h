@@ -99,6 +99,8 @@ class ConfigManager
         int _kibbles_eaten_today;
 
         int _last_day;
+
+        unsigned long _last_mdns_reconnect_attempt;
 };
 
 

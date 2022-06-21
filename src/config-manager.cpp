@@ -165,6 +165,7 @@ bool ConfigManager::Run()
         _system_ready = true;
         mgschwan_setupNetwork(); //Open TCP Port
         Log.info("Wifi Ready. Ip Address %s",  WiFi.localIP());
+        _last_mdns_reconnect_attempt = millis();
     }
     else {
         //Waiting for the Wifi to become ready        
@@ -209,7 +210,27 @@ bool ConfigManager::Run()
             _gameMan->set_next_game(_next_game_to_play);
 
         }
-        
+
+        // test idea that we always attempt to reconnect every N seconds. 
+        // could make this last webpage-request dependent, so if webpage is currently active, don't need to do this
+        bool _need_mdns_reconnect = true;
+
+        if (_need_mdns_reconnect)
+        {
+            if ((millis() - _last_mdns_reconnect_attempt) > 10000) 
+            {
+                _last_mdns_reconnect_attempt = millis();
+                
+                Serial.print(Time.timeStr());
+                Serial.println(" Attempting mdns reconnect...");
+
+                _broadcastAddress = mgschwan_getBroadcastAddress();
+                mgschwan_setupNetwork();
+
+                Serial.print(Time.timeStr());
+                Serial.println(" ...Reconnect mdns attempt finished.");
+            }
+        }
 
     }
 
