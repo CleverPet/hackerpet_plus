@@ -28,12 +28,14 @@ class GameManager
         bool set_game_enabled(bool enable_game);
         int get_kibbles_eaten();
         bool reset_kibbles_eaten();
+        bool trial_just_done();
     private:
         HubInterface * _hub;
         int _current_game;
         int _next_game;
         bool _game_enabled;
         int _kibbles_eaten;
+        bool _trial_just_done;
         trial_info *_trial_info;
 };
 

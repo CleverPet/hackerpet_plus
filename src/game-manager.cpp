@@ -24,6 +24,8 @@ bool GameManager::Initialize(int init_game)
 
     _trial_info = new trial_info;
     _trial_info->food_eaten = false;
+    
+    _trial_just_done = false;
 
     return true;
 }
@@ -54,6 +56,11 @@ bool GameManager::set_game_enabled(bool enable_game)
 {
     _game_enabled = enable_game;
     return true;
+}
+
+bool GameManager::trial_just_done()
+{
+    return _trial_just_done;
 }
 
 bool GameManager::Run()
@@ -132,6 +139,8 @@ bool GameManager::Run()
         {
             _current_game = _next_game;
         }
+
+        _trial_just_done = trial_done;
     }
     
     return true;

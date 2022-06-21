@@ -375,7 +375,8 @@ bool ConfigManager::_process_hub_mode()
         _gameMan->reset_kibbles_eaten();
     }
 
-    if (new_hub_state != _hub_state)
+    // do hub_state update if there's a new hub state that has changed, AND a trial just ended. i.e. wait for trial to end before applying update
+    if ((new_hub_state != _hub_state) && _gameMan->trial_just_done())
     {
         // hub state has changed!
 
