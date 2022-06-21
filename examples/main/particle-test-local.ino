@@ -35,6 +35,9 @@ void setup() {
     // in games it was: hub.Initialize(__FILE__);
 }
 
+unsigned long lastmemcheck = 0;
+unsigned long FREE_MEMORY;
+
 // loop() runs over and over again, as quickly as it can execute.
 void loop() {
 
@@ -48,4 +51,14 @@ void loop() {
 
     // run the loop for the current active game
     gameMan.Run();
+
+    FREE_MEMORY = System.freeMemory();
+    
+    if ((millis() - lastmemcheck) > 1000) {
+        lastmemcheck = millis();
+        Serial.print(Time.timeStr());
+        Serial.println("in7399");
+        Serial.printlnf("\tMILLIS: %lu\tSYSTEM MEMORY=%lu", lastmemcheck, FREE_MEMORY);
+    }
+    
 }
