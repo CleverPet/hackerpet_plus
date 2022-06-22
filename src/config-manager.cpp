@@ -144,6 +144,9 @@ bool ConfigManager::Initialize()
         EEPROM.put(_KIBBLES_LIMIT_ADDRESS, _kibbles_limit);
 
     }
+    
+    // to force initialization to a valid _hub_state in Run()
+    _hub_state = _HUB_STATE_INIT;
 
     return true;
 
@@ -213,7 +216,7 @@ bool ConfigManager::Run()
 
         // test idea that we always attempt to reconnect every N seconds. 
         // could make this last webpage-request dependent, so if webpage is currently active, don't need to do this
-        bool _need_mdns_reconnect = true;
+        bool _need_mdns_reconnect = false;
 
         if (_need_mdns_reconnect)
         {
@@ -397,14 +400,11 @@ bool ConfigManager::_process_hub_mode()
     }
 
     // do hub_state update if there's a new hub state that has changed, AND a trial just ended. i.e. wait for trial to end before applying update
-    if ((new_hub_state != _hub_state) && _gameMan->trial_just_done())
+    if ((new_hub_state != _hub_state))
     {
         // hub state has changed!
 
-        _hub_state = new_hub_state;
-
-
-        if (_hub_state == _HUB_STATE_ACTIVE)
+        if (new_hub_state == _HUB_STATE_ACTIVE)
         {   
 
             // for now, we are going to ignore the indicator light
@@ -425,8 +425,10 @@ bool ConfigManager::_process_hub_mode()
             // should we just have it skip the game loop?
             _gameMan->set_game_enabled(true);
 
+            _hub_state = new_hub_state;
+
         }
-        else if (_hub_state == _HUB_STATE_STANDBY)
+        else if (new_hub_state == _HUB_STATE_STANDBY)
         {
             // for now, we are going to ignore the indicator light
 
@@ -444,12 +446,17 @@ bool ConfigManager::_process_hub_mode()
             // this just set _active_mode flag in old firmware and that's all...
             // _dli->SetActiveMode(false);
             
-            _hub->SetButtonAudioEnabled(false);
-            _hub->SetLightEnabled(false);
-            _hub->UpdateButtonAudioEnabled();
+            // only swap from ACTIVE to STANDBY if a game ended; but allow swap from INIT to STANDBY regardless
+            if ((_hub_state == _HUB_STATE_ACTIVE && _gameMan->trial_just_done()) || (_hub_state == _HUB_STATE_INIT))
+            {
+                _hub->SetButtonAudioEnabled(false);
+                _hub->SetLightEnabled(false);
+                _hub->UpdateButtonAudioEnabled();
 
-            _gameMan->set_game_enabled(false);
-            
+                _gameMan->set_game_enabled(false);
+
+                _hub_state = new_hub_state;
+            }   
         }
         else
         {

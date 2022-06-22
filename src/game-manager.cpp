@@ -18,14 +18,14 @@ bool GameManager::Initialize(int init_game)
     _current_game = init_game;
     _next_game = init_game;
 
-    _game_enabled = true;
+    _game_enabled = false;
     
     _kibbles_eaten = 0;
 
     _trial_info = new trial_info;
     _trial_info->food_eaten = false;
     
-    _trial_just_done = false;
+    _trial_just_done = true;
 
     return true;
 }
@@ -141,6 +141,10 @@ bool GameManager::Run()
         }
 
         _trial_just_done = trial_done;
+    }
+    else
+    {
+        _trial_just_done = true;  // if no game enabled; say trial done true
     }
     
     return true;

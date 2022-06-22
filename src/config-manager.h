@@ -72,6 +72,7 @@ class ConfigManager
         
         const int _HUB_STATE_STANDBY = 0;
         const int _HUB_STATE_ACTIVE = 1;
+        const int _HUB_STATE_INIT = 2;  // to force initialization
 
         // ***************** config vars *****************
         
