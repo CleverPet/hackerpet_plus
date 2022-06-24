@@ -7,8 +7,6 @@ using namespace mdns;
 //TCPServer webserver = TCPServer(80);
 //TCPClient webclient;
 
-MDNS mgschwan_mdns;
-
 
 IPAddress mgschwan_getBroadcastAddress() {
  
@@ -27,20 +25,22 @@ IPAddress mgschwan_getBroadcastAddress() {
 }
 
 
-bool mgschwan_setupMDNS() {
+bool mgschwan_setupMDNS(MDNS * mgschwan_mdns, bool begin_only) {
     bool success = false;
 
-    success = mgschwan_mdns.setHostname("cleverpet");
-    Log.info("MDNS: Set hostname %d",success);
+    if (!begin_only)
+    {
+        success = mgschwan_mdns->setHostname("cleverpet");
+        Log.info("MDNS: Set hostname %d",success);
 
-    if (success) {
-      success = mgschwan_mdns.addService("tcp", "http", 80, "Cleverpet Interface");
-    } 
+        if (success) {
+        success = mgschwan_mdns->addService("tcp", "http", 80, "Cleverpet Interface");
+        } 
 
-    Log.info("MDNS: Add service %d",success);
-
-    if (success) {
-        success = mgschwan_mdns.begin(true);
+        Log.info("MDNS: Add service %d",success);
+    }
+    if (success || begin_only) {
+        success = mgschwan_mdns->begin(true);
     }
 
     Log.info("MDNS: Begin %d",success);
@@ -66,7 +66,7 @@ String float_to_string(float the_float)
 }
 
 
-void mgschwan_setupNetwork()
+void mgschwan_setupNetwork(MDNS * mgschwan_mdns, bool begin_only)
 {
     // these are *probably* not necessary for serving http?
         // server.begin();
@@ -74,11 +74,11 @@ void mgschwan_setupNetwork()
         //webSocket.onEvent(webSocketEvent);
     
     // we've modified this to only set up port 80 for http
-    mgschwan_setupMDNS();
+    mgschwan_setupMDNS(mgschwan_mdns, begin_only);
 }
 
 
-void mgschwan_MDNS_loop() {
-    mgschwan_mdns.processQueries();
+void mgschwan_MDNS_loop(MDNS * mgschwan_mdns) {
+    mgschwan_mdns->processQueries();
 }
 

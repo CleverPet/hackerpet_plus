@@ -54,7 +54,7 @@ void loop() {
 
     FREE_MEMORY = System.freeMemory();
     
-    if ((millis() - lastmemcheck) > 1000) {
+    if ((millis() - lastmemcheck) > 10000) {
         lastmemcheck = millis();
         Serial.print(Time.timeStr());
         Serial.println("in7399");

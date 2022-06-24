@@ -148,6 +148,8 @@ bool ConfigManager::Initialize()
     // to force initialization to a valid _hub_state in Run()
     _hub_state = _HUB_STATE_INIT;
 
+    mgschwan_mdns = new MDNS;
+
     return true;
 
 }
@@ -164,11 +166,15 @@ bool ConfigManager::Run()
 
     if (WiFi.ready() && _system_ready == false)
     {
+        delete mgschwan_mdns;
+        mgschwan_mdns = new MDNS;
+        
         _broadcastAddress = mgschwan_getBroadcastAddress();
         _system_ready = true;
-        mgschwan_setupNetwork(); //Open TCP Port
+        mgschwan_setupNetwork(mgschwan_mdns, false); //Open TCP Port
         Log.info("Wifi Ready. Ip Address %s",  WiFi.localIP());
         _last_mdns_reconnect_attempt = millis();
+        _last_request_time = millis();
     }
     else {
         //Waiting for the Wifi to become ready        
@@ -176,7 +182,7 @@ bool ConfigManager::Run()
     
     if (_system_ready) 
     {
-        mgschwan_MDNS_loop();
+        mgschwan_MDNS_loop(mgschwan_mdns);
 
         _display_error_msg = "Your hub is working.";
         if (_hub->IsHubOutOfFood())
@@ -216,22 +222,25 @@ bool ConfigManager::Run()
 
         // test idea that we always attempt to reconnect every N seconds. 
         // could make this last webpage-request dependent, so if webpage is currently active, don't need to do this
-        bool _need_mdns_reconnect = false;
+        bool _need_mdns_reconnect = (millis() - _last_request_time > 10000);
 
         if (_need_mdns_reconnect)
         {
-            if ((millis() - _last_mdns_reconnect_attempt) > 10000) 
+            if ((millis() - _last_mdns_reconnect_attempt) > 10000 && WiFi.ready()) 
             {
                 _last_mdns_reconnect_attempt = millis();
                 
                 Serial.print(Time.timeStr());
-                Serial.println(" Attempting mdns reconnect...");
+                Serial.println(" ######## Attempting mdns reconnect... ########");
+
+                //delete mgschwan_mdns;
+                //mgschwan_mdns = new MDNS;
 
                 _broadcastAddress = mgschwan_getBroadcastAddress();
-                mgschwan_setupNetwork();
+                mgschwan_setupNetwork(mgschwan_mdns, true);
 
                 Serial.print(Time.timeStr());
-                Serial.println(" ...Reconnect mdns attempt finished.");
+                Serial.println(" ######## ...Reconnect mdns attempt finished. ########");
             }
         }
 
@@ -487,6 +496,7 @@ bool ConfigManager::_serve_webinterface()
         if (request_finished)
         {
             _process_request(request_string);
+            _last_request_time = millis();
         }
     }
 

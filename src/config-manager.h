@@ -2,6 +2,9 @@
 #define CONFIG_MANAGER_H
 
 #include "Particle.h"
+#include <MDNS.h>
+using namespace mdns;
+
 #include "http-server-util.h"
 #include "hackerpet.h"
 #include "game-manager.h"
@@ -102,6 +105,8 @@ class ConfigManager
         int _last_day;
 
         unsigned long _last_mdns_reconnect_attempt;
+        unsigned long _last_request_time;
+        MDNS * mgschwan_mdns;
 };
 
 
