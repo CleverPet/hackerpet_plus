@@ -107,6 +107,7 @@ class ConfigManager
         unsigned long _last_mdns_reconnect_attempt;
         unsigned long _last_request_time;
         MDNS * mgschwan_mdns;
+        unsigned long _last_mdns_loop_time;
 };
 
 

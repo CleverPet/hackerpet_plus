@@ -175,6 +175,7 @@ bool ConfigManager::Run()
         Log.info("Wifi Ready. Ip Address %s",  WiFi.localIP());
         _last_mdns_reconnect_attempt = millis();
         _last_request_time = millis();
+        _last_mdns_loop_time = millis();
     }
     else {
         //Waiting for the Wifi to become ready        
@@ -182,7 +183,13 @@ bool ConfigManager::Run()
     
     if (_system_ready) 
     {
-        mgschwan_MDNS_loop(mgschwan_mdns);
+        if ((millis() - _last_mdns_loop_time)>1000)
+        {
+            //Serial.println(" >>>>>>>> Calling mgschwan_MDNS_loop ... >>>>>>>>");
+            mgschwan_MDNS_loop(mgschwan_mdns);
+            //Serial.println(" >>>>>>>> Done calling mgschwan_MDNS_loop. >>>>>>>>");
+            _last_mdns_loop_time = millis();
+        }
 
         _display_error_msg = "Your hub is working.";
         if (_hub->IsHubOutOfFood())
@@ -490,14 +497,19 @@ bool ConfigManager::_serve_webinterface()
     bool request_finished = false;
     if (_webclient.connected()) 
     {
+        Log.info("--- SERVER IS STARTING A READ FROM CLIENT ---");
+
         String request_string = "";
         _read_from_client(request_finished, request_string);
+
+        Log.info("--- SERVER FINISHED A READ FROM CLIENT; STARTING PROCESSING... ---");
 
         if (request_finished)
         {
             _process_request(request_string);
             _last_request_time = millis();
         }
+        Log.info("--- SERVER FINISHED PROCESSING REQUEST ---");
     }
 
     delay (1); //That is a hack to allow the browser to receive the data

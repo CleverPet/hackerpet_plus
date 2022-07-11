@@ -60,5 +60,4 @@ void loop() {
         Serial.println("in7399");
         Serial.printlnf("\tMILLIS: %lu\tSYSTEM MEMORY=%lu", lastmemcheck, FREE_MEMORY);
     }
-    
 }
