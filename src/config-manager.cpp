@@ -144,6 +144,11 @@ bool ConfigManager::Initialize()
         EEPROM.put(_KIBBLES_LIMIT_ADDRESS, _kibbles_limit);
 
     }
+    
+    // to force initialization to a valid _hub_state in Run()
+    _hub_state = _HUB_STATE_INIT;
+
+    mgschwan_mdns = new MDNS;
 
     return true;
 
@@ -161,10 +166,16 @@ bool ConfigManager::Run()
 
     if (WiFi.ready() && _system_ready == false)
     {
+        delete mgschwan_mdns;
+        mgschwan_mdns = new MDNS;
+        
         _broadcastAddress = mgschwan_getBroadcastAddress();
         _system_ready = true;
-        mgschwan_setupNetwork(); //Open TCP Port
+        mgschwan_setupNetwork(mgschwan_mdns, false); //Open TCP Port
         Log.info("Wifi Ready. Ip Address %s",  WiFi.localIP());
+        _last_mdns_reconnect_attempt = millis();
+        _last_request_time = millis();
+        _last_mdns_loop_time = millis();
     }
     else {
         //Waiting for the Wifi to become ready        
@@ -172,7 +183,13 @@ bool ConfigManager::Run()
     
     if (_system_ready) 
     {
-        mgschwan_MDNS_loop();
+        if ((millis() - _last_mdns_loop_time)>1000)
+        {
+            //Serial.println(" >>>>>>>> Calling mgschwan_MDNS_loop ... >>>>>>>>");
+            mgschwan_MDNS_loop(mgschwan_mdns);
+            //Serial.println(" >>>>>>>> Done calling mgschwan_MDNS_loop. >>>>>>>>");
+            _last_mdns_loop_time = millis();
+        }
 
         _display_error_msg = "Your hub is working.";
         if (_hub->IsHubOutOfFood())
@@ -209,7 +226,30 @@ bool ConfigManager::Run()
             _gameMan->set_next_game(_next_game_to_play);
 
         }
-        
+
+        // test idea that we always attempt to reconnect every N seconds. 
+        // could make this last webpage-request dependent, so if webpage is currently active, don't need to do this
+        bool _need_mdns_reconnect = (millis() - _last_request_time > 10000);
+
+        if (_need_mdns_reconnect)
+        {
+            if ((millis() - _last_mdns_reconnect_attempt) > 10000 && WiFi.ready()) 
+            {
+                _last_mdns_reconnect_attempt = millis();
+                
+                Serial.print(Time.timeStr());
+                Serial.println(" ######## Attempting mdns reconnect... ########");
+
+                //delete mgschwan_mdns;
+                //mgschwan_mdns = new MDNS;
+
+                _broadcastAddress = mgschwan_getBroadcastAddress();
+                mgschwan_setupNetwork(mgschwan_mdns, true);
+
+                Serial.print(Time.timeStr());
+                Serial.println(" ######## ...Reconnect mdns attempt finished. ########");
+            }
+        }
 
     }
 
@@ -375,14 +415,12 @@ bool ConfigManager::_process_hub_mode()
         _gameMan->reset_kibbles_eaten();
     }
 
-    if (new_hub_state != _hub_state)
+    // do hub_state update if there's a new hub state that has changed, AND a trial just ended. i.e. wait for trial to end before applying update
+    if ((new_hub_state != _hub_state))
     {
         // hub state has changed!
 
-        _hub_state = new_hub_state;
-
-
-        if (_hub_state == _HUB_STATE_ACTIVE)
+        if (new_hub_state == _HUB_STATE_ACTIVE)
         {   
 
             // for now, we are going to ignore the indicator light
@@ -403,8 +441,10 @@ bool ConfigManager::_process_hub_mode()
             // should we just have it skip the game loop?
             _gameMan->set_game_enabled(true);
 
+            _hub_state = new_hub_state;
+
         }
-        else if (_hub_state == _HUB_STATE_STANDBY)
+        else if (new_hub_state == _HUB_STATE_STANDBY)
         {
             // for now, we are going to ignore the indicator light
 
@@ -422,12 +462,17 @@ bool ConfigManager::_process_hub_mode()
             // this just set _active_mode flag in old firmware and that's all...
             // _dli->SetActiveMode(false);
             
-            _hub->SetButtonAudioEnabled(false);
-            _hub->SetLightEnabled(false);
-            _hub->UpdateButtonAudioEnabled();
+            // only swap from ACTIVE to STANDBY if a game ended; but allow swap from INIT to STANDBY regardless
+            if ((_hub_state == _HUB_STATE_ACTIVE && _gameMan->trial_just_done()) || (_hub_state == _HUB_STATE_INIT))
+            {
+                _hub->SetButtonAudioEnabled(false);
+                _hub->SetLightEnabled(false);
+                _hub->UpdateButtonAudioEnabled();
 
-            _gameMan->set_game_enabled(false);
-            
+                _gameMan->set_game_enabled(false);
+
+                _hub_state = new_hub_state;
+            }   
         }
         else
         {
@@ -452,13 +497,19 @@ bool ConfigManager::_serve_webinterface()
     bool request_finished = false;
     if (_webclient.connected()) 
     {
+        Log.info("--- SERVER IS STARTING A READ FROM CLIENT ---");
+
         String request_string = "";
         _read_from_client(request_finished, request_string);
+
+        Log.info("--- SERVER FINISHED A READ FROM CLIENT; STARTING PROCESSING... ---");
 
         if (request_finished)
         {
             _process_request(request_string);
+            _last_request_time = millis();
         }
+        Log.info("--- SERVER FINISHED PROCESSING REQUEST ---");
     }
 
     delay (1); //That is a hack to allow the browser to receive the data

@@ -2,6 +2,9 @@
 #define CONFIG_MANAGER_H
 
 #include "Particle.h"
+#include <MDNS.h>
+using namespace mdns;
+
 #include "http-server-util.h"
 #include "hackerpet.h"
 #include "game-manager.h"
@@ -72,6 +75,7 @@ class ConfigManager
         
         const int _HUB_STATE_STANDBY = 0;
         const int _HUB_STATE_ACTIVE = 1;
+        const int _HUB_STATE_INIT = 2;  // to force initialization
 
         // ***************** config vars *****************
         
@@ -99,6 +103,11 @@ class ConfigManager
         int _kibbles_eaten_today;
 
         int _last_day;
+
+        unsigned long _last_mdns_reconnect_attempt;
+        unsigned long _last_request_time;
+        MDNS * mgschwan_mdns;
+        unsigned long _last_mdns_loop_time;
 };
 
 

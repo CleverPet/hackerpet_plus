@@ -307,10 +307,11 @@ bool playLearningDoubleSequences(HubInterface * hub, trial_info *_trial_info){
 
         // printPerformanceArray();
 
-        if (!accurate) {
-          // between interaction wait time if a miss
-          yield_sleep_ms(INTER_GAME_DELAY, false);
-    }
+        // this causes crash, for this game, not sure why... disabled for now:
+        //if (!accurate) {
+        //  // between interaction wait time if a miss
+        //    yield_sleep_ms(INTER_GAME_DELAY, false);
+        //}
 
     hub->SetDIResetLock(false);  // allow DI board to reset if needed between interactions
     yield_finish();
