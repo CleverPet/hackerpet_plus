@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="https://i.postimg.cc/tCGfvg7x/cleverpet-logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clever Pet</title>
+    <!-- <script type="module" crossorigin src="/assets/index.42fe4937.js"></script> -->
+    <script>
+      const s=function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const e of document.querySelectorAll('link[rel="modulepreload"]'))n(e);new MutationObserver(e=>{for(const r of e)if(r.type==="childList")for(const o of r.addedNodes)o.tagName==="LINK"&&o.rel==="modulepreload"&&n(o)}).observe(document,{childList:!0,subtree:!0});function i(e){const r={};return e.integrity&&(r.integrity=e.integrity),e.referrerpolicy&&(r.referrerPolicy=e.referrerpolicy),e.crossorigin==="use-credentials"?r.credentials="include":e.crossorigin==="anonymous"?r.credentials="omit":r.credentials="same-origin",r}function n(e){if(e.ep)return;e.ep=!0;const r=i(e);fetch(e.href,r)}};s();
+    </script>
+    <script>
+        function updateAllEvents() { 
+                           var xhttp = new XMLHttpRequest();
+                           var status_element = document.getElementById("hubstatustext");  // hub state also here??
+                           var time_element = document.getElementById("currentdateandtime");
+                           var kibbles_eaten_element = document.getElementById("kibbleseatentoday");
+                           var timezone_set_elem = document.getElementById("the-timezone");  // new! innerHtml
+                           var dst_set_elem = document.getElementById("applydaylightsaving"); // button. new  ; aria-checked: "true" or "false"
+                           var max_kibbles_elem = document.getElementById("max-kibbles-value");  // new! innerHtml
+
+                          var schedule_elem_0 = document.getElementById("schedule-radio-0");  // type: radio
+                          var schedule_elem_1 = document.getElementById("schedule-radio-1");
+                          var schedule_elem_2 = document.getElementById("schedule-radio-2");
+
+                           xhttp.open("GET", "/local-api", true);
+                           xhttp.send();
+                           xhttp.onload = function () {
+                               console.log('DONE', xhttp.readyState);
+                               console.log(xhttp.responseText);
+                               var data = JSON.parse(xhttp.responseText);
+                               status_element.innerHTML = data.status + "<br>" + data.hub_state;
+                               time_element.innerHTML = data.time;
+                               kibbles_eaten_element.innerHTML = data.kibbles_eaten_today;
+                               timezone_set_elem.innerHTML = data.timezone;
+
+                               // if hidden (not currently editing!)!
+                               // if not hidden, should not overwrite value being edited
+                               var scheduleele = document.getElementById('scheduleroption');
+                               if(scheduleele.classList.contains('hidden'))
+                               {
+                                  document.getElementById('weekdayfrom').value = data.weekday_from;
+                                  document.getElementById('weekdayto').value = data.weekday_to;
+                                  document.getElementById('weekendfrom').value = data.weekend_from;
+                                  document.getElementById('weekendto').value = data.weekend_to;
+
+                                  if(parseInt(data.hub_mode, 10) == 0)
+                                  {
+                                      schedule_elem_0.checked = "true";
+                                      console.log("setting hub mode 0 check true");
+                                  }
+
+                                  if(parseInt(data.hub_mode, 10) == 1)
+                                  {
+                                      schedule_elem_1.checked = "true";
+                                      console.log("setting hub mode 1 check true");
+                                  }
+                                  if(parseInt(data.hub_mode, 10) == 2)
+                                  {
+                                      schedule_elem_2.checked = "true";
+                                      console.log("setting hub mode 2 check true");
+                                      toggleClass('scheduleroption', 'hidden');   
+                                  }
+                               }
+
+                               inputEle = document.getElementById("applydaylightsavinginput");
+                               if(parseInt(data.dst_on, 10) == 1 && inputEle.value == 0)
+                               {
+                                      console.log("set DST btn 1");
+                                      radioButton('applydaylightsaving','applydaylightradio', 'applydaylightsavinginput', false);
+                               }
+                               if(parseInt(data.dst_on, 10) == 0 && inputEle.value == 1)
+                               {
+                                      console.log("set DST btn 0");
+                                      radioButton('applydaylightsaving','applydaylightradio', 'applydaylightsavinginput', false);
+                               }
+                               
+                               max_kibbles_elem.innerHTML = data.max_kibbles;
+                               for(let i=0; i < 12; i++)   // TODO IS THIS RIGHT NUM GAMES
+                               {
+                                    console.log("game-status-" + i.toString());
+                                    var game_element = document.getElementById("game-" + i.toString());
+                                    if (parseInt(data.game_id_playing)==i)  // playing same game overrides the element if also queued same
+                                    {
+                                       console.log("playing found");
+                                       game_element.innerHTML="&nbsp;playing";
+                                    }
+                                    else
+                                    {
+                                       if (parseInt(data.game_id_queued)==i)
+                                       {
+                                           console.log("queued found");
+                                           game_element.innerHTML="&nbsp;queued";
+                                       }
+                                       else
+                                       {
+                                           game_element.innerHTML="";
+                                       }
+                                    }
+                               }
+                           };
+                         }
+
+                         setInterval(updateAllEvents, 2000);
+    </script>
+    <link rel="stylesheet" href="https://drive.google.com/uc?export=download&id=1adSMJJCFedm6nbl1TMnRcxuLRQK9fYFb">
+  </head>
+  <body class="page-bg">
+    <nav class="bg-white shadow sticky top-0 z-10">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+          <div class="flex">
+            <div class="flex-shrink-0 flex items-center">
+              <img src="https://i.postimg.cc/1tFXGNVM/logo-d8ebc7ad.png" class="h-10" />
+            </div>
+            <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+              <a href="#" class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"> Dashboard </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 mb-10">
+        <div class="py-10">
+          <div class="flex gap-4">
+            <div class="bg-white rounded-md border border-gray-200 shadow p-4 text-center sm:w-1/2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14 md:h-20 md:w-20 mx-auto text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-9.9-2.829a5 5 0 010-7.07m7.072 0a5 5 0 010 7.07M13 12a1 1 0 11-2 0 1 1 0 012 0z" />
+              </svg>
+              <p class=" md:text-2xl" id="hubstatustext">
+                You hub status is active
+              </p>
+            </div>
+            <div class="bg-white rounded-md border border-gray-200 shadow p-4 text-center sm:w-1/2">
+              <p class="text-4xl md:text-7xl font-bold" id="kibbleseatentoday">30</p>
+              <p class="mt-2 md:text-2xl">
+                Kibbles eaten today
+              </p>
+            </div>
+          </div>
+          <div class="relative mt-4">
+            <div class="absolute inset-0 flex items-center" aria-hidden="true">
+              <div class="w-full border-t border-gray-300"></div>
+            </div>
+            <div class="relative flex justify-center">
+              <span class="px-2  text-sm text-gray-500"> Date and Time settings</span>
+            </div>
+          </div>
+          <div class="mt-4">
+            <div class="bg-white rounded-md border border-gray-200 shadow p-4">
+                <div class="flex">
+                  <p class="flex-1">Date and Time</p>
+                  <span id="currentdateandtime" class="text-gray-500">Wed Mar 23 2022 23:40:11</span>
+                </div>
+            </div>
+          </div>
+          <div class="mt-4">
+            <div class="bg-white rounded-md border border-gray-200 shadow p-4">
+                <div class="flex">
+                <p class="flex-1">Apply Daylight Savings</p>
+                <button onclick="radioButton('applydaylightsaving','applydaylightradio', 'applydaylightsavinginput', true)" id="applydaylightsaving" type="button" class="bg-gray-200 relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" role="switch" aria-checked="false">
+                  <span class="sr-only">Use setting</span>
+                  <span id="applydaylightradio" aria-hidden="true" class="translate-x-0 pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200"></span>
+                </button>
+                <input name="daylightsavings" type="hidden" value="0" id="applydaylightsavinginput" />
+                </div>
+            </div>
+          </div>
+          <div class="mt-4">
+            <div class="bg-white rounded-md border border-gray-200 shadow p-4">
+                <div class="flex">
+                <p class="flex-1">Timezone</p>
+                <p class="mr-2" id="the-timezone">America/Los Angeles</p>
+                <button onclick="toggleClass('timezoneselectoption', 'hidden')">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+                </div>
+            </div>
+          </div>
+          <div class="mt-4">
+            <div class="bg-white rounded-md border border-gray-200 shadow p-4">
+                <div>
+                  <div class="flex items-center justify-around gap-4">
+                    <div class="flex items-center">
+                      <input  name="scheduleradio" id="schedule-radio-1" checked type="radio" value="1" onchange="setHubMode(1)" class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300">
+                      <label for="scheduleradio" class="ml-2 block text-sm font-medium text-gray-700"> Stay on </label>
+                    </div>
+              
+                    <div class="flex items-center">
+                      <input  name="scheduleradio" id="schedule-radio-0" type="radio" onchange="setHubMode(0)" value="0" class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300">
+                      <label for="sms" class="ml-2 block text-sm font-medium text-gray-700"> Stay Off</label>
+                    </div>
+                    <div class="flex items-center">
+                      <input  name="scheduleradio" id="schedule-radio-2" value="2" onchange="setHubMode(2)" type="radio" class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300">
+                      <label for="scheduleradio" class="ml-2 block text-sm font-medium text-gray-700"> Schedule</label>
+                    </div>
+                  </div>
+                </div>
+            </div>
+          </div>
+          <div class="mt-4 hidden" id="scheduleroption">
+            <div class="bg-white rounded-md border border-gray-200 shadow p-4">
+              <div>
+                  <h4 class="text-center mb-4 font-bold">Week Days</h4>
+                  <div class="flex items-center justify-center">
+                    <div class="px-2">
+                      <label for="weekdayfrom" class="block text-sm font-medium text-gray-700">From</label>
+                      <div class="mt-1">
+                        <input type="time" name="weekdayfrom" id="weekdayfrom" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="9:00 am">
+                        <p id="weekdayfromerror" class="hidden text-red-500 text-xs">This field is required</p>
+                      </div>
+                    </div>
+                    <div class="pt-5"> - </div>
+                    <div class="px-2">
+                      <label for="weekdayto" class="block text-sm font-medium text-gray-700">To</label>
+                      <div class="mt-1">
+                        <input type="time" name="weekdayto" id="weekdayto" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="9:00 am">
+                        <p id="weekdaytoerror" class="hidden text-red-500 text-xs">This field is required</p>
+                      </div>
+                    </div>
+                  </div>
+              </div>
+              <div class="mt-4">
+                <h4 class="text-center mb-4 font-bold">Week Ends</h4>
+                <div class="flex items-center justify-center">
+                  <div class="px-2">
+                    <label for="weekendfrom" class="block text-sm font-medium text-gray-700">From</label>
+                    <div class="mt-1">
+                      <input type="time" name="weekendfrom" id="weekendfrom" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="9:00 am">
+                      <p id="weekendfromerror" class="hidden text-red-500 text-xs">This field is required</p>
+                    </div>
+                  </div>
+                  <div class="pt-5"> - </div>
+                  <div class="px-2">
+                    <label for="weekendto" class="block text-sm font-medium text-gray-700">To</label>
+                    <div class="mt-1">
+                      <input type="time" name="weekendto" id="weekendto" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="9:00 am">
+                      <p id="weekendtoerror" class="hidden text-red-500 text-xs">This field is required</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <button onclick="setHubModeSchedule()" class="w-full mt-3 py-2 rounded shadow bg-green-500 text-white text-sm md:text-xl">Save</button>
+            </div>
+          </div>
+          <div class="relative mt-4">
+            <div class="absolute inset-0 flex items-center" aria-hidden="true">
+              <div class="w-full border-t border-gray-300"></div>
+            </div>
+            <div class="relative flex justify-center">
+              <span class="px-2  text-sm text-gray-500"> Kibbles settings </span>
+            </div>
+          </div>
+          <div class="mt-4">
+            <div class="bg-white rounded-md border border-gray-200 shadow p-4">
+                <div class="flex">
+                  <p class="flex-1">Max Kibbles Per Day</p>
+                  <p class="mr-2" id="max-kibbles-value">40</p>
+                  <button onclick="toggleClass('maxkibblesperdayoption', 'hidden')">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+                </div>
+            </div>
+          </div>
+        </div>
+        <div class="md:py-5">
+          <div class="relative my-4">
+            <div class="absolute inset-0 flex items-center" aria-hidden="true">
+              <div class="w-full border-t border-gray-300"></div>
+            </div>
+            <div class="relative flex justify-center">
+              <span class="px-2  text-sm text-gray-500">Select Game</span>
+            </div>
+          </div>
+           <div class="bg-white rounded-md border border-gray-200 p-2">
+             <ul class="divide-y">
+               <li class="py-2">
+                 <div class="flex">
+                   <button onclick="selectGame('0')">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                    </svg>
+                   </button>
+                   <div class="px-2">
+                      <h4 class="font-bold p-0 m-0">Eating the food</h4>
+                      <p id="game-0" class="font-thin -m-1 p-0"></p> 
+                   </div>
+                 </div>
+               </li>
+               <li class="py-2">
+                <div class="flex">
+                  <button  onclick="selectGame('1')">
+                   <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                   </svg>
+                  </button>
+                  <div class="px-2">
+                     <h4 class="font-bold p-0 m-0">Exploring the Touchpads</h4>
+                     <p id="game-1" class="font-thin -m-1 p-0"></p> 
+                  </div>
+                </div>
+              </li>
+              <li class="py-2">
+                <div class="flex">
+                  <button  onclick="selectGame('2')">
+                   <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                   </svg>
+                  </button>
+                  <div class="px-2">
+                     <h4 class="font-bold p-0 m-0">Engaging Consistently</h4>
+                     <p id="game-2" class="font-thin -m-1 p-0"></p> 
+                  </div>
+                </div>
+              </li>
+              <li class="py-2">
+                <div class="flex">
+                  <button  onclick="selectGame('3')">
+                   <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                   </svg>
+                  </button>
+                  <div class="px-2">
+                     <h4 class="font-bold p-0 m-0">Avoiding Unlit Touchpads</h4>
+                     <p id="game-3" class="font-thin -m-1 p-0"></p> 
+                  </div>
+                </div>
+              </li>
+              <li class="py-2">
+                <div class="flex">
+                  <button  onclick="selectGame('4')">
+                   <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                   </svg>
+                  </button>
+                  <div class="px-2">
+                     <h4 class="font-bold p-0 m-0">Learning the Lights</h4>
+                     <p id="game-4" class="font-thin -m-1 p-0"></p> 
+                  </div>
+                </div>
+              </li>
+              <li class="py-2">
+                <div class="flex">
+                  <button  onclick="selectGame('5')">
+                   <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                   </svg>
+                  </button>
+                  <div class="px-2">
+                     <h4 class="font-bold p-0 m-0">Mastering the Lights</h4>
+                     <p id="game-5" class="font-thin -m-1 p-0"></p> 
+                  </div>
+                </div>
+              </li>
+              <li class="py-2">
+                <div class="flex">
+                  <button  onclick="selectGame('6')">
+                   <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                   </svg>
+                  </button>
+                  <div class="px-2">
+                     <h4 class="font-bold p-0 m-0">Responding Quickly</h4>
+                     <p id="game-6" class="font-thin -m-1 p-0"></p> 
+                  </div>
+                </div>
+              </li>
+              <li class="py-2">
+                <div class="flex">
+                  <button  onclick="selectGame('7')">
+                   <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                   </svg>
+                  </button>
+                  <div class="px-2">
+                     <h4 class="font-bold p-0 m-0">Learning Brightness</h4>
+                     <p id="game-7" class="font-thin -m-1 p-0"></p> 
+                  </div>
+                </div>
+              </li>
+              <li class="py-2">
+                <div class="flex">
+                  <button  onclick="selectGame('8')">
+                   <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                   </svg>
+                  </button>
+                  <div class="px-2">
+                     <h4 class="font-bold p-0 m-0">Learning Double Sequences</h4>
+                     <p id="game-8" class="font-thin -m-1 p-0"></p> 
+                  </div>
+                </div>
+              </li>
+              <li class="py-2">
+                <div class="flex">
+                  <button  onclick="selectGame('9')">
+                   <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                   </svg>
+                  </button>
+                  <div class="px-2">
+                     <h4 class="font-bold p-0 m-0">Learning Longer Sequences</h4>
+                     <p id="game-9" class="font-thin -m-1 p-0"></p> 
+                  </div>
+                </div>
+              </li>
+              <li class="py-2">
+                <div class="flex">
+                  <button  onclick="selectGame('10')">
+                   <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                   </svg>
+                  </button>
+                  <div class="px-2">
+                     <h4 class="font-bold p-0 m-0">Matching Two Colors</h4>
+                     <p id="game-10" class="font-thin -m-1 p-0"></p> 
+                  </div>
+                </div>
+              </li>
+              <li class="py-2">
+                <div class="flex">
+                  <button  onclick="selectGame('11')">
+                   <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                   </svg>
+                  </button>
+                  <div class="px-2">
+                     <h4 class="font-bold p-0 m-0">Matching More Colors</h4>
+                     <p id="game-11" class="font-thin -m-1 p-0"></p> 
+                  </div>
+                </div>
+              </li>
+             </ul>
+           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Select Option for Timezone -->
+    <div id="timezoneselectoption" class="hidden fixed inset-0 z-10 overflow-y-auto p-4 sm:p-6 md:p-20" role="dialog" aria-modal="true">
+      <div class="fixed inset-0 bg-gray-500 bg-opacity-25 transition-opacity" aria-hidden="true"></div>
+      <div class="mx-auto max-w-xl transform rounded-xl bg-white p-2 shadow-2xl ring-1 ring-black ring-opacity-5 transition-all">
+        <input type="text" class="w-full rounded-md border-0 bg-gray-100 px-4 py-2.5 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm" placeholder="Search Timezone" role="combobox" aria-expanded="false" aria-controls="options">
+        <!-- Results, show/hide based on command palette state. -->
+        <ul class="-mb-2 max-h-72 scroll-py-2 overflow-y-auto py-2 text-sm text-gray-800" id="options" role="listbox">
+          <!-- Active: "bg-indigo-600 text-white" -->
+          <li onclick="selectTimeZone('-12')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">GMT-12:00) International Date Line West</li>
+          <li onclick="selectTimeZone('-11')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT-11:00) Midway Island, Samoa</li>
+          <li onclick="selectTimeZone('-10')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT-10:00) Hawaii</li>
+          <li onclick="selectTimeZone('-9')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT-09:00) Alaska</li>
+          <li onclick="selectTimeZone('-8')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT-08:00) Pacific Time (US & Canada)</li>
+          <li onclick="selectTimeZone('-7')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT-07:00) Mountain Time (US & Canada)</li>
+          <li onclick="selectTimeZone('-6')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">GMT-06:00) Central Time (US & Canada)</li>
+          <li onclick="selectTimeZone('-5')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT-05:00) Eastern Time (US & Canada)</li>
+          <li onclick="selectTimeZone('-4')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT-04:00) Atlantic Time (Canada)</li>
+          <li onclick="selectTimeZone('-3.5')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT-03:30) Newfoundland</li>
+          <li onclick="selectTimeZone('-3')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT-03:00) Buenos Aires, Georgetown</li>
+          <li onclick="selectTimeZone('-2')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT-02:00) Mid-Atlantic</li>
+          <li onclick="selectTimeZone('-1')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT-01:00) Cape Verde Is.</li>
+          <li onclick="selectTimeZone('0')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">GMT+00:00) Greenwich Mean Time : Dublin, Edinburgh, Lisbon, London</li>
+          <li onclick="selectTimeZone('1')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna</li>
+          <li onclick="selectTimeZone('2')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT+02:00) Athens, Bucharest, Istanbul</li>
+          <li onclick="selectTimeZone('3')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT+03:00) Moscow, St. Petersburg, Volgograd</li>
+          <li onclick="selectTimeZone('3.5')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT+03:30) Tehran</li>
+          <li onclick="selectTimeZone('4')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT+04:00) Abu Dhabi, Muscat</li>
+          <li onclick="selectTimeZone('4.5')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT+04:30) Kabul</li>
+          <li onclick="selectTimeZone('5')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT+05:00) Islamabad, Karachi, Tashkent</li>
+          <li onclick="selectTimeZone('5.5')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT+05:30) Chennai, Kolkata, Mumbai, New Delhi</li>
+          <li onclick="selectTimeZone('5.75')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT+05:45) Kathmandu</li>
+          <li onclick="selectTimeZone('6')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT+06:00) Almaty, Novosibirsk</li>
+          <li onclick="selectTimeZone('6.5')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT+06:30) Yangon (Rangoon)</li>
+          <li onclick="selectTimeZone('7')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT+07:00) Bangkok, Hanoi, Jakarta</li>
+          <li onclick="selectTimeZone('8')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT+08:00) Beijing, Chongqing, Hong Kong, Urumqi</li>
+          <li onclick="selectTimeZone('9')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT+09:00) Osaka, Sapporo, Tokyo</li>
+          <li onclick="selectTimeZone('9.5')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT+09:30) Adelaide</li>
+          <li onclick="selectTimeZone('10')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT+10:00) Canberra, Melbourne, Sydney</li>
+          <li onclick="selectTimeZone('11')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT+11:00) Magadan, Solomon Is., New Caledonia</li>
+          <li onclick="selectTimeZone('12')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT+12:00) Auckland, Wellington</li>
+          <li onclick="selectTimeZone('13')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">(GMT+13:00) Nuku'alofa</li>
+        </ul>
+        <div class="flex justify-end pr-4">
+          <button class="text-red-300 font-bold" onclick="toggleClass('timezoneselectoption', 'hidden')">Cancel</button>
+       </div>
+      </div>
+    </div>
+
+    <!-- Select Option for Max Kibbles per Day -->
+    <div id="maxkibblesperdayoption" class="hidden fixed inset-0 z-10 overflow-y-auto p-4 sm:p-6 md:p-20" role="dialog" aria-modal="true">
+      <div class="fixed inset-0 bg-gray-500 bg-opacity-25 transition-opacity" aria-hidden="true"></div>
+      <div class="mx-auto max-w-xl transform rounded-xl bg-white p-2 shadow-2xl ring-1 ring-black ring-opacity-5 transition-all">
+        <h3 class="text-xl border-b border-gray-100">Select one below</h3>
+        <ul class="-mb-2 max-h-72 scroll-py-2 overflow-y-auto py-2 text-sm text-gray-800" id="options" role="listbox">
+          <!-- Active: "bg-indigo-600 text-white" -->
+          <li onclick="maxKibblesPerDay('25')" class="cursor-default select-none rounded-md px-4 py-2" id="option-1" role="option" tabindex="-1">25</li>
+          <li onclick="maxKibblesPerDay('50')" class="cursor-default select-none rounded-md px-4 py-2" id="option-2" role="option" tabindex="-1">50</li>
+          <li onclick="maxKibblesPerDay('100')" class="cursor-default select-none rounded-md px-4 py-2" id="option-3" role="option" tabindex="-1">100</li>
+          <li onclick="maxKibblesPerDay('200')" class="cursor-default select-none rounded-md px-4 py-2" id="option-4" role="option" tabindex="-1">200</li>
+          <li onclick="maxKibblesPerDay('400 ')" class="cursor-default select-none rounded-md px-4 py-2" id="option-5" role="option" tabindex="-1">400</li>
+        </ul>
+        <div class="flex justify-end pr-4">
+          <button class="text-red-300 font-bold" onclick="toggleClass('maxkibblesperdayoption', 'hidden')">Cancel</button>
+       </div>
+      </div>
+    </div>
+
+    
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        function toggleClass(elementId, stringClass){
+          var ele = document.getElementById(elementId);
+          ele.classList.toggle(stringClass);
+        }
+
+        function radioButton(btnClass, btnRadioClass, inputId, apicall){
+          var btn = document.getElementById(btnClass);
+          var btnradio = document.getElementById(btnRadioClass);
+          var inputEle = document.getElementById(inputId);
+          // toggle the switch and value of the input to 1 or 0 
+          if(btn.classList.contains('bg-gray-200')){
+            btn.classList.replace('bg-gray-200','bg-green-500');
+            btnradio.classList.replace('translate-x-0','translate-x-5');
+            inputEle.value = 1;
+            if(apicall)
+            {
+              setDayLightSavings(1);
+            }
+          }else{
+            btn.classList.replace('bg-green-500','bg-gray-200');
+            btnradio.classList.replace('translate-x-5','translate-x-0');
+            inputEle.value = 0;
+            if(apicall)
+            {
+              setDayLightSavings(0);
+            }
+          }
+        }
+
+        function selectTimeZone(timezone){
+         toggleClass('timezoneselectoption', 'hidden');
+         axios.post('/local-api/set_timezone', {
+          timezone_offset: parseFloat(timezone)
+         }).then(() => {
+           console.log('Timezone has been updated')
+         }).catch(err => {
+           console.log(err.response.data)
+         });
+        }
+
+        function selectGame(gameId){
+          axios.post('/local-api/set_game', {
+            game:parseInt(gameId)
+          }).then(() => {
+            console.log('put your code after a game has been selected')
+          }).catch(err => {
+            console.log(err.response.data)
+          });
+        }
+
+        function maxKibblesPerDay(intInput){
+          toggleClass('maxkibblesperdayoption', 'hidden');
+          axios.post('/local-api/set_max_kibbles', {
+            max_kibbles:parseInt(intInput)
+          }).then(() => {
+            console.log('put your code after kibbles has been set')
+          }).catch(err => {
+            console.log(err.response.data)
+          });
+        }
+
+        function kibblesDetectThreshhold(threshold){
+          axios.post('/local-api/set_kibbles_thresh', {
+            kibbles_thresh:parseInt(threshold)
+          }).then(() => {
+            console.log('put your code after kibbles threshold  has been set')
+          }).catch(err => {
+            console.log(err.response.data)
+          });
+        }
+
+        function setDayLightSavings(onOroff){
+          axios.post('/local-api/set_dst', {
+            dst_on:parseInt(onOroff)
+          }).then(() => {
+            console.log('put your code after daylight savings settings has been set')
+          }).catch(err => {
+            console.log(err.response.data)
+          });
+        }
+
+        function setHubModeRequest(hubstatus){
+          axios.post('/local-api/set_hub_mode', {
+              hub_mode:parseInt(hubstatus)
+            }).then(() => {
+              console.log('put your code after hub mode settings has been set')
+            }).catch(err => {
+              console.log(err.response.data)
+            });
+        }
+
+        function setHubMode(hubstatus){
+          var scheduleele = document.getElementById('scheduleroption');
+          if(hubstatus === 1 || hubstatus === 0){
+            if(!scheduleele.classList.contains('hidden')){
+              toggleClass('scheduleroption', 'hidden');
+            }
+            setHubModeRequest(hubstatus);
+          }else{
+            toggleClass('scheduleroption', 'hidden');
+            setHubModeRequest(2);
+          }
+        }
+
+        function setHubModeSchedule(){
+          var errorCounter = 0;
+          var weekdayfrom = document.getElementById('weekdayfrom');
+          var weekdayto = document.getElementById('weekdayto');
+          var weekendfrom = document.getElementById('weekendfrom');
+          var weekendto = document.getElementById('weekendto');
+          // validate inputs
+          var scheduleInputs = [weekdayfrom, weekdayto, weekendfrom, weekendto];
+          for(let s = 0; s < scheduleInputs.length; s++){
+            //reset error message
+            document.getElementById(scheduleInputs[s].id + 'error').classList.add('hidden');
+            if(scheduleInputs[s].value === "" || scheduleInputs[s].value === null){
+              document.getElementById(scheduleInputs[s].id + 'error').classList.toggle('hidden');
+              errorCounter++;
+            }
+          }
+          if(errorCounter === 0){
+            setTheScheduler(weekdayfrom.value, weekdayto.value, weekendfrom.value, weekendto.value);
+          }
+        }
+
+        function setTheScheduler(weekdayFrom, weekdayTo, weekendFrom, weekendTo){
+          axios.post('/local-api/set_schedule', {
+            weekday_from: weekdayFrom,
+            weekday_to: weekdayTo,
+            weekend_from: weekendFrom,
+            weekend_to: weekendTo
+          }).then(() => {
+            console.log('put your code after schedule settings has been set')
+          }).catch(err => {
+            console.log(err.response.data)
+          });
+        }
+    </script>
+  </body>
+ 
+</html>
