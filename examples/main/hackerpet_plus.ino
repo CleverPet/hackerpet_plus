@@ -31,6 +31,8 @@ STARTUP(softap_set_application_page_handler(myPages, nullptr));
 void setup() {
 
     configMan.Initialize();  // also initializes game manager
+    
+    // this is used by hackerpet for reports
     hub.Initialize("game_ID_here_TODO");
     // in games it was: hub.Initialize(__FILE__);
 }
@@ -44,20 +46,19 @@ void loop() {
     // serve webpage, read/write eeprom as config changes
     configMan.Run();
     
-    // ************************************ DISABLE FOR TESTING WITHOUT HUB ************************************
     // run the hub
+    // if testing on a particle photon by itself with no hub, comment this line to avoid seg fault
     hub.Run(20);
-    // ************************************ ************************************ ************************************
 
     // run the loop for the current active game
     gameMan.Run();
 
     FREE_MEMORY = System.freeMemory();
-    
+
+    // every 10 seconds, print the free memory as a serial heartbeat    
     if ((millis() - lastmemcheck) > 10000) {
         lastmemcheck = millis();
         Serial.print(Time.timeStr());
-        Serial.println("in7399");
         Serial.printlnf("\tMILLIS: %lu\tSYSTEM MEMORY=%lu", lastmemcheck, FREE_MEMORY);
     }
 }

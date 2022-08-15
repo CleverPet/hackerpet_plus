@@ -21,7 +21,7 @@ ConfigManager::ConfigManager(HubInterface * hub, GameManager * gameMan)
 
 bool ConfigManager::_sched_char_to_string(char * char_tmp, String & str)
 {
-            
+    // utility to convert char to string, for scheduler        
     String str2(char_tmp);
     str = str2;
     return true;
@@ -29,6 +29,7 @@ bool ConfigManager::_sched_char_to_string(char * char_tmp, String & str)
 
 bool ConfigManager::_sched_string_to_char(char * char_tmp, String & str)
 {
+    // utility to convert string to char, for scheduler
     for (int k = 0; k < 5; k++)
     {
         char_tmp[k] = str[k];
@@ -40,7 +41,10 @@ bool ConfigManager::Initialize()
 {
     _system_ready = false;
 
-    bool ever_stored = false;  // have we ever stored a game to eeprom? check value against "checksum"
+    bool ever_stored = false;  // have we ever stored a game to eeprom?
+    
+    // we check against a hard coded value, and if there's no match, we assume we need to initialize all the EEPROM values to defaults for this hub
+
     uint16_t ever_stored_check;
     EEPROM.get(_EVER_STORED_EEP_ADDRESS, ever_stored_check);
 
@@ -50,11 +54,12 @@ bool ConfigManager::Initialize()
     }
 
     if (ever_stored)
-    {
+    {   
+        // assume this hub's eeprom has been initialied at least once and all values can be read:
+
         EEPROM.get(_GAME_EEP_ADDRESS, _game_to_play);
         _next_game_to_play = _game_to_play;
         _gameMan->Initialize(_next_game_to_play);
-        //_gameMan->set_next_game(_next_game_to_play);
 
         EEPROM.get(_TIME_ZONE_EEP_ADDRESS, _time_zone_offset);
         Time.zone(_time_zone_offset);
@@ -96,17 +101,17 @@ bool ConfigManager::Initialize()
     }
     else
     {
-        // default values for a "new" hub:
+        // assume this hub's eeprom has not been initialized, or the hard coded value was changed to force a reset to defaults:
+        
         _game_to_play = 0;
         _next_game_to_play = 0;
 
-        _time_zone_offset = 0.0;  // TIME_ZONE_OFFSET = 0.0;
-        _dst_on = false;  // DST_ON = false;
-        _hub_mode = _HUB_MODE_STAY_ON;  // HUB_MODE = HUB_MODE_STAY_ON;
+        _time_zone_offset = 0.0;
+        _dst_on = false;
+        _hub_mode = _HUB_MODE_STAY_ON;
   
         EEPROM.put(_GAME_EEP_ADDRESS, _next_game_to_play);
         _gameMan->Initialize(_next_game_to_play);
-        //_gameMan->set_next_game(_next_game_to_play);
 
         EEPROM.put(_TIME_ZONE_EEP_ADDRESS, _time_zone_offset);
         Time.zone(_time_zone_offset);
@@ -148,6 +153,7 @@ bool ConfigManager::Initialize()
     // to force initialization to a valid _hub_state in Run()
     _hub_state = _HUB_STATE_INIT;
 
+    // mdns for http server
     mgschwan_mdns = new MDNS;
 
     return true;
@@ -157,15 +163,14 @@ bool ConfigManager::Initialize()
 bool ConfigManager::Run()
 {
 
-    // interface
+    // this function is the interface:
     //  of config / parameters from config manager above, to game manager and hub below
     //  also other way around, from hub to config manager for webpage display
 
-    // TODO: set Hub mode based on _hub_mode !!! use _hub
-
-
     if (WiFi.ready() && _system_ready == false)
     {
+        // set up mdns for the local http server
+
         delete mgschwan_mdns;
         mgschwan_mdns = new MDNS;
         
@@ -183,13 +188,16 @@ bool ConfigManager::Run()
     
     if (_system_ready) 
     {
+        // it's not clear if this can/should be called less or more often;
+        // the webserver appears more stable on some hubs with mdns being called every second, instead of every loop
+        // this should be investigated further...
         if ((millis() - _last_mdns_loop_time)>1000)
         {
-            //Serial.println(" >>>>>>>> Calling mgschwan_MDNS_loop ... >>>>>>>>");
             mgschwan_MDNS_loop(mgschwan_mdns);
-            //Serial.println(" >>>>>>>> Done calling mgschwan_MDNS_loop. >>>>>>>>");
             _last_mdns_loop_time = millis();
         }
+        
+        // what message to display on the webpage for hub status
 
         _display_error_msg = "Your hub is working.";
         if (_hub->IsHubOutOfFood())
@@ -209,7 +217,7 @@ bool ConfigManager::Run()
             _display_error_msg = "Dome is removed.";
         }
 
-        // get current game from gameMan
+        // get current game from game manager
         _game_to_play = _gameMan->get_current_game();
         _new_game_selected = _game_to_play;
 
@@ -227,8 +235,9 @@ bool ConfigManager::Run()
 
         }
 
-        // test idea that we always attempt to reconnect every N seconds. 
-        // could make this last webpage-request dependent, so if webpage is currently active, don't need to do this
+        // on some networks, mdns occasionally fails and the domain clevepet.local stops working; need to attempt reconnect
+        // since we don't have a conclusive way to determine if it is broken, we for now blindly attempt reconnect every 10 seconds if there's no request in that time 
+
         bool _need_mdns_reconnect = (millis() - _last_request_time > 10000);
 
         if (_need_mdns_reconnect)
@@ -240,9 +249,6 @@ bool ConfigManager::Run()
                 Serial.print(Time.timeStr());
                 Serial.println(" ######## Attempting mdns reconnect... ########");
 
-                //delete mgschwan_mdns;
-                //mgschwan_mdns = new MDNS;
-
                 _broadcastAddress = mgschwan_getBroadcastAddress();
                 mgschwan_setupNetwork(mgschwan_mdns, true);
 
@@ -252,11 +258,6 @@ bool ConfigManager::Run()
         }
 
     }
-
-    // TODO should _process_hub_mode be outside system_ready? things should function in general even if not on wifi???
-    // also set to active by default?
-    // TODO it already is by default but should set back to HUB STAY ON mode if can't connect to wifi??? or at least not in HUB STAY OFF mode???
-    // also... we might need to put this in its own class at some point
 
     _process_hub_mode();
 
