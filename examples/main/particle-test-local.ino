@@ -11,6 +11,15 @@
 #include "softap_http.h"
 #include "hotspot-http-server.h"
 
+# include "../lib/MDNS/src/Buffer.h"
+# include "../lib/MDNS/src/Buffer.cpp"
+# include "../lib/MDNS/src/Record.h"
+# include "../lib/MDNS/src/Record.cpp"
+# include "../lib/MDNS/src/Label.h"
+# include "../lib/MDNS/src/Label.cpp"
+# include "../lib/MDNS/src/MDNS.h"
+# include "../lib/MDNS/src/MDNS.cpp"
+
 // new
 
 #include "config-manager.h"

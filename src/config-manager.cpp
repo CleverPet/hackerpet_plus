@@ -5,7 +5,7 @@
 
 using namespace std;
 
-#include <MDNS.h>
+#include "../lib/MDNS/src/MDNS.h"
 using namespace mdns;
 
 

@@ -1,4 +1,5 @@
-#include <MDNS.h>
+#include "../lib/MDNS/src/MDNS.h"
+
 using namespace mdns;
 #include "http-server-util.h"
 
