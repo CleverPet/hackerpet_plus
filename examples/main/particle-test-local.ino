@@ -40,24 +40,29 @@ unsigned long FREE_MEMORY;
 
 // loop() runs over and over again, as quickly as it can execute.
 void loop() {
-
-    // serve webpage, read/write eeprom as config changes
-    configMan.Run();
     
-    // ************************************ DISABLE FOR TESTING WITHOUT HUB ************************************
-    // run the hub
-    hub.Run(20);
-    // ************************************ ************************************ ************************************
+    if ((millis() - lastmemcheck) > 1000) {
+        // serve webpage, read/write eeprom as config changes
+        Serial.println("[[calling]]: configMan.Run();");
+        configMan.Run();
+        
+        // ************************************ DISABLE FOR TESTING WITHOUT HUB ************************************
+        // run the hub
+        Serial.println("[[calling]]: hub.Run(20);");
+        hub.Run(20);
+        // ************************************ ************************************ ************************************
 
-    // run the loop for the current active game
-    gameMan.Run();
+        // run the loop for the current active game
+        Serial.println("[[calling]]: gameMan.Run();");
+        gameMan.Run();
 
-    FREE_MEMORY = System.freeMemory();
-    
-    if ((millis() - lastmemcheck) > 10000) {
-        lastmemcheck = millis();
         Serial.print(Time.timeStr());
-        Serial.println("in7399");
+        Serial.println("[[calling]]: free memory");
+        
+        FREE_MEMORY = System.freeMemory();
+
+        lastmemcheck = millis();
+
         Serial.printlnf("\tMILLIS: %lu\tSYSTEM MEMORY=%lu", lastmemcheck, FREE_MEMORY);
     }
 }
