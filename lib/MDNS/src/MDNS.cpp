@@ -157,27 +157,37 @@ bool mdns::MDNS::processQueries() {
 }
 
 void mdns::MDNS::getResponses() {
+  Serial.println(" MDNS::getResponses(): [1]");
   QueryHeader header = readHeader(buffer);
-
+  Serial.println(" MDNS::getResponses(): [2]");
   if ((header.flags & 0x8000) == 0 && header.qdcount > 0) {
     uint8_t count = 0;
-
+      Serial.println(" MDNS::getResponses(): [3]");
     while (count++ < header.qdcount && buffer->available() > 0) {
+    Serial.println(" MDNS::getResponses(): [4]");
       Label * label = matcher->match(labels, buffer);
-
+        Serial.println(" MDNS::getResponses(): [5]");
       if (buffer->available() >= 4) {
+          Serial.println(" MDNS::getResponses(): [6]");
         uint16_t type = buffer->readUInt16();
+          Serial.println(" MDNS::getResponses(): [7]");
         uint16_t cls = buffer->readUInt16();
+          Serial.println(" MDNS::getResponses(): [8]");
 
         if (label != NULL) {
-
+            Serial.println(" MDNS::getResponses(): [9]");
           label->matched(type, cls);
+            Serial.println(" MDNS::getResponses(): [10]");
         }
       } else {
+          Serial.println(" MDNS::getResponses(): [11]");
         status = "Buffer underflow at index " + buffer->getOffset();
       }
+        Serial.println(" MDNS::getResponses(): [12]");
     }
+      Serial.println(" MDNS::getResponses(): [13]");
   }
+    Serial.println(" MDNS::getResponses(): [14]");
 }
 
 mdns::MDNS::QueryHeader mdns::MDNS::readHeader(Buffer * buffer) {
