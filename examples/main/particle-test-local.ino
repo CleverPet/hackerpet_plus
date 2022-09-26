@@ -65,7 +65,7 @@ void loop() {
     // Serial.println("[[calling]]: gameMan.Run();");
     gameMan.Run();
 
-    if ((millis() - lastmemcheck) > 1000) {        
+    if ((millis() - lastmemcheck) > 10000) {        
         // Serial.print(Time.timeStr());
         // Serial.println("[[calling]]: free memory");
         
