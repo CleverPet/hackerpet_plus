@@ -50,23 +50,24 @@ unsigned long FREE_MEMORY;
 // loop() runs over and over again, as quickly as it can execute.
 void loop() {
     
-    if ((millis() - lastmemcheck) > 1000) {
-        // serve webpage, read/write eeprom as config changes
-        Serial.println("[[calling]]: configMan.Run();");
-        configMan.Run();
-        
-        // ************************************ DISABLE FOR TESTING WITHOUT HUB ************************************
-        // run the hub
-        Serial.println("[[calling]]: hub.Run(20);");
-        hub.Run(20);
-        // ************************************ ************************************ ************************************
 
-        // run the loop for the current active game
-        Serial.println("[[calling]]: gameMan.Run();");
-        gameMan.Run();
+    // serve webpage, read/write eeprom as config changes
+    // Serial.println("[[calling]]: configMan.Run();");
+    configMan.Run();
+    
+    // ************************************ DISABLE FOR TESTING WITHOUT HUB ************************************
+    // run the hub
+    // Serial.println("[[calling]]: hub.Run(20);");
+    hub.Run(20);
+    // ************************************ ************************************ ************************************
 
-        Serial.print(Time.timeStr());
-        Serial.println("[[calling]]: free memory");
+    // run the loop for the current active game
+    // Serial.println("[[calling]]: gameMan.Run();");
+    gameMan.Run();
+
+    if ((millis() - lastmemcheck) > 1000) {        
+        // Serial.print(Time.timeStr());
+        // Serial.println("[[calling]]: free memory");
         
         FREE_MEMORY = System.freeMemory();
 

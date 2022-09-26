@@ -140,17 +140,17 @@ bool mdns::MDNS::processQueries() {
   uint16_t n = udp->parsePacket();
 
   if (n > 0) {
-    Serial.println(" MDNS::processQueries(): buffer->read(udp);");
+    //Serial.println(" MDNS::processQueries(): buffer->read(udp);");
     buffer->read(udp);
-    Serial.println(" MDNS::processQueries(): udp->flush();");
+    //Serial.println(" MDNS::processQueries(): udp->flush();");
     udp->flush();
-    Serial.println(" MDNS::processQueries(): getResponses();");
+    //Serial.println(" MDNS::processQueries(): getResponses();");
     getResponses();
-    Serial.println(" MDNS::processQueries(): buffer->clear();");
+    //Serial.println(" MDNS::processQueries(): buffer->clear();");
     buffer->clear();
-    Serial.println(" MDNS::processQueries(): writeResponses();");
+    //Serial.println(" MDNS::processQueries(): writeResponses();");
     writeResponses();
-    Serial.println(" MDNS::processQueries(): returning");
+    //Serial.println(" MDNS::processQueries(): returning");
   }
 
   return n > 0;
@@ -164,7 +164,7 @@ void mdns::MDNS::getResponses() {
     uint8_t count = 0;
      // Serial.println(" MDNS::getResponses(): [3]");
     while (count++ < header.qdcount && buffer->available() > 0) {
-    Serial.println(" MDNS::getResponses(): [4]");
+    //Serial.println(" MDNS::getResponses(): [4]");
       Label * label = matcher->match(labels, buffer);
    //     Serial.println(" MDNS::getResponses(): [5]");
       if (buffer->available() >= 4) {

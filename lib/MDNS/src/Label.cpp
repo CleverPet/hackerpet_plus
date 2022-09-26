@@ -77,7 +77,7 @@ bool mdns::Label::Reader::hasNext() {
 }
 
 uint8_t mdns::Label::Reader::next() {
-  Serial.println(" mdns::Label::Reader::next: [1]");
+  //Serial.println(" mdns::Label::Reader::next: [1]");
   c = buffer->readUInt8();
   //Serial.println(" mdns::Label::Reader::next: [2]");
   while ((c & LABEL_POINTER) == LABEL_POINTER) {
@@ -104,7 +104,7 @@ uint8_t mdns::Label::Reader::next() {
 
     //Serial.println(" mdns::Label::Reader::next: [10]");
   }
-  Serial.println(" mdns::Label::Reader::next: [11]");
+  //Serial.println(" mdns::Label::Reader::next: [11]");
   return c;
 }
 
