@@ -79,23 +79,30 @@ bool mdns::Label::Reader::hasNext() {
 uint8_t mdns::Label::Reader::next() {
   Serial.println(" mdns::Label::Reader::next: [1]");
   c = buffer->readUInt8();
-  Serial.println(" mdns::Label::Reader::next: [2]");
+  //Serial.println(" mdns::Label::Reader::next: [2]");
   while ((c & LABEL_POINTER) == LABEL_POINTER) {
-    Serial.println(" mdns::Label::Reader::next: [3]");
+    //Serial.println(" mdns::Label::Reader::next: [3]");
+
     if (buffer->available() > 0) {
-      Serial.println(" mdns::Label::Reader::next: [4]");
+      //Serial.println(" mdns::Label::Reader::next: [4]");
       uint8_t c2 = buffer->readUInt8();
-      Serial.println(" mdns::Label::Reader::next: [5]");
+      //Serial.println(" mdns::Label::Reader::next: [5]");
       uint16_t pointerOffset = ((c & ~LABEL_POINTER) << 8) | c2;
-      Serial.println(" mdns::Label::Reader::next: [6]");
+      //Serial.println(" mdns::Label::Reader::next: [6]");
       buffer->mark();
-      Serial.println(" mdns::Label::Reader::next: [7]");
+      //Serial.println(" mdns::Label::Reader::next: [7]");
       buffer->setOffset(pointerOffset);
-      Serial.println(" mdns::Label::Reader::next: [8]");
+      //Serial.println(" mdns::Label::Reader::next: [8]");
       c = buffer->readUInt8();
-      Serial.println(" mdns::Label::Reader::next: [9]");
+      //Serial.println(" mdns::Label::Reader::next: [9]");
     }
-    Serial.println(" mdns::Label::Reader::next: [10]");
+    else
+    {
+      Serial.println("mdns::Label::Reader::next():: AVOIDING INFINITE LOOP, RETURNING!");
+      return c;
+    }
+
+    //Serial.println(" mdns::Label::Reader::next: [10]");
   }
   Serial.println(" mdns::Label::Reader::next: [11]");
   return c;
@@ -141,68 +148,68 @@ mdns::Label * mdns::Label::Iterator::getStartLabel() {
 
 mdns::Label * mdns::Label::Matcher::match(std::map<String, Label *> labels, Buffer * buffer) {
 
-  Serial.println(" mdns::Label::Matcher::match: [1]");
+  //Serial.println(" mdns::Label::Matcher::match: [1]");
   Iterator * iterators[labels.size()];
-  Serial.println(" mdns::Label::Matcher::match: [2]");
+  //Serial.println(" mdns::Label::Matcher::match: [2]");
   std::map<String, Label *>::const_iterator i;
 
   uint8_t idx = 0;
-  Serial.println(" mdns::Label::Matcher::match: [3]");
+  //Serial.println(" mdns::Label::Matcher::match: [3]");
   for (i = labels.begin(); i != labels.end(); ++i) {
     iterators[idx++] = new Iterator(i->second);
   }
-    Serial.println(" mdns::Label::Matcher::match: [4]");
+    //Serial.println(" mdns::Label::Matcher::match: [4]");
 
   Reader * reader = new Reader(buffer);
-  Serial.println(" mdns::Label::Matcher::match: [5]");
+  //Serial.println(" mdns::Label::Matcher::match: [5]");
   while (reader->hasNext()) {
-      Serial.println(" mdns::Label::Matcher::match: [6]");
+   //   Serial.println(" mdns::Label::Matcher::match: [6]");
     uint8_t size = reader->next();
 
     uint8_t idx = 0;
-      Serial.println(" mdns::Label::Matcher::match: [7]");
+   //   Serial.println(" mdns::Label::Matcher::match: [7]");
     for (uint8_t i = 0; i < labels.size(); i++) {
       iterators[i]->match(size);
     }
-    Serial.println(" mdns::Label::Matcher::match: [8]");
+   // Serial.println(" mdns::Label::Matcher::match: [8]");
     while(idx < size && reader->hasNext()) {
-      Serial.println(" mdns::Label::Matcher::match: [8.1]");
+     // Serial.println(" mdns::Label::Matcher::match: [8.1]");
       uint8_t c = reader->next();
-      Serial.println(" mdns::Label::Matcher::match: [8.2]");
+   //   Serial.println(" mdns::Label::Matcher::match: [8.2]");
       for (uint8_t i = 0; i < labels.size(); i++) {
-        Serial.println(" mdns::Label::Matcher::match: [8.3]");
+  //      Serial.println(" mdns::Label::Matcher::match: [8.3]");
         iterators[i]->match(c);
       }
-      Serial.println(" mdns::Label::Matcher::match: [8.4]");
+  //    Serial.println(" mdns::Label::Matcher::match: [8.4]");
       idx++;
     }
-    Serial.println(" mdns::Label::Matcher::match: [9]");
+  //  Serial.println(" mdns::Label::Matcher::match: [9]");
   }
 
-  Serial.println(" mdns::Label::Matcher::match: [10]");
+ // Serial.println(" mdns::Label::Matcher::match: [10]");
   buffer->reset();
-  Serial.println(" mdns::Label::Matcher::match: [11]");
+ // Serial.println(" mdns::Label::Matcher::match: [11]");
   Label * label = NULL;
-  Serial.println(" mdns::Label::Matcher::match: [12]");
+ // Serial.println(" mdns::Label::Matcher::match: [12]");
   if (reader->endOfName()) {
     uint8_t idx = 0;
-    Serial.println(" mdns::Label::Matcher::match: [13]");
+ //   Serial.println(" mdns::Label::Matcher::match: [13]");
     while (label == NULL && idx < labels.size()) {
-      Serial.println(" mdns::Label::Matcher::match: [14]");
+  //    Serial.println(" mdns::Label::Matcher::match: [14]");
       if (iterators[idx]->matched()) {
         label = iterators[idx]->getStartLabel();
       }
-      Serial.println(" mdns::Label::Matcher::match: [15]");
+   //   Serial.println(" mdns::Label::Matcher::match: [15]");
       idx++;
     }
   }
-  Serial.println(" mdns::Label::Matcher::match: [16]");
+//  Serial.println(" mdns::Label::Matcher::match: [16]");
   for (uint8_t i = 0; i < labels.size(); i++) {
     delete iterators[i];
   }
-  Serial.println(" mdns::Label::Matcher::match: [17]");
+//  Serial.println(" mdns::Label::Matcher::match: [17]");
   delete reader;
-  Serial.println(" mdns::Label::Matcher::match: [18]");
+ // Serial.println(" mdns::Label::Matcher::match: [18]");
   return label;
 }
 

@@ -157,37 +157,37 @@ bool mdns::MDNS::processQueries() {
 }
 
 void mdns::MDNS::getResponses() {
-  Serial.println(" MDNS::getResponses(): [1]");
+ // Serial.println(" MDNS::getResponses(): [1]");
   QueryHeader header = readHeader(buffer);
-  Serial.println(" MDNS::getResponses(): [2]");
+ // Serial.println(" MDNS::getResponses(): [2]");
   if ((header.flags & 0x8000) == 0 && header.qdcount > 0) {
     uint8_t count = 0;
-      Serial.println(" MDNS::getResponses(): [3]");
+     // Serial.println(" MDNS::getResponses(): [3]");
     while (count++ < header.qdcount && buffer->available() > 0) {
     Serial.println(" MDNS::getResponses(): [4]");
       Label * label = matcher->match(labels, buffer);
-        Serial.println(" MDNS::getResponses(): [5]");
+   //     Serial.println(" MDNS::getResponses(): [5]");
       if (buffer->available() >= 4) {
-          Serial.println(" MDNS::getResponses(): [6]");
+   //       Serial.println(" MDNS::getResponses(): [6]");
         uint16_t type = buffer->readUInt16();
-          Serial.println(" MDNS::getResponses(): [7]");
+     //     Serial.println(" MDNS::getResponses(): [7]");
         uint16_t cls = buffer->readUInt16();
-          Serial.println(" MDNS::getResponses(): [8]");
+       //   Serial.println(" MDNS::getResponses(): [8]");
 
         if (label != NULL) {
-            Serial.println(" MDNS::getResponses(): [9]");
+         //   Serial.println(" MDNS::getResponses(): [9]");
           label->matched(type, cls);
-            Serial.println(" MDNS::getResponses(): [10]");
+          //  Serial.println(" MDNS::getResponses(): [10]");
         }
       } else {
-          Serial.println(" MDNS::getResponses(): [11]");
+        //  Serial.println(" MDNS::getResponses(): [11]");
         status = "Buffer underflow at index " + buffer->getOffset();
       }
-        Serial.println(" MDNS::getResponses(): [12]");
+      //  Serial.println(" MDNS::getResponses(): [12]");
     }
-      Serial.println(" MDNS::getResponses(): [13]");
+    //  Serial.println(" MDNS::getResponses(): [13]");
   }
-    Serial.println(" MDNS::getResponses(): [14]");
+ //   Serial.println(" MDNS::getResponses(): [14]");
 }
 
 mdns::MDNS::QueryHeader mdns::MDNS::readHeader(Buffer * buffer) {
@@ -219,7 +219,7 @@ void mdns::MDNS::writeResponses() {
     }
   }
 
-  Serial.println(" MDNS::writeResponses(): [1]");
+ // Serial.println(" MDNS::writeResponses(): [1]");
   if (answerCount > 0) {
     buffer->writeUInt16(0x0);
     buffer->writeUInt16(0x8400);
@@ -227,37 +227,37 @@ void mdns::MDNS::writeResponses() {
     buffer->writeUInt16(answerCount);
     buffer->writeUInt16(0x0);
     buffer->writeUInt16(additionalCount);
-    Serial.println(" MDNS::writeResponses(): [2]");
+   // Serial.println(" MDNS::writeResponses(): [2]");
 
     for (std::vector<Record *>::const_iterator i = records.begin(); i != records.end(); ++i) {
       if ((*i)->isAnswerRecord()) {
         (*i)->write(buffer);
       }
     }
-      Serial.println(" MDNS::writeResponses(): [3]");
+     // Serial.println(" MDNS::writeResponses(): [3]");
 
     for (std::vector<Record *>::const_iterator i = records.begin(); i != records.end(); ++i) {
       if ((*i)->isAdditionalRecord()) {
         (*i)->write(buffer);
       }
     }
-      Serial.println(" MDNS::writeResponses(): [4]");
+    //  Serial.println(" MDNS::writeResponses(): [4]");
   }
-    Serial.println(" MDNS::writeResponses(): [5]");
+   // Serial.println(" MDNS::writeResponses(): [5]");
   if (buffer->available() > 0) {
-      Serial.println(" MDNS::writeResponses(): [6]");
+    //  Serial.println(" MDNS::writeResponses(): [6]");
     udp->beginPacket(MDNS_ADDRESS, MDNS_PORT);
-      Serial.println(" MDNS::writeResponses(): [7]");
+    //  Serial.println(" MDNS::writeResponses(): [7]");
     buffer->write(udp);
-  Serial.println(" MDNS::writeResponses(): [8]");
+ // Serial.println(" MDNS::writeResponses(): [8]");
     udp->endPacket();
-      Serial.println(" MDNS::writeResponses(): [9]");
+   //   Serial.println(" MDNS::writeResponses(): [9]");
   }
-  Serial.println(" MDNS::writeResponses(): [10]");
+ // Serial.println(" MDNS::writeResponses(): [10]");
   for (std::map<String, Label *>::const_iterator i = labels.begin(); i != labels.end(); ++i) {
     i->second->reset();
   }
-  Serial.println(" MDNS::writeResponses(): [11]");
+ // Serial.println(" MDNS::writeResponses(): [11]");
   for (std::vector<Record *>::const_iterator i = records.begin(); i != records.end(); ++i) {
     (*i)->reset();
   }
