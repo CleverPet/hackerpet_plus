@@ -3,7 +3,7 @@
 
 #include <Particle.h>
 
-#include <MDNS.h>
+#include "../lib/MDNS/src/MDNS.h"
 using namespace mdns;
 
 using namespace std;
