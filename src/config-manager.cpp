@@ -267,7 +267,10 @@ bool ConfigManager::Run()
 
     }
 
+    // process hub mode (stay on, stay off, scheduler)
+
     _process_hub_mode();
+
     Log.trace("    [[ConfigManager::Run()]]: 7!");
     return true;
 
@@ -276,12 +279,9 @@ bool ConfigManager::Run()
 
 bool ConfigManager::_process_hub_mode()
 {
-        
-    // compare _hub_mode vs _last_hub_mode (set at the end of this function)
-
     if (_hub_mode != _last_hub_mode)
     {
-        // there may not be anything to set here ...
+        // currently, there's no specific action to take when hub mode _changes_ ...
     }
 
     // determine hub state: active vs. standby, based on mode (and schedule, if mode is scheduler)
@@ -298,17 +298,10 @@ bool ConfigManager::_process_hub_mode()
     }
     else if (_hub_mode == _HUB_MODE_SCHEDULED)
     {
-        // use:
-
-        // _weekday_from: 06:30
-        // _weekday_to
-        // _weekend_from
-        // _weekend_to
-
-        // get:
-        //  current time
-        //  current day of the week -> weekday or weekend
+        // determine hub state based on schedule, current time, and current day of the week
         
+        // get current time and weekday vs. weekend
+
         int hour_now = Time.hour();
         int minute_now = Time.minute();
         int weekday_now = Time.weekday();
@@ -317,6 +310,8 @@ bool ConfigManager::_process_hub_mode()
         String from_minute = "  ";
         String to_hour = "  ";
         String to_minute = "  ";
+
+        // get from/to hour and minute for hub to be on, from current scheduler settings (_weekend_from, _weekend_to, _weekday...) and current day of the week
 
         if (weekday_now == 1 || weekday_now == 7)  // it is a weekend
         {
@@ -346,7 +341,6 @@ bool ConfigManager::_process_hub_mode()
             to_minute[0] = _weekday_to[3];
             to_minute[1] = _weekday_to[4];
         }
-
 
         int day_minutes_now = hour_now * 60 + minute_now;
 
@@ -396,7 +390,7 @@ bool ConfigManager::_process_hub_mode()
         new_hub_state = _HUB_STATE_ACTIVE;
     }
     
-    // TODO have to count _kibbles_eaten_today !!
+    // count _kibbles_eaten_today (retrieve from game manager)
     _kibbles_eaten_today = _gameMan->get_kibbles_eaten();
 
     // if kibbles are above limit, override new_hub_state to standby
@@ -405,9 +399,9 @@ bool ConfigManager::_process_hub_mode()
         new_hub_state = _HUB_STATE_STANDBY;
     }
 
-    // TODO reset kibbles eaten when needed! (when it is after midnight and previous time was before)
-    // based on: Time.day, Time.last_day ? - this is day of the month! check not equals
-    // Time.day()
+    // reset kibbles eaten when needed (when it is after midnight and previous time was before)
+    // based on: Time.day, Time.last_day (day of the month)
+
     int day_now = Time.day();
 
     bool reset_kibbles = false;
@@ -431,45 +425,39 @@ bool ConfigManager::_process_hub_mode()
 
         if (new_hub_state == _HUB_STATE_ACTIVE)
         {   
-
-            // for now, we are going to ignore the indicator light
-                
-            //     _logger->Log("SI::OnDesiredStatus: setting _activity_state = ACTIVITY_STATE_ACTIVE", Logger::LOG_LEVEL_LIGHT_CONTEXT);
-            //     IndicatorState = IL_SI_ACTIVE;
-
-
-            // this just set _active_mode flag in old firmware and that's all...
-            // _dli->SetActiveMode(true);
-            
+            // reference from cleverpet cloud-based firmware
+            //      (for now, we are going to ignore the indicator light):
+            //          _logger->Log("SI::OnDesiredStatus: setting _activity_state = ACTIVITY_STATE_ACTIVE", Logger::LOG_LEVEL_LIGHT_CONTEXT);
+            //          IndicatorState = IL_SI_ACTIVE;
+            //      this just set _active_mode flag
+            //          _dli->SetActiveMode(true);
+             
             _hub->SetButtonAudioEnabled(true);
             _hub->SetLightEnabled(true);
             _hub->UpdateButtonAudioEnabled();
 
             // inform game manager of hub state
-            // technically, only need to do this if it changed.
-            // should we just have it skip the game loop?
             _gameMan->set_game_enabled(true);
 
+            // set new hub state as the current state
             _hub_state = new_hub_state;
-
         }
         else if (new_hub_state == _HUB_STATE_STANDBY)
         {
-            // for now, we are going to ignore the indicator light
-
-        //        _logger->Log("SI::OnDesiredStatus: setting _activity_state = ACTIVITY_STATE_STANDBY", Logger::LOG_LEVEL_LIGHT_CONTEXT);
-         //        if (_max_kibbles_light_on)
-        //        {
-        //            IndicatorState = IL_SI_MAX_KIBBLES_DEPLETED;
-        //        }
-        //        else
-        //        {
-        //            IndicatorState = IL_SI_STANDBY;   
-        //        }
-            // 
+            // reference from cleverpet cloud-based firmware
+            //      (for now, we are going to ignore the indicator light):
+            //            _logger->Log("SI::OnDesiredStatus: setting _activity_state = ACTIVITY_STATE_STANDBY", Logger::LOG_LEVEL_LIGHT_CONTEXT);
+            //             if (_max_kibbles_light_on)
+            //             {
+            //                 IndicatorState = IL_SI_MAX_KIBBLES_DEPLETED;
+            //             }
+            //             else
+            //             {
+            //                 IndicatorState = IL_SI_STANDBY;   
+            //             }
             
-            // this just set _active_mode flag in old firmware and that's all...
-            // _dli->SetActiveMode(false);
+            //      this just set _active_mode flag in old firmware and that's all...
+            //          _dli->SetActiveMode(false);
             
             // only swap from ACTIVE to STANDBY if a game ended; but allow swap from INIT to STANDBY regardless
             if ((_hub_state == _HUB_STATE_ACTIVE && _gameMan->trial_just_done()) || (_hub_state == _HUB_STATE_INIT))
@@ -487,8 +475,6 @@ bool ConfigManager::_process_hub_mode()
         {
             Log.info("ERROR invalid hub state!");
         }
-
-
     }
 
     _last_hub_mode = _hub_mode;
@@ -499,9 +485,6 @@ bool ConfigManager::_process_hub_mode()
 
 bool ConfigManager::_serve_webinterface()
 {
-    //int new_game_selected = -1;
-    //int overrideable_next_game = _next_game_to_play;
-
     _webclient = _webserver.available();
     bool request_finished = false;
     if (_webclient.connected()) 
@@ -521,7 +504,7 @@ bool ConfigManager::_serve_webinterface()
         Log.info("--- SERVER FINISHED PROCESSING REQUEST ---");
     }
 
-    delay (1); //That is a hack to allow the browser to receive the data
+    delay (1); //That is a hack to allow the browser to receive the data (this is from the original http server code library we are using)
     _webclient.stop();
     return true;
 }
@@ -553,10 +536,6 @@ bool ConfigManager::_read_from_client(bool & request_finished, String & response
 
 bool ConfigManager::_process_request(String req_str)
 {
-
-    //Log.info("request string:");
-    //Log.print(req_str);
-
     // different types of requests
     
     bool req_get = req_str.substring(0, 3).equalsIgnoreCase("GET");
