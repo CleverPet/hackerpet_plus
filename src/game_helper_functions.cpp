@@ -4,15 +4,6 @@
 #include <algorithm>  // random_shuffle
 
 
-// Use primary serial over USB interface for logging output (9600)
-// Choose logging level here (ERROR, WARN, INFO)
-SerialLogHandler logHandler(LOG_LEVEL_INFO, { // Logging level for all messages
-    { "app.hackerpet", LOG_LEVEL_ERROR }, // Logging level for library messages
-    { "app", LOG_LEVEL_INFO } // Logging level for application messages
-});
-
-
-
 /**
  * Helper functions
  * ----------------

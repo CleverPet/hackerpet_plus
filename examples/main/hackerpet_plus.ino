@@ -25,6 +25,18 @@
 #include "config-manager.h"
 #include "game-manager.h"
 
+
+// Use primary serial over USB interface for logging output (9600)
+// Choose logging level here (ERROR, WARN, INFO) or TRACE
+// *** important *** if you want to enable TRACE level debugging, this will display A LOT of logs. 
+//  If you need to debug at that level, it is recommended to "slow down" the hub by executing the contents of the main loop() only i.e. once a second.
+
+SerialLogHandler logHandler(LOG_LEVEL_INFO, { // Logging level for all messages
+    { "app.hackerpet", LOG_LEVEL_ERROR }, // Logging level for library messages
+    { "app", LOG_LEVEL_INFO } // Logging level for application messages
+});
+
+
 // classes
 HubInterface hub;
 GameManager gameMan(&hub);    // which game to play given gameId from config
@@ -52,25 +64,24 @@ unsigned long FREE_MEMORY;
 // loop() runs over and over again, as quickly as it can execute.
 void loop() {
     
-
+    Log.trace("[[calling]]: configMan.Run();");
     // serve webpage, read/write eeprom as config changes
-    // Serial.println("[[calling]]: configMan.Run();");
     configMan.Run();
     
-    // Serial.println("[[calling]]: hub.Run(20);");
+    Log.trace("[[calling]]: hub.Run(20);");
     // run the hub
     // if testing on a particle photon by itself with no hub, comment this line to avoid seg fault
     hub.Run(20);
 
     // run the loop for the current active game
-    // Serial.println("[[calling]]: gameMan.Run();");
+    Log.trace("[[calling]]: gameMan.Run();");
     gameMan.Run();
 
     // every 10 seconds, print the free memory as a serial heartbeat    
 
     if ((millis() - lastmemcheck) > 10000) {        
-        // Serial.print(Time.timeStr());
-        // Serial.println("[[calling]]: free memory");
+        Log.trace(Time.timeStr());
+        Log.trace("[[calling]]: free memory");
         
         FREE_MEMORY = System.freeMemory();
 

@@ -199,7 +199,7 @@ bool ConfigManager::Run()
         
         // what message to display on the webpage for hub status
 
-        //Serial.println("    [[ConfigManager::Run()]]: 1!");
+        Log.trace("    [[ConfigManager::Run()]]: 1!");
         _display_error_msg = "Your hub is working.";
         if (_hub->IsHubOutOfFood())
         {
@@ -218,17 +218,17 @@ bool ConfigManager::Run()
             _display_error_msg = "Dome is removed.";
         }
 
-        // Serial.println("    [[ConfigManager::Run()]]: 2!");
+        Log.trace("    [[ConfigManager::Run()]]: 2!");
         
         // get current game from game manager
         
         _game_to_play = _gameMan->get_current_game();
         _new_game_selected = _game_to_play;
 
-        //Serial.println("    [[ConfigManager::Run()]]: 3!");
+        Log.trace("    [[ConfigManager::Run()]]: 3!");
         _serve_webinterface();
 
-        //Serial.println("    [[ConfigManager::Run()]]: 4!");
+        Log.trace("    [[ConfigManager::Run()]]: 4!");
         if (_new_game_selected >= 0 && _new_game_selected != _game_to_play)
         {
             Log.info("New game selected %i", _new_game_selected);
@@ -244,7 +244,7 @@ bool ConfigManager::Run()
         // on some networks, mdns occasionally fails and the domain clevepet.local stops working; need to attempt reconnect
         // since we don't have a conclusive way to determine if it is broken, we for now blindly attempt reconnect every 10 seconds if there's no request in that time 
 
-        //Serial.println("    [[ConfigManager::Run()]]: 5!");
+        Log.trace("    [[ConfigManager::Run()]]: 5!");
 
         bool _need_mdns_reconnect = (millis() - _last_request_time > 10000);
 
@@ -268,7 +268,7 @@ bool ConfigManager::Run()
     }
 
     _process_hub_mode();
-    //Serial.println("    [[ConfigManager::Run()]]: 7!");
+    Log.trace("    [[ConfigManager::Run()]]: 7!");
     return true;
 
 }
@@ -910,9 +910,7 @@ bool ConfigManager::_process_set_hub_mode_req(String req_str)
     int hub_mode_html_index = req_str.indexOf("hub_mode\"");  // "hub_mode": 
 
     Log.info("This is a HUB MODE post request.");
-    //Log.print("*******\n");
-    //Log.print(thing + "\n");
-    //Log.print("*-------------*\n");
+
     String tmp_2 = req_str.substring(hub_mode_html_index + 10);
     int index_stop = tmp_2.indexOf("}");
     tmp_2 = tmp_2.substring(0, index_stop);

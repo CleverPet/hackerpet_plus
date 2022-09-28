@@ -140,54 +140,54 @@ bool mdns::MDNS::processQueries() {
   uint16_t n = udp->parsePacket();
 
   if (n > 0) {
-    //Serial.println(" MDNS::processQueries(): buffer->read(udp);");
+    Log.trace(" MDNS::processQueries(): buffer->read(udp);");
     buffer->read(udp);
-    //Serial.println(" MDNS::processQueries(): udp->flush();");
+    Log.trace(" MDNS::processQueries(): udp->flush();");
     udp->flush();
-    //Serial.println(" MDNS::processQueries(): getResponses();");
+    Log.trace(" MDNS::processQueries(): getResponses();");
     getResponses();
-    //Serial.println(" MDNS::processQueries(): buffer->clear();");
+    Log.trace(" MDNS::processQueries(): buffer->clear();");
     buffer->clear();
-    //Serial.println(" MDNS::processQueries(): writeResponses();");
+    Log.trace(" MDNS::processQueries(): writeResponses();");
     writeResponses();
-    //Serial.println(" MDNS::processQueries(): returning");
+    Log.trace(" MDNS::processQueries(): returning");
   }
 
   return n > 0;
 }
 
 void mdns::MDNS::getResponses() {
- // Serial.println(" MDNS::getResponses(): [1]");
+ Log.trace(" MDNS::getResponses(): [1]");
   QueryHeader header = readHeader(buffer);
- // Serial.println(" MDNS::getResponses(): [2]");
+ Log.trace(" MDNS::getResponses(): [2]");
   if ((header.flags & 0x8000) == 0 && header.qdcount > 0) {
     uint8_t count = 0;
-     // Serial.println(" MDNS::getResponses(): [3]");
+     Log.trace(" MDNS::getResponses(): [3]");
     while (count++ < header.qdcount && buffer->available() > 0) {
-    //Serial.println(" MDNS::getResponses(): [4]");
+    Log.trace(" MDNS::getResponses(): [4]");
       Label * label = matcher->match(labels, buffer);
-   //     Serial.println(" MDNS::getResponses(): [5]");
+   Log.trace(" MDNS::getResponses(): [5]");
       if (buffer->available() >= 4) {
-   //       Serial.println(" MDNS::getResponses(): [6]");
+   Log.trace(" MDNS::getResponses(): [6]");
         uint16_t type = buffer->readUInt16();
-     //     Serial.println(" MDNS::getResponses(): [7]");
+     Log.trace(" MDNS::getResponses(): [7]");
         uint16_t cls = buffer->readUInt16();
-       //   Serial.println(" MDNS::getResponses(): [8]");
+       Log.trace(" MDNS::getResponses(): [8]");
 
         if (label != NULL) {
-         //   Serial.println(" MDNS::getResponses(): [9]");
+         Log.trace(" MDNS::getResponses(): [9]");
           label->matched(type, cls);
-          //  Serial.println(" MDNS::getResponses(): [10]");
+          Log.trace(" MDNS::getResponses(): [10]");
         }
       } else {
-        //  Serial.println(" MDNS::getResponses(): [11]");
+        Log.trace(" MDNS::getResponses(): [11]");
         status = "Buffer underflow at index " + buffer->getOffset();
       }
-      //  Serial.println(" MDNS::getResponses(): [12]");
+      Log.trace(" MDNS::getResponses(): [12]");
     }
-    //  Serial.println(" MDNS::getResponses(): [13]");
+    Log.trace(" MDNS::getResponses(): [13]");
   }
- //   Serial.println(" MDNS::getResponses(): [14]");
+ Log.trace(" MDNS::getResponses(): [14]");
 }
 
 mdns::MDNS::QueryHeader mdns::MDNS::readHeader(Buffer * buffer) {
@@ -219,7 +219,7 @@ void mdns::MDNS::writeResponses() {
     }
   }
 
- // Serial.println(" MDNS::writeResponses(): [1]");
+ Log.trace(" MDNS::writeResponses(): [1]");
   if (answerCount > 0) {
     buffer->writeUInt16(0x0);
     buffer->writeUInt16(0x8400);
@@ -227,37 +227,37 @@ void mdns::MDNS::writeResponses() {
     buffer->writeUInt16(answerCount);
     buffer->writeUInt16(0x0);
     buffer->writeUInt16(additionalCount);
-   // Serial.println(" MDNS::writeResponses(): [2]");
+   Log.trace(" MDNS::writeResponses(): [2]");
 
     for (std::vector<Record *>::const_iterator i = records.begin(); i != records.end(); ++i) {
       if ((*i)->isAnswerRecord()) {
         (*i)->write(buffer);
       }
     }
-     // Serial.println(" MDNS::writeResponses(): [3]");
+     Log.trace(" MDNS::writeResponses(): [3]");
 
     for (std::vector<Record *>::const_iterator i = records.begin(); i != records.end(); ++i) {
       if ((*i)->isAdditionalRecord()) {
         (*i)->write(buffer);
       }
     }
-    //  Serial.println(" MDNS::writeResponses(): [4]");
+    Log.trace(" MDNS::writeResponses(): [4]");
   }
-   // Serial.println(" MDNS::writeResponses(): [5]");
+   Log.trace(" MDNS::writeResponses(): [5]");
   if (buffer->available() > 0) {
-    //  Serial.println(" MDNS::writeResponses(): [6]");
+    Log.trace(" MDNS::writeResponses(): [6]");
     udp->beginPacket(MDNS_ADDRESS, MDNS_PORT);
-    //  Serial.println(" MDNS::writeResponses(): [7]");
+    Log.trace(" MDNS::writeResponses(): [7]");
     buffer->write(udp);
- // Serial.println(" MDNS::writeResponses(): [8]");
+ Log.trace(" MDNS::writeResponses(): [8]");
     udp->endPacket();
-   //   Serial.println(" MDNS::writeResponses(): [9]");
+   Log.trace(" MDNS::writeResponses(): [9]");
   }
- // Serial.println(" MDNS::writeResponses(): [10]");
+ Log.trace(" MDNS::writeResponses(): [10]");
   for (std::map<String, Label *>::const_iterator i = labels.begin(); i != labels.end(); ++i) {
     i->second->reset();
   }
- // Serial.println(" MDNS::writeResponses(): [11]");
+ Log.trace(" MDNS::writeResponses(): [11]");
   for (std::vector<Record *>::const_iterator i = records.begin(); i != records.end(); ++i) {
     (*i)->reset();
   }
