@@ -5,7 +5,7 @@
 
 using namespace std;
 
-#include <MDNS.h>
+#include "../lib/MDNS/src/MDNS.h"
 using namespace mdns;
 
 
@@ -21,7 +21,7 @@ ConfigManager::ConfigManager(HubInterface * hub, GameManager * gameMan)
 
 bool ConfigManager::_sched_char_to_string(char * char_tmp, String & str)
 {
-            
+    // utility to convert char to string, for scheduler        
     String str2(char_tmp);
     str = str2;
     return true;
@@ -29,6 +29,7 @@ bool ConfigManager::_sched_char_to_string(char * char_tmp, String & str)
 
 bool ConfigManager::_sched_string_to_char(char * char_tmp, String & str)
 {
+    // utility to convert string to char, for scheduler
     for (int k = 0; k < 5; k++)
     {
         char_tmp[k] = str[k];
@@ -40,7 +41,10 @@ bool ConfigManager::Initialize()
 {
     _system_ready = false;
 
-    bool ever_stored = false;  // have we ever stored a game to eeprom? check value against "checksum"
+    bool ever_stored = false;  // have we ever stored a game to eeprom?
+    
+    // we check against a hard coded value, and if there's no match, we assume we need to initialize all the EEPROM values to defaults for this hub
+
     uint16_t ever_stored_check;
     EEPROM.get(_EVER_STORED_EEP_ADDRESS, ever_stored_check);
 
@@ -50,11 +54,12 @@ bool ConfigManager::Initialize()
     }
 
     if (ever_stored)
-    {
+    {   
+        // assume this hub's eeprom has been initialied at least once and all values can be read:
+
         EEPROM.get(_GAME_EEP_ADDRESS, _game_to_play);
         _next_game_to_play = _game_to_play;
         _gameMan->Initialize(_next_game_to_play);
-        //_gameMan->set_next_game(_next_game_to_play);
 
         EEPROM.get(_TIME_ZONE_EEP_ADDRESS, _time_zone_offset);
         Time.zone(_time_zone_offset);
@@ -96,17 +101,17 @@ bool ConfigManager::Initialize()
     }
     else
     {
-        // default values for a "new" hub:
+        // assume this hub's eeprom has not been initialized, or the hard coded value was changed to force a reset to defaults:
+        
         _game_to_play = 0;
         _next_game_to_play = 0;
 
-        _time_zone_offset = 0.0;  // TIME_ZONE_OFFSET = 0.0;
-        _dst_on = false;  // DST_ON = false;
-        _hub_mode = _HUB_MODE_STAY_ON;  // HUB_MODE = HUB_MODE_STAY_ON;
+        _time_zone_offset = 0.0;
+        _dst_on = false;
+        _hub_mode = _HUB_MODE_STAY_ON;
   
         EEPROM.put(_GAME_EEP_ADDRESS, _next_game_to_play);
         _gameMan->Initialize(_next_game_to_play);
-        //_gameMan->set_next_game(_next_game_to_play);
 
         EEPROM.put(_TIME_ZONE_EEP_ADDRESS, _time_zone_offset);
         Time.zone(_time_zone_offset);
@@ -148,6 +153,7 @@ bool ConfigManager::Initialize()
     // to force initialization to a valid _hub_state in Run()
     _hub_state = _HUB_STATE_INIT;
 
+    // mdns for http server
     mgschwan_mdns = new MDNS;
 
     return true;
@@ -157,15 +163,14 @@ bool ConfigManager::Initialize()
 bool ConfigManager::Run()
 {
 
-    // interface
+    // this function is the interface:
     //  of config / parameters from config manager above, to game manager and hub below
     //  also other way around, from hub to config manager for webpage display
 
-    // TODO: set Hub mode based on _hub_mode !!! use _hub
-
-
     if (WiFi.ready() && _system_ready == false)
     {
+        // set up mdns for the local http server
+
         delete mgschwan_mdns;
         mgschwan_mdns = new MDNS;
         
@@ -183,14 +188,18 @@ bool ConfigManager::Run()
     
     if (_system_ready) 
     {
+        // it's not clear if this can/should be called less or more often;
+        // the webserver appears more stable on some hubs with mdns being called every second, instead of every loop
+        // this should be investigated further...
         if ((millis() - _last_mdns_loop_time)>1000)
         {
-            //Serial.println(" >>>>>>>> Calling mgschwan_MDNS_loop ... >>>>>>>>");
             mgschwan_MDNS_loop(mgschwan_mdns);
-            //Serial.println(" >>>>>>>> Done calling mgschwan_MDNS_loop. >>>>>>>>");
             _last_mdns_loop_time = millis();
         }
+        
+        // what message to display on the webpage for hub status
 
+        Log.trace("    [[ConfigManager::Run()]]: 1!");
         _display_error_msg = "Your hub is working.";
         if (_hub->IsHubOutOfFood())
         {
@@ -209,12 +218,17 @@ bool ConfigManager::Run()
             _display_error_msg = "Dome is removed.";
         }
 
-        // get current game from gameMan
+        Log.trace("    [[ConfigManager::Run()]]: 2!");
+        
+        // get current game from game manager
+        
         _game_to_play = _gameMan->get_current_game();
         _new_game_selected = _game_to_play;
 
+        Log.trace("    [[ConfigManager::Run()]]: 3!");
         _serve_webinterface();
 
+        Log.trace("    [[ConfigManager::Run()]]: 4!");
         if (_new_game_selected >= 0 && _new_game_selected != _game_to_play)
         {
             Log.info("New game selected %i", _new_game_selected);
@@ -227,8 +241,11 @@ bool ConfigManager::Run()
 
         }
 
-        // test idea that we always attempt to reconnect every N seconds. 
-        // could make this last webpage-request dependent, so if webpage is currently active, don't need to do this
+        // on some networks, mdns occasionally fails and the domain clevepet.local stops working; need to attempt reconnect
+        // since we don't have a conclusive way to determine if it is broken, we for now blindly attempt reconnect every 10 seconds if there's no request in that time 
+
+        Log.trace("    [[ConfigManager::Run()]]: 5!");
+
         bool _need_mdns_reconnect = (millis() - _last_request_time > 10000);
 
         if (_need_mdns_reconnect)
@@ -240,9 +257,6 @@ bool ConfigManager::Run()
                 Serial.print(Time.timeStr());
                 Serial.println(" ######## Attempting mdns reconnect... ########");
 
-                //delete mgschwan_mdns;
-                //mgschwan_mdns = new MDNS;
-
                 _broadcastAddress = mgschwan_getBroadcastAddress();
                 mgschwan_setupNetwork(mgschwan_mdns, true);
 
@@ -253,13 +267,11 @@ bool ConfigManager::Run()
 
     }
 
-    // TODO should _process_hub_mode be outside system_ready? things should function in general even if not on wifi???
-    // also set to active by default?
-    // TODO it already is by default but should set back to HUB STAY ON mode if can't connect to wifi??? or at least not in HUB STAY OFF mode???
-    // also... we might need to put this in its own class at some point
+    // process hub mode (stay on, stay off, scheduler)
 
     _process_hub_mode();
 
+    Log.trace("    [[ConfigManager::Run()]]: 7!");
     return true;
 
 }
@@ -267,12 +279,9 @@ bool ConfigManager::Run()
 
 bool ConfigManager::_process_hub_mode()
 {
-        
-    // compare _hub_mode vs _last_hub_mode (set at the end of this function)
-
     if (_hub_mode != _last_hub_mode)
     {
-        // there may not be anything to set here ...
+        // currently, there's no specific action to take when hub mode _changes_ ...
     }
 
     // determine hub state: active vs. standby, based on mode (and schedule, if mode is scheduler)
@@ -289,17 +298,10 @@ bool ConfigManager::_process_hub_mode()
     }
     else if (_hub_mode == _HUB_MODE_SCHEDULED)
     {
-        // use:
-
-        // _weekday_from: 06:30
-        // _weekday_to
-        // _weekend_from
-        // _weekend_to
-
-        // get:
-        //  current time
-        //  current day of the week -> weekday or weekend
+        // determine hub state based on schedule, current time, and current day of the week
         
+        // get current time and weekday vs. weekend
+
         int hour_now = Time.hour();
         int minute_now = Time.minute();
         int weekday_now = Time.weekday();
@@ -308,6 +310,8 @@ bool ConfigManager::_process_hub_mode()
         String from_minute = "  ";
         String to_hour = "  ";
         String to_minute = "  ";
+
+        // get from/to hour and minute for hub to be on, from current scheduler settings (_weekend_from, _weekend_to, _weekday...) and current day of the week
 
         if (weekday_now == 1 || weekday_now == 7)  // it is a weekend
         {
@@ -337,7 +341,6 @@ bool ConfigManager::_process_hub_mode()
             to_minute[0] = _weekday_to[3];
             to_minute[1] = _weekday_to[4];
         }
-
 
         int day_minutes_now = hour_now * 60 + minute_now;
 
@@ -387,7 +390,7 @@ bool ConfigManager::_process_hub_mode()
         new_hub_state = _HUB_STATE_ACTIVE;
     }
     
-    // TODO have to count _kibbles_eaten_today !!
+    // count _kibbles_eaten_today (retrieve from game manager)
     _kibbles_eaten_today = _gameMan->get_kibbles_eaten();
 
     // if kibbles are above limit, override new_hub_state to standby
@@ -396,9 +399,9 @@ bool ConfigManager::_process_hub_mode()
         new_hub_state = _HUB_STATE_STANDBY;
     }
 
-    // TODO reset kibbles eaten when needed! (when it is after midnight and previous time was before)
-    // based on: Time.day, Time.last_day ? - this is day of the month! check not equals
-    // Time.day()
+    // reset kibbles eaten when needed (when it is after midnight and previous time was before)
+    // based on: Time.day, Time.last_day (day of the month)
+
     int day_now = Time.day();
 
     bool reset_kibbles = false;
@@ -422,45 +425,39 @@ bool ConfigManager::_process_hub_mode()
 
         if (new_hub_state == _HUB_STATE_ACTIVE)
         {   
-
-            // for now, we are going to ignore the indicator light
-                
-            //     _logger->Log("SI::OnDesiredStatus: setting _activity_state = ACTIVITY_STATE_ACTIVE", Logger::LOG_LEVEL_LIGHT_CONTEXT);
-            //     IndicatorState = IL_SI_ACTIVE;
-
-
-            // this just set _active_mode flag in old firmware and that's all...
-            // _dli->SetActiveMode(true);
-            
+            // reference from cleverpet cloud-based firmware
+            //      (for now, we are going to ignore the indicator light):
+            //          _logger->Log("SI::OnDesiredStatus: setting _activity_state = ACTIVITY_STATE_ACTIVE", Logger::LOG_LEVEL_LIGHT_CONTEXT);
+            //          IndicatorState = IL_SI_ACTIVE;
+            //      this just set _active_mode flag
+            //          _dli->SetActiveMode(true);
+             
             _hub->SetButtonAudioEnabled(true);
             _hub->SetLightEnabled(true);
             _hub->UpdateButtonAudioEnabled();
 
             // inform game manager of hub state
-            // technically, only need to do this if it changed.
-            // should we just have it skip the game loop?
             _gameMan->set_game_enabled(true);
 
+            // set new hub state as the current state
             _hub_state = new_hub_state;
-
         }
         else if (new_hub_state == _HUB_STATE_STANDBY)
         {
-            // for now, we are going to ignore the indicator light
-
-        //        _logger->Log("SI::OnDesiredStatus: setting _activity_state = ACTIVITY_STATE_STANDBY", Logger::LOG_LEVEL_LIGHT_CONTEXT);
-         //        if (_max_kibbles_light_on)
-        //        {
-        //            IndicatorState = IL_SI_MAX_KIBBLES_DEPLETED;
-        //        }
-        //        else
-        //        {
-        //            IndicatorState = IL_SI_STANDBY;   
-        //        }
-            // 
+            // reference from cleverpet cloud-based firmware
+            //      (for now, we are going to ignore the indicator light):
+            //            _logger->Log("SI::OnDesiredStatus: setting _activity_state = ACTIVITY_STATE_STANDBY", Logger::LOG_LEVEL_LIGHT_CONTEXT);
+            //             if (_max_kibbles_light_on)
+            //             {
+            //                 IndicatorState = IL_SI_MAX_KIBBLES_DEPLETED;
+            //             }
+            //             else
+            //             {
+            //                 IndicatorState = IL_SI_STANDBY;   
+            //             }
             
-            // this just set _active_mode flag in old firmware and that's all...
-            // _dli->SetActiveMode(false);
+            //      this just set _active_mode flag in old firmware and that's all...
+            //          _dli->SetActiveMode(false);
             
             // only swap from ACTIVE to STANDBY if a game ended; but allow swap from INIT to STANDBY regardless
             if ((_hub_state == _HUB_STATE_ACTIVE && _gameMan->trial_just_done()) || (_hub_state == _HUB_STATE_INIT))
@@ -478,8 +475,6 @@ bool ConfigManager::_process_hub_mode()
         {
             Log.info("ERROR invalid hub state!");
         }
-
-
     }
 
     _last_hub_mode = _hub_mode;
@@ -490,9 +485,6 @@ bool ConfigManager::_process_hub_mode()
 
 bool ConfigManager::_serve_webinterface()
 {
-    //int new_game_selected = -1;
-    //int overrideable_next_game = _next_game_to_play;
-
     _webclient = _webserver.available();
     bool request_finished = false;
     if (_webclient.connected()) 
@@ -512,7 +504,7 @@ bool ConfigManager::_serve_webinterface()
         Log.info("--- SERVER FINISHED PROCESSING REQUEST ---");
     }
 
-    delay (1); //That is a hack to allow the browser to receive the data
+    delay (1); //That is a hack to allow the browser to receive the data (this is from the original http server code library we are using)
     _webclient.stop();
     return true;
 }
@@ -544,10 +536,6 @@ bool ConfigManager::_read_from_client(bool & request_finished, String & response
 
 bool ConfigManager::_process_request(String req_str)
 {
-
-    //Log.info("request string:");
-    //Log.print(req_str);
-
     // different types of requests
     
     bool req_get = req_str.substring(0, 3).equalsIgnoreCase("GET");
@@ -901,9 +889,7 @@ bool ConfigManager::_process_set_hub_mode_req(String req_str)
     int hub_mode_html_index = req_str.indexOf("hub_mode\"");  // "hub_mode": 
 
     Log.info("This is a HUB MODE post request.");
-    //Log.print("*******\n");
-    //Log.print(thing + "\n");
-    //Log.print("*-------------*\n");
+
     String tmp_2 = req_str.substring(hub_mode_html_index + 10);
     int index_stop = tmp_2.indexOf("}");
     tmp_2 = tmp_2.substring(0, index_stop);
@@ -1018,147 +1004,3 @@ bool ConfigManager::_process_get_req(String req_str)
     _webclient.print(bin2c_html_piece_39_tmp);    
     return true;
 }
-
-
-// // ////////////////////////////////////////////////////////////////////////////////////// DEPRECATED //////////////////////////////////////////////////////////////////////////////////////
-
-
-// bool ConfigManager::_write_response_html()
-// {
-//     String content = "";
-//     content += "<!DOCTYPE html>\n";
-//     content += "<html>\n";
-//     content += "<head>\n<style>\n";
-//     content += _htmlMan->get_css_string();
-//     content += "</style>\n";
-//     content += _htmlMan->get_script_html();
-//     content += "</head>\n";
-//     content += "<body>\n";
-
-//     // enable for debugging full GET request:
-//     //content += "<br><br>";
-//     //content += thing;
-//     //content += "<br><br>";
-
-//     // return the id from this function at the end; or, return what? -1? to indicate no new choice?
-
-//     // print list of games and URL to go to
-    
-//     content += "<br>\n";
-//     content += "select game:<br><br>\n";
-
-//     int next_game_to_disp = _next_game_to_play;
-//     if (_new_game_selected > 0)
-//     {
-//         // main loop has not set this yet, if it was just selected; so we need this check
-//         next_game_to_disp = _new_game_selected;
-//     }
-
-//     content += _htmlMan->get_link_for_game(0, "0", "Eating the Food", _game_to_play, next_game_to_disp);
-//     content += _htmlMan->get_link_for_game(1, "1", "Exploring the Touchpads", _game_to_play, next_game_to_disp);
-//     content += _htmlMan->get_link_for_game(2, "2", "Engaging Consistently", _game_to_play, next_game_to_disp);
-//     content += _htmlMan->get_link_for_game(3, "3", "Avoiding Unlit Touchpads", _game_to_play, next_game_to_disp);
-//     content += _htmlMan->get_link_for_game(4, "4", "Learning the Lights", _game_to_play, next_game_to_disp);
-//     content += _htmlMan->get_link_for_game(5, "5", "Mastering the Lights", _game_to_play, next_game_to_disp);
-//     content += _htmlMan->get_link_for_game(6, "6", "Responding Quickly", _game_to_play, next_game_to_disp);
-//     content += _htmlMan->get_link_for_game(7, "7", "Learning Brightness", _game_to_play, next_game_to_disp);
-//     content += _htmlMan->get_link_for_game(8, "8", "Learning Double Sequences", _game_to_play, next_game_to_disp);
-//     content += _htmlMan->get_link_for_game(9, "9", "Learning Longer Sequences", _game_to_play, next_game_to_disp);
-//     content += _htmlMan->get_link_for_game(10, "10", "Matching Two Colors", _game_to_play, next_game_to_disp);
-//     content += _htmlMan->get_link_for_game(11, "11", "Matching More Colors", _game_to_play, next_game_to_disp);
-
-//     content += "<br>\n";
-//     //content += display_error_msg;
-//     //content += "<br>";
-//     content += _htmlMan->get_async_html();
-//     content += "<br>\n";
-    
-//     //    "<form method=\"post\" action=\"http://cleverpet.local\">\n"
-//     //"Select Timezone: <select name=\"select_timezone\" onchange=\"this.form.submit()\">\n"
-    
-//     String dst_option_1_sel = "";
-//     String dst_option_2_sel = "";
-//     if (_dst_on)
-//     {
-//         dst_option_1_sel = " selected";
-//     }
-//     else
-//     {
-//         dst_option_2_sel = " selected";
-//     }
-
-//     content += "<form method=\"post\" action=\"http://cleverpet.local\">\n"
-//                 "Apply Daylight Savings: <select name=\"select_dst\" onchange=\"this.form.submit()\"><option value=\"1\"" + dst_option_1_sel + ">Yes</option><option value=\"0\"" + dst_option_2_sel + ">No</option></select><br>\n"
-//                 "</form>\n";
-
-//     String time_zone_str = _htmlMan->get_time_zone_string(_time_zone_offset);
-//     Log.info("time zone str length: " + int_to_string(time_zone_str.length()));
-
-//     String content_2 = "";
-    
-//     content_2 += "<br>\n";
-    
-//     content_2 += "Current Date/Time:<br>\n";
-//     content_2 += "<b><strong class=\"api-msg\" id=\"api-time\">" + Time.timeStr() + "</strong><br />\n" + "</b>";
-
-//     content_2 += "<br>\n";
-    
-//     String content_3 = "";
-    
-//     // add scheduler to content_3
-
-//     Log.info("_weekday_from: <" + _weekday_from + ">");
-//     Log.info("_weekday_to: <" + _weekday_to + ">");
-//     Log.info("_weekend_from: <" + _weekend_from + ">");
-//     Log.info("_weekend_to: <" + _weekend_to + ">");
-
-//     content_3 += _htmlMan->get_scheduler_html(_hub_mode, _weekday_from, _weekday_to, _weekend_from, _weekend_to);
-
-
-//     String content_4 = "";
-
-//     content_4 += "<br>\n";
-    
-//     content_4 += "Hub state: <b><strong class=\"api-hub-state\" id=\"api-hub-state\">";
-
-//     // this sets on init load
-    
-//     if (_hub_state == _HUB_STATE_ACTIVE)
-//     {
-//         content_4 += "Active";
-//     }
-//     else if (_hub_state == _HUB_STATE_STANDBY)
-//     {
-//         content_4 += "Standby";
-//     }
-//     else
-//     {
-//         content_4 += "Invalid";
-//     }
-
-//     content_4 += "</strong><br />\n";
-//     content_4 += "</b>\n";
-    
-//     String content_5 = "";
-//     content_5 += _htmlMan->get_kibbles_html(_kibbles_limit, _kibbles_eaten_today);
-
-//     content_5 += "</body>\n";
-//     content_5 += "</html>";
-//     //Log.info("content length: " + int_to_string(content.length()));
-//     //Log.info("content_2 length: " + int_to_string(content_2.length()));
-//     _webclient.println("HTTP/1.0 200 OK");
-//     _webclient.println("Content-type: text/html");
-//     _webclient.print("Content-length: ");
-//     _webclient.println(content.length() + time_zone_str.length() + content_2.length() + content_3.length() + content_4.length() + content_5.length());
-//     _webclient.println("");
-//     _webclient.print(content);
-//     _webclient.print(time_zone_str);
-//     _webclient.print(content_2);
-//     _webclient.print(content_3);
-//     _webclient.print(content_4);
-//     _webclient.print(content_5);
-//     _webclient.println();
-
-//     return true;
-// }
-

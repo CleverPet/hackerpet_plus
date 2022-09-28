@@ -67,6 +67,7 @@ bool GameManager::Run()
 {
     if (_game_enabled)
     {
+        Log.trace("    [[GameManager::Run()]]: 1!");
         bool trial_done = false;
 
         // TODO simplify this / move to a function when cleaning up
@@ -141,6 +142,7 @@ bool GameManager::Run()
         }
 
         _trial_just_done = trial_done;
+        Log.trace("    [[GameManager::Run()]]: 2!");
     }
     else
     {
