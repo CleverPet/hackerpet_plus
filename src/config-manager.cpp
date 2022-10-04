@@ -5,7 +5,7 @@
 
 using namespace std;
 
-#include <MDNS.h>
+#include "../lib/MDNS/src/MDNS.h"
 using namespace mdns;
 
 
@@ -191,6 +191,7 @@ bool ConfigManager::Run()
             _last_mdns_loop_time = millis();
         }
 
+        //Serial.println("    [[ConfigManager::Run()]]: 1!");
         _display_error_msg = "Your hub is working.";
         if (_hub->IsHubOutOfFood())
         {
@@ -209,12 +210,15 @@ bool ConfigManager::Run()
             _display_error_msg = "Dome is removed.";
         }
 
+        //Serial.println("    [[ConfigManager::Run()]]: 2!");
         // get current game from gameMan
         _game_to_play = _gameMan->get_current_game();
         _new_game_selected = _game_to_play;
 
+        //Serial.println("    [[ConfigManager::Run()]]: 3!");
         _serve_webinterface();
 
+        //Serial.println("    [[ConfigManager::Run()]]: 4!");
         if (_new_game_selected >= 0 && _new_game_selected != _game_to_play)
         {
             Log.info("New game selected %i", _new_game_selected);
@@ -227,6 +231,7 @@ bool ConfigManager::Run()
 
         }
 
+        //Serial.println("    [[ConfigManager::Run()]]: 5!");
         // test idea that we always attempt to reconnect every N seconds. 
         // could make this last webpage-request dependent, so if webpage is currently active, don't need to do this
         bool _need_mdns_reconnect = (millis() - _last_request_time > 10000);
@@ -257,9 +262,9 @@ bool ConfigManager::Run()
     // also set to active by default?
     // TODO it already is by default but should set back to HUB STAY ON mode if can't connect to wifi??? or at least not in HUB STAY OFF mode???
     // also... we might need to put this in its own class at some point
-
+    //Serial.println("    [[ConfigManager::Run()]]: 6!");
     _process_hub_mode();
-
+    //Serial.println("    [[ConfigManager::Run()]]: 7!");
     return true;
 
 }

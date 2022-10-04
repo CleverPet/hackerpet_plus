@@ -11,6 +11,15 @@
 #include "softap_http.h"
 #include "hotspot-http-server.h"
 
+# include "../lib/MDNS/src/Buffer.h"
+# include "../lib/MDNS/src/Buffer.cpp"
+# include "../lib/MDNS/src/Record.h"
+# include "../lib/MDNS/src/Record.cpp"
+# include "../lib/MDNS/src/Label.h"
+# include "../lib/MDNS/src/Label.cpp"
+# include "../lib/MDNS/src/MDNS.h"
+# include "../lib/MDNS/src/MDNS.cpp"
+
 // new
 
 #include "config-manager.h"
@@ -40,24 +49,30 @@ unsigned long FREE_MEMORY;
 
 // loop() runs over and over again, as quickly as it can execute.
 void loop() {
+    
 
     // serve webpage, read/write eeprom as config changes
+    // Serial.println("[[calling]]: configMan.Run();");
     configMan.Run();
     
     // ************************************ DISABLE FOR TESTING WITHOUT HUB ************************************
     // run the hub
+    // Serial.println("[[calling]]: hub.Run(20);");
     hub.Run(20);
     // ************************************ ************************************ ************************************
 
     // run the loop for the current active game
+    // Serial.println("[[calling]]: gameMan.Run();");
     gameMan.Run();
 
-    FREE_MEMORY = System.freeMemory();
-    
-    if ((millis() - lastmemcheck) > 10000) {
+    if ((millis() - lastmemcheck) > 10000) {        
+        // Serial.print(Time.timeStr());
+        // Serial.println("[[calling]]: free memory");
+        
+        FREE_MEMORY = System.freeMemory();
+
         lastmemcheck = millis();
-        Serial.print(Time.timeStr());
-        Serial.println("in7399");
+
         Serial.printlnf("\tMILLIS: %lu\tSYSTEM MEMORY=%lu", lastmemcheck, FREE_MEMORY);
     }
 }

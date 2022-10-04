@@ -2,7 +2,7 @@
 #define CONFIG_MANAGER_H
 
 #include "Particle.h"
-#include <MDNS.h>
+#include "../lib/MDNS/src/MDNS.h"
 using namespace mdns;
 
 #include "http-server-util.h"
