@@ -847,6 +847,8 @@ bool ConfigManager::_process_set_kibbles_thresh_req(String req_str)
 
     _hub->SetFoodTreatDetectThresh(_foodtreat_detect_thresh);
 
+    EEPROM.put(_FOODTREAT_THRESH_ADDRESS, _foodtreat_detect_thresh);
+
     String return_str = "HTTP/1.1 200 OK\r\nConnection: Closed\r\n\r\n"
                         "{}";
         Log.info("sending back: string:");

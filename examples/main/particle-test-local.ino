@@ -73,7 +73,7 @@ void loop() {
 
         lastmemcheck = millis();
 
-        Serial.printlnf("\hackerpet_plus_dev 0.1.111; MILLIS: %lu\tSYSTEM MEMORY=%lu", lastmemcheck, FREE_MEMORY);
+        Serial.printlnf("\hackerpet_plus_dev 0.1.112; MILLIS: %lu\tSYSTEM MEMORY=%lu", lastmemcheck, FREE_MEMORY);
 
     }
 }
