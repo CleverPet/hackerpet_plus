@@ -651,6 +651,7 @@ bool ConfigManager::_process_api_get_req(String req_str)
                             "\"hub_state\":\"" + hub_state_str + "\","
                             "\"time\":\"" + Time.timeStr() + "\","
                             "\"max_kibbles\":\"" + int_to_string(_kibbles_limit) + "\","
+                            "\"kibthresh\":\"" + int_to_string(_foodtreat_detect_thresh) + "\","
                             "\"kibbles_eaten_today\":\"" + int_to_string(_kibbles_eaten_today) + "\""
                             "}";
         _webclient.println(return_str);
@@ -838,10 +839,20 @@ bool ConfigManager::_process_set_kibbles_thresh_req(String req_str)
     
     int thresh = thresh_str.toInt();
 
+    Serial.println("New threshold set for kibbles detect:");
+    Serial.println(int_to_string(thresh));
+    Serial.println("");
+
     _foodtreat_detect_thresh = thresh;
 
     _hub->SetFoodTreatDetectThresh(_foodtreat_detect_thresh);
 
+    String return_str = "HTTP/1.1 200 OK\r\nConnection: Closed\r\n\r\n"
+                        "{}";
+        Log.info("sending back: string:");
+        Log.print(return_str);
+        _webclient.println(return_str);
+    
     return true;
 }
 
