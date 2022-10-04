@@ -36,6 +36,121 @@ bool ConfigManager::_sched_string_to_char(char * char_tmp, String & str)
     return true;
 }
 
+//uint8_t buf[2000];
+
+bool ConfigManager::_webclient_print(const String & str)
+{
+    // _webclient . print is blocking
+    // this is a replacement that is non blocking
+    // OLD
+    //uint8_t * buf[str.length()];
+    // (const uint8_t*)
+    //_webclient.write( str.c_str(), strlen(str.c_str()), 2000);
+        
+    
+    // next 5 lines work!!! kind of
+    //Serial.println("ConfigManager::_webclient_print [1]");
+    //str.getBytes(buf, 2000); //str.length());
+    //Serial.println("ConfigManager::_webclient_print [2]");
+    //_webclient.write(buf, str.length(), 500);
+    //Serial.println("ConfigManager::_webclient_print [3]");
+
+    // alternative
+    Serial.println("ConfigManager::_webclient_print [1]");
+    uint8_t *buf = new uint8_t[str.length()];
+    Serial.println("ConfigManager::_webclient_print [2]");
+    // Serial.println("ConfigManager::_webclient_print: <STR>");
+    // Serial.println(str);
+    // Serial.println("</STR>");
+
+    str.getBytes(buf, str.length());
+    Serial.println("ConfigManager::_webclient_print [3]");
+
+    //Serial.println("ConfigManager::_webclient_print: <BUF>");
+    //Serial.println(buf);
+    //Serial.println("</BUF>")
+
+    int bytes_written = _webclient.write(buf, str.length(), 500); //, 500);
+    
+    Serial.println("STR LEN:");
+    Serial.println(int_to_string(str.length()));
+    Serial.println("BYTES WRITTEN:");
+    Serial.println(int_to_string(bytes_written));
+    
+    int err = _webclient.getWriteError();
+    if (err != 0) {
+    Log.info("TCPClient::write() failed (error = %d), number of bytes written: %d", err, bytes_written);
+    }
+
+    Serial.println("ConfigManager::_webclient_print [4]");
+    delete[] buf;
+
+    return true;
+}
+
+
+bool ConfigManager::_webclient_print(const String & str, int string_length)
+{
+    // overloaded for implicit strings to pass explicit length
+    uint8_t *buf = new uint8_t[string_length];
+    str.getBytes(buf, string_length);
+    int bytes_written = _webclient.write(buf, string_length, 500); //, 500);
+
+    // TODO HAVENT COMPILED THIS YET
+    Serial.println("STR LEN:");
+    Serial.println(int_to_string(string_length));
+    Serial.println("BYTES WRITTEN:");
+    Serial.println(int_to_string(bytes_written));
+
+
+    int err = _webclient.getWriteError();
+    if (err != 0) {
+    Log.info("TCPClient::write() failed (error = %d), number of bytes written: %d", err, bytes_written);
+    }
+
+    return true;
+}
+
+bool ConfigManager::_webclient_println(const String & str)
+{
+
+    /// TODODODODODODODODOD
+    // UNDO THE HACK OF DOONG WEBCLIENT PRINTLN FOR LN!!!!!!!
+    // with this hack, it gets a different error: "invalid content-length: value"
+
+    _webclient_print(str);
+    _webclient.println("");
+    return true;
+
+    // "no response from server":
+
+    // _webclient_print(str);
+    //String asd("  ");
+    //asd[0] = char(13);
+    //asd[1] = char(10);
+    //_webclient_print(asd);
+    //return true;
+
+    // OLD CODE
+    if (false)
+    {
+        // _webclient . println is blocking!
+        // this is a replacement that is non blocking
+
+        // Serial.println("ConfigManager::_webclient_printLN [1]");
+        // _webclient_print(str);
+        // Serial.println("ConfigManager::_webclient_printLN [2]");
+        // String asd("\r\n");
+        // Serial.println("ConfigManager::_webclient_printLN [3]");
+        // asd.getBytes(buf, 2000);  //asd.length());
+        // Serial.println("ConfigManager::_webclient_printLN [4]");
+        // _webclient.write(buf, asd.length(), 500);
+        // Serial.println("ConfigManager::_webclient_printLN [5]");
+
+        return true;
+    }
+}
+
 bool ConfigManager::Initialize()
 {
     _system_ready = false;
@@ -647,7 +762,7 @@ bool ConfigManager::_process_api_get_req(String req_str)
                             "\"max_kibbles\":\"" + int_to_string(_kibbles_limit) + "\","
                             "\"kibbles_eaten_today\":\"" + int_to_string(_kibbles_eaten_today) + "\""
                             "}";
-        _webclient.println(return_str);
+        _webclient_println(return_str);
         return true;
 }
 
@@ -783,7 +898,7 @@ bool ConfigManager::_process_set_game_req(String req_str)
     Log.info("sending back: string:");
     Log.print(return_str);
 
-    _webclient.println(return_str);
+    _webclient_println(return_str);
 
     return true;
 
@@ -815,7 +930,7 @@ bool ConfigManager::_process_set_max_kibbles_req(String req_str)
                         "{}";
         Log.info("sending back: string:");
         Log.print(return_str);
-        _webclient.println(return_str);
+        _webclient_println(return_str);
 
         return true;
 }
@@ -861,7 +976,7 @@ bool ConfigManager::_process_set_dst_req(String req_str)
                         "{}";
     Log.info("sending back: string:");
     Log.print(return_str);
-    _webclient.println(return_str);
+    _webclient_println(return_str);
 
     return true;
 }
@@ -892,7 +1007,7 @@ bool ConfigManager::_process_set_timezone_req(String req_str)
                         "{}";
         Log.info("sending back: string:");
         Log.print(return_str);
-        _webclient.println(return_str);
+        _webclient_println(return_str);
 
     return true;
 }
@@ -921,7 +1036,7 @@ bool ConfigManager::_process_set_hub_mode_req(String req_str)
                         "{}";
         Log.info("sending back: string:");
         Log.print(return_str);
-        _webclient.println(return_str);
+        _webclient_println(return_str);
 
     return true;
 
@@ -959,7 +1074,7 @@ bool ConfigManager::_process_set_schedule_req(String req_str)
                         "{}";
         Log.info("sending back: string:");
         Log.print(return_str);
-        _webclient.println(return_str);
+        _webclient_println(return_str);
         return true;
 }
 
@@ -975,52 +1090,68 @@ bool ConfigManager::_process_get_req(String req_str)
     // make sure each bit after loading is then deleted after writing, before reading next bit
     // otherwise ram will run out!
 
-    _webclient.println("HTTP/1.0 200 OK");
-    _webclient.println("Content-type: text/html");
-    _webclient.print("Content-length: ");
-    _webclient.println(len_html_piece * 39 + len_last_piece);
-    _webclient.println("");
+    Serial.println("ConfigManager::_process_get_req [START]");
+    _webclient_println("HTTP/1.0 200 OK");
+    Serial.println("ConfigManager::_process_get_req [1]");
+    _webclient_println("Content-type: text/html");
+    Serial.println("ConfigManager::_process_get_req [2]]");
+    _webclient_print("Content-length: ");
+    Serial.println("ConfigManager::_process_get_req [3]");
 
-    _webclient.print(bin2c_html_piece_0_tmp);
-    _webclient.print(bin2c_html_piece_1_tmp);
-    _webclient.print(bin2c_html_piece_2_tmp);
-    _webclient.print(bin2c_html_piece_3_tmp);
-    _webclient.print(bin2c_html_piece_4_tmp);
-    _webclient.print(bin2c_html_piece_5_tmp);
-    _webclient.print(bin2c_html_piece_6_tmp);
-    _webclient.print(bin2c_html_piece_7_tmp);
-    _webclient.print(bin2c_html_piece_8_tmp);
-    _webclient.print(bin2c_html_piece_9_tmp);
-    _webclient.print(bin2c_html_piece_10_tmp);
-    _webclient.print(bin2c_html_piece_11_tmp);
-    _webclient.print(bin2c_html_piece_12_tmp);
-    _webclient.print(bin2c_html_piece_13_tmp);
-    _webclient.print(bin2c_html_piece_14_tmp);
-    _webclient.print(bin2c_html_piece_15_tmp);
-    _webclient.print(bin2c_html_piece_16_tmp);
-    _webclient.print(bin2c_html_piece_17_tmp);
-    _webclient.print(bin2c_html_piece_18_tmp);
-    _webclient.print(bin2c_html_piece_19_tmp);
-    _webclient.print(bin2c_html_piece_20_tmp);
-    _webclient.print(bin2c_html_piece_21_tmp);
-    _webclient.print(bin2c_html_piece_22_tmp);
-    _webclient.print(bin2c_html_piece_23_tmp);
-    _webclient.print(bin2c_html_piece_24_tmp);
-    _webclient.print(bin2c_html_piece_25_tmp);
-    _webclient.print(bin2c_html_piece_26_tmp);
-    _webclient.print(bin2c_html_piece_27_tmp);
-    _webclient.print(bin2c_html_piece_28_tmp);
-    _webclient.print(bin2c_html_piece_29_tmp);
-    _webclient.print(bin2c_html_piece_30_tmp);
-    _webclient.print(bin2c_html_piece_31_tmp);
-    _webclient.print(bin2c_html_piece_32_tmp);
-    _webclient.print(bin2c_html_piece_33_tmp);
-    _webclient.print(bin2c_html_piece_34_tmp);
-    _webclient.print(bin2c_html_piece_35_tmp);
-    _webclient.print(bin2c_html_piece_36_tmp);
-    _webclient.print(bin2c_html_piece_37_tmp);
-    _webclient.print(bin2c_html_piece_38_tmp);
-    _webclient.print(bin2c_html_piece_39_tmp);    
+    // TODO THE ERROR IS THAT WHEN CONVERTING THESE TO STRINGS, THE LENGTH IS NOT CORRECT!!!!! THERE IS NO VALID LENGTH TO THIS STRING
+    // AND THEN, OUR BUFFER IS NOT ENOUGH .... AND IT ALL CRASHES
+
+    _webclient_println(String(len_html_piece * 39 + len_last_piece));
+    Serial.println("ConfigManager::_process_get_req [4]");
+    _webclient_println("");
+    Serial.println("ConfigManager::_process_get_req [5]");
+
+    _webclient_print(bin2c_html_piece_0_tmp, len_html_piece);
+    Serial.println("ConfigManager::_process_get_req [6]");
+
+    _webclient_print(bin2c_html_piece_1_tmp, len_html_piece);
+    Serial.println("ConfigManager::_process_get_req [7]");
+    _webclient_print(bin2c_html_piece_2_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_3_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_4_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_5_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_6_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_7_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_8_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_9_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_10_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_11_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_12_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_13_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_14_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_15_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_16_tmp, len_html_piece);
+    Serial.println("ConfigManager::_process_get_req [8]");
+    _webclient_print(bin2c_html_piece_17_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_18_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_19_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_20_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_21_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_22_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_23_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_24_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_25_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_26_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_27_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_28_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_29_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_30_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_31_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_32_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_33_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_34_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_35_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_36_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_37_tmp, len_html_piece);
+    _webclient_print(bin2c_html_piece_38_tmp, len_html_piece);
+    
+    _webclient_print(bin2c_html_piece_39_tmp, len_last_piece);    
+    Serial.println("ConfigManager::_process_get_req [DONE]");
     return true;
 }
 
@@ -1151,18 +1282,18 @@ bool ConfigManager::_process_get_req(String req_str)
 //     content_5 += "</html>";
 //     //Log.info("content length: " + int_to_string(content.length()));
 //     //Log.info("content_2 length: " + int_to_string(content_2.length()));
-//     _webclient.println("HTTP/1.0 200 OK");
-//     _webclient.println("Content-type: text/html");
-//     _webclient.print("Content-length: ");
-//     _webclient.println(content.length() + time_zone_str.length() + content_2.length() + content_3.length() + content_4.length() + content_5.length());
-//     _webclient.println("");
-//     _webclient.print(content);
-//     _webclient.print(time_zone_str);
-//     _webclient.print(content_2);
-//     _webclient.print(content_3);
-//     _webclient.print(content_4);
-//     _webclient.print(content_5);
-//     _webclient.println();
+//     _webclient_println("HTTP/1.0 200 OK");
+//     _webclient_println("Content-type: text/html");
+//     _webclient_print("Content-length: ");
+//     _webclient_println(content.length() + time_zone_str.length() + content_2.length() + content_3.length() + content_4.length() + content_5.length());
+//     _webclient_println("");
+//     _webclient_print(content);
+//     _webclient_print(time_zone_str);
+//     _webclient_print(content_2);
+//     _webclient_print(content_3);
+//     _webclient_print(content_4);
+//     _webclient_print(content_5);
+//     _webclient_println();
 
 //     return true;
 // }

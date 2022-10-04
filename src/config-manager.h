@@ -25,6 +25,9 @@ class ConfigManager
     private:
         bool _sched_char_to_string(char * char_tmp, String & str);
         bool _sched_string_to_char(char * char_tmp, String & str);
+        bool _webclient_print(const String & str);
+        bool _webclient_print(const String & str, int string_length);
+        bool _webclient_println(const String & str);
         bool _process_hub_mode();
         bool _serve_webinterface();
         bool _read_from_client(bool & request_finished, String & response_str);
