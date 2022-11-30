@@ -91,6 +91,8 @@ bool ConfigManager::Initialize()
         
         EEPROM.get(_KIBBLES_LIMIT_ADDRESS, _kibbles_limit);
 
+        EEPROM.get(_FOODTREAT_THRESH_ADDRESS, _foodtreat_detect_thresh);
+
         _last_hub_mode = _hub_mode;
 
     }
@@ -143,10 +145,14 @@ bool ConfigManager::Initialize()
         _kibbles_limit = 0;
         EEPROM.put(_KIBBLES_LIMIT_ADDRESS, _kibbles_limit);
 
+        _foodtreat_detect_thresh = 60;  // 40 for empty dish fix
+        EEPROM.put(_FOODTREAT_THRESH_ADDRESS, _foodtreat_detect_thresh);
     }
     
     // to force initialization to a valid _hub_state in Run()
     _hub_state = _HUB_STATE_INIT;
+
+    _hub->SetFoodTreatDetectThresh(_foodtreat_detect_thresh);
 
     mgschwan_mdns = new MDNS;
 
@@ -645,6 +651,7 @@ bool ConfigManager::_process_api_get_req(String req_str)
                             "\"hub_state\":\"" + hub_state_str + "\","
                             "\"time\":\"" + Time.timeStr() + "\","
                             "\"max_kibbles\":\"" + int_to_string(_kibbles_limit) + "\","
+                            "\"kibthresh\":\"" + int_to_string(_foodtreat_detect_thresh) + "\","
                             "\"kibbles_eaten_today\":\"" + int_to_string(_kibbles_eaten_today) + "\""
                             "}";
         _webclient.println(return_str);
@@ -823,10 +830,31 @@ bool ConfigManager::_process_set_max_kibbles_req(String req_str)
 bool ConfigManager::_process_set_kibbles_thresh_req(String req_str)
 {
 
-    // TODO is there  abranch where we have eeprom etc. stuff for this already coded?
-    // yes: 
-    // https://github.com/CleverPet/hackerpet_plus/pull/7/files
+    // TODO FINISH
 
+    // TODO NEEDS TESTING
+    String thresh_str = req_str.substring(req_str.indexOf("kibbles_thresh\"") + 16);
+    int index_stop = thresh_str.indexOf("}");  //  TODO is this correct?
+    thresh_str = thresh_str.substring(0, index_stop);
+    
+    int thresh = thresh_str.toInt();
+
+    Serial.println("New threshold set for kibbles detect:");
+    Serial.println(int_to_string(thresh));
+    Serial.println("");
+
+    _foodtreat_detect_thresh = thresh;
+
+    _hub->SetFoodTreatDetectThresh(_foodtreat_detect_thresh);
+
+    EEPROM.put(_FOODTREAT_THRESH_ADDRESS, _foodtreat_detect_thresh);
+
+    String return_str = "HTTP/1.1 200 OK\r\nConnection: Closed\r\n\r\n"
+                        "{}";
+        Log.info("sending back: string:");
+        Log.print(return_str);
+        _webclient.println(return_str);
+    
     return true;
 }
 
